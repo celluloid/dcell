@@ -9,7 +9,7 @@ namespace :zookeeper do
 
   file "tmp/#{TARBALL}" => "tmp" do
     puts "*** Downloading Zookeeper"
-    sh "curl http://www.carfab.com/apachesoftware/zookeeper/stable/#{TARBALL} -o tmp/#{TARBALL}"
+    sh "curl http://archive.apache.org/dist/zookeeper/zookeeper-#{VERSION}/#{TARBALL} -o tmp/#{TARBALL}"
   end
 
   task :install => :download do
