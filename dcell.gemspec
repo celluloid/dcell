@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
   
-  s.add_dependency "celluloid"
+  s.add_dependency "celluloid", ">= 0.3.0"
   s.add_dependency "ffi-rzmq"
+  s.add_dependency "slyphon-zookeeper"
 end
