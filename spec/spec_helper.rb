@@ -4,4 +4,4 @@ Bundler.setup
 
 require 'dcell'
 
-DCell::Directory.setup :adapter => 'zk', :servers => {:host => 'localhost'}
+DCell::Directory.setup :adapter => 'zk', :server => "localhost"

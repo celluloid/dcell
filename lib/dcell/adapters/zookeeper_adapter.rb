@@ -9,20 +9,16 @@ module DCell
     # servers: a list of Zookeeper servers to connect to. Each server in the
     #          list has a host/port configuration
     def initialize(options)
-      servers = options[:servers] || options['servers']
-      raise "no Zookeeper servers given" unless servers
-
-      addrs = []
-      [servers].flatten.each do |server|
-        host = server[:host] || server['host']
-        next unless host
-
-        port = server[:port] || server['port'] || 2181
-        addrs << "#{host}:#{port}"
+      # Let them specify a single server instead of many
+      server = options[:server] || options['server']
+      if server
+        servers = [server]
+      else
+        servers = options[:servers] || options['servers']
+        raise "no Zookeeper servers given" unless servers
       end
 
-      raise "no valid Zookeeper servers found!" if addrs.empty?
-      @zk = Zookeeper.new(*addrs)
+      @zk = Zookeeper.new(*servers)
     rescue ZookeeperExceptions::ZookeeperException::NotConnected
       raise Directory::RequestError, "couldn't connect to the Zookeper server"
     end
@@ -30,7 +26,7 @@ module DCell
     # Get a particular key from Zookeeper
     def get(key)
       result = @zk.get(:path => "#{PREFIX}/#{key}")
-      return unless result[:rc] == 0
+      return unless zk_success? result
       result[:data]
     rescue ZookeeperExceptions::ZookeeperException::NotConnected
       raise Directory::RequestError, "couldn't connect to the Zookeper server"
@@ -40,13 +36,13 @@ module DCell
     def set(key, value)
       path = "#{PREFIX}/#{key}" # Path to the given directory node
 
-      result = @zk.set :path => path, :data => value
-      unless result[:rc] == 0
+      unless zk_success? @zk.set(:path => path, :data => value)
         create_node path
 
         # Retry the original request
-        result = @zk.set :path => path, :data => value
-        raise "couldn't set a Zookeeper node's value" unless result[:rc] == 0
+        unless zk_success? @zk.set(:path => path, :data => value)
+          raise "couldn't set a Zookeeper node's value"
+        end
       end
 
       value
@@ -61,20 +57,27 @@ module DCell
     # Create a Zookeeper node
     def create_node(path)
       # Attempt to create the given key if it doesn't already exist
-      result = @zk.create :path => path
-      unless result[:rc] == 0
+      unless zk_success? @zk.create(:path => path)
         create_toplevel_node
-        result = @zk.create :path => path
-        raise "couldn't create a Zookeeper node" unless result[:rc] == 0
+
+        unless zk_success? @zk.create(:path => path)
+          raise "couldn't create a Zookeeper node"
+        end
       end
       true
     end
 
     # Create the toplevel Zookeeper node for DCell state
     def create_toplevel_node
-      result = @zk.create :path => PREFIX
-      raise "unable to create toplevel node in Zookeeper" unless result[:rc] == 0
+      unless zk_success? @zk.create(:path => PREFIX)
+        raise "unable to create toplevel node in Zookeeper"
+      end
       true
+    end
+
+    # Was the given request to Zookeeper successful?
+    def zk_success?(result)
+      result[:rc] == 0
     end
   end
 end
