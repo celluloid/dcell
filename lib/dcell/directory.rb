@@ -17,15 +17,21 @@ module DCell
 
       # Get the URL for a particular Node ID
       def get(nodeid)
+        assert_configured
         @adapter.get nodeid
       end
       alias_method :[], :get
 
       # Set the URL for a particular Node ID
       def set(nodeid, url)
+        assert_configured
         @adapter.set nodeid, url
       end
       alias_method :[]=, :set
+
+      def assert_configured
+        raise RequestError, "please run DCell::Directory.setup" unless @adapter
+      end
     end
   end
 end

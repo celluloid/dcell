@@ -2,7 +2,8 @@ require 'zookeeper'
 
 module DCell
   class ZookeeperAdapter
-    PREFIX = "/dcell"
+    NODE_PREFIX  = "/dcell"
+    DEFAULT_PORT = 2181
 
     # Create a new connection to Zookeeper
     #
@@ -18,14 +19,25 @@ module DCell
         raise "no Zookeeper servers given" unless servers
       end
 
-      @zk = Zookeeper.new(*servers)
-    rescue ZookeeperExceptions::ZookeeperException::NotConnected
-      raise Directory::RequestError, "couldn't connect to the Zookeper server"
+      # Add the default Zookeeper port unless specified
+      servers.map! do |server|
+        if server[/:\d+$/]
+          server
+        else
+          "#{server}:#{DEFAULT_PORT}"
+        end
+      end
+
+      begin
+        @zk = Zookeeper.new(*servers)
+      rescue ZookeeperExceptions::ZookeeperException::NotConnected, RuntimeError
+        raise Directory::RequestError, "couldn't connect to the Zookeper server"
+      end
     end
 
     # Get a particular key from Zookeeper
     def get(key)
-      result = @zk.get(:path => "#{PREFIX}/#{key}")
+      result = @zk.get(:path => "#{NODE_PREFIX}/#{key}")
       return unless zk_success? result
       result[:data]
     rescue ZookeeperExceptions::ZookeeperException::NotConnected
@@ -34,7 +46,7 @@ module DCell
 
     # Set a value within Zookeeper
     def set(key, value)
-      path = "#{PREFIX}/#{key}" # Path to the given directory node
+      path = "#{NODE_PREFIX}/#{key}" # Path to the given directory node
 
       unless zk_success? @zk.set(:path => path, :data => value)
         create_node path
@@ -69,7 +81,7 @@ module DCell
 
     # Create the toplevel Zookeeper node for DCell state
     def create_toplevel_node
-      unless zk_success? @zk.create(:path => PREFIX)
+      unless zk_success? @zk.create(:path => NODE_PREFIX)
         raise "unable to create toplevel node in Zookeeper"
       end
       true
