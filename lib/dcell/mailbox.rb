@@ -18,7 +18,6 @@ module DCell
         raise "couldn't bind to #{@addr}. Is the address in use?"
       end
 
-      #@poller.register @socket, ZMQ::POLLIN
       run!
     end
 

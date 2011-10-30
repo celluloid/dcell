@@ -9,8 +9,9 @@ module Celluloid
         @readers = {}
         @writers = {}
 
-        # Wake up the poller when the mailbox's waker is readable
-        # This is broken for whatever reason :(
+        # FIXME: The way things are presently implemented is super ghetto
+        # The ZMQ::Poller should be able to wait on the waker somehow
+        # but I can't get it to work :(
         #@poller.register nil, ::ZMQ::POLLIN, @waker.io.fileno
       end
 
@@ -42,6 +43,8 @@ module Celluloid
       # Run the reactor, waiting for events, and calling the given block if
       # the reactor is awoken by the waker
       def run_once
+        # FIXME: This approach is super ghetto. Find some way to make the
+        # ZMQ::Poller wait on the waker's file descriptor
         if @poller.size == 0
           readable, _ = select [@waker.io]
           yield if readable.include? @waker.io
