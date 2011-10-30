@@ -1,12 +1,7 @@
 module DCell
   # Mailboxes are inter-node communcation endpoints. Each has a unique address
   class Mailbox
-    include Celluloid
-
-    # Confusingly enough, a mailbox has a mailbox. This is a Celluloid mailbox
-    # used for intra-node (as oppsed to inter-node) communication, but one
-    # augmented with special abilities that let it multiplex 0MQ sockets
-    use_mailbox DCell::ZMQ::Mailbox
+    include Celluloid::ZMQ
 
     # Bind to the given ZeroMQ address (in URL form ala tcp://host:port)
     def initialize

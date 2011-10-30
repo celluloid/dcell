@@ -1,9 +1,7 @@
-module DCell
+module Celluloid
   module ZMQ
     # A Celluloid mailbox for Actors that wait on 0MQ sockets
     class Mailbox < Celluloid::IO::Mailbox
-      attr_reader :reactor, :waker
-
       def initialize
         @messages = []
         @lock  = Mutex.new

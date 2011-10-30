@@ -1,4 +1,4 @@
-module DCell
+module Celluloid
   module ZMQ
     # React to incoming 0MQ and Celluloid events. This is kinda sorta supposed
     # to resemble the Reactor design pattern.

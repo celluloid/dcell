@@ -1,11 +1,8 @@
 require 'celluloid'
-require 'ffi-rzmq'
+require 'celluloid/zmq'
 require 'digest/sha1'
 
 require 'dcell/version'
-require 'dcell/zmq/mailbox'
-require 'dcell/zmq/reactor'
-
 require 'dcell/directory'
 require 'dcell/mailbox'
 
