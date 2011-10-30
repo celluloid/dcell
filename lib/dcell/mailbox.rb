@@ -19,6 +19,23 @@ module DCell
       end
 
       #@poller.register @socket, ZMQ::POLLIN
+      run!
+    end
+
+    # Wait for incoming 0MQ messages
+    def run
+      while true
+        wait_readable(@socket)
+
+        message = ''
+        rc = @socket.recv_string(message)
+
+        if zmq_success? rc
+          puts "Got a message: #{message}"
+        else
+          raise "error receiving ZMQ string: #{rc}"
+        end
+      end
     end
 
     # Terminate this server
