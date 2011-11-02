@@ -42,14 +42,7 @@ module DCell
 
     # Attempt to generate a unique node ID for this machine
     def generate_node_id
-      mac_addrs = `/sbin/ifconfig -a`.scan(/(([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})/)
-      first_addr = mac_addrs.map { |addr| addr.first }.sort.first
-
-      if first_addr
-        Digest::SHA1.hexdigest(first_addr)
-      else
-        raise "can't automatically generate a node ID (is /sbin/ifconfig working?)"
-      end
+      `hostname` # Super creative I know
     end
 
     # Run the DCell application
