@@ -24,16 +24,38 @@ module DCell
     # Wait for incoming 0MQ messages
     def run
       while true
-        wait_readable(@socket)
-
+        wait_readable @socket
         message = ''
-        rc = @socket.recv_string(message)
 
+        rc = @socket.recv_string message
         if zmq_success? rc
-          puts "Got a message: #{message}"
+          handle_message message
         else
           raise "error receiving ZMQ string: #{rc}"
         end
+      end
+    end
+
+    # Handle incoming messages
+    def handle_message(message)
+      begin
+        message = decode_message message
+      rescue InvalidMessageError
+        Celluloid.logger.warn "got an unrecognized message: #{message.to_s[0..19]}"
+        return
+      end
+
+      puts "got a message: #{message.inspect}"
+    end
+
+    class InvalidMessageError < StandardError; end # undecodable message
+
+    # Decode incoming messages
+    def decode_message(message)
+      if message[0..1].unpack("CC") == [4, 8]
+        # Marshal 4.8 format
+        Marshal.load message
+      else raise InvalidMessageError, "couldn't determine message format"
       end
     end
 
