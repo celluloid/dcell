@@ -12,7 +12,11 @@ module Celluloid
         # FIXME: The way things are presently implemented is super ghetto
         # The ZMQ::Poller should be able to wait on the waker somehow
         # but I can't get it to work :(
-        #@poller.register nil, ::ZMQ::POLLIN, @waker.io.fileno
+        #result = @poller.register(nil, ::ZMQ::POLLIN, @waker.io.fileno)
+        #
+        #unless ::ZMQ::Util.resultcode_ok?(result)
+        #  raise "couldn't register waker with 0MQ poller"
+        #end
       end
 
       # Wait for the given ZMQ socket to become readable
