@@ -16,6 +16,9 @@ end
 
 module Celluloid
   class ActorProxy
+    # Marshal uses respond_to? to determine if this object supports _dump so
+    # unfortunately we have to monkeypatch in _dump support as the proxy
+    # itself normally jacks respond_to? and proxies to the actor
     alias_method :__respond_to?, :respond_to?
     def respond_to?(meth)
       return true if meth == :_dump
