@@ -1,7 +1,7 @@
 require 'weakref'
 
 module DCell
-  # Register addresses of individual mailboxes in order to route incoming messages
+  # Registry of actors which are talking over the distributed protocol
   class Registry
     @lock = Mutex.new
     @registry = {}

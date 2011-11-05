@@ -6,6 +6,7 @@ require 'dcell/directory'
 require 'dcell/mailbox_proxy'
 require 'dcell/node'
 require 'dcell/requests'
+require 'dcell/responses'
 require 'dcell/registry'
 require 'dcell/server'
 

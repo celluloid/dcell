@@ -59,7 +59,17 @@ module DCell
 
     # Send a message to another DCell node
     def send_message(message)
-      @socket.send_string Marshal.dump(message)
+      begin
+        string = Marshal.dump(message)
+      rescue => ex
+        abort ex
+      end
+
+      rc = @socket.send_string string
+      unless ::ZMQ::Util.resultcode_ok? rc
+        raise "error sending 0MQ message: #{::ZMQ::Util.error_string}"
+      end
     end
+    alias_method :<<, :send_message
   end
 end

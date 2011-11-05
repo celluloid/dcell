@@ -8,7 +8,32 @@
 # node you instead get a proxy object that routes messages through the
 # DCell overlay network back to the node where the actor actually exists
 
+module DCell
+  # Proxy object for actors that live on remote nodes
+  # This subclass serves as a marker this is a DCell-based proxy
+  class ActorProxy < Celluloid::ActorProxy; end
+end
+
 module Celluloid
+  class ActorProxy
+    alias_method :__respond_to?, :respond_to?
+    def respond_to?(meth)
+      return true if meth == :_dump
+      __respond_to? meth
+    end
+
+    # Dump an actor proxy via its mailbox
+    def _dump(level)
+      @mailbox._dump(level)
+    end
+
+    # Create an actor proxy object which routes messages over DCell's overlay
+    # network and back to the original mailbox
+    def self._load(string)
+      DCell::ActorProxy.new Celluloid::Mailbox._load(string)
+    end
+  end
+
   class Mailbox
     # This custom dumper registers actors with the DCell registry so they can
     # be reached remotely.

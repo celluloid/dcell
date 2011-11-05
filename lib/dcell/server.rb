@@ -41,25 +41,30 @@ module DCell
       begin
         message = decode_message message
       rescue InvalidMessageError => ex
-        Celluloid.logger.warn "got an unrecognized message: #{message.inspect}"
+        Celluloid.logger.warn "couldn't decode message: #{ex}"
         return
       end
 
-      puts "got a message: #{message.inspect}"
+      case message
+      when LookupRequest
+        Celluloid.logger.debug "Got a lookup request for #{message.name} from #{message.caller.address}"
+        message.caller << SuccessResponse.new(message.id, Celluloid::Actor[message.name])
+      else
+        Celluloid.logger.warn "got an unrecognized object: #{message}"
+      end
     end
 
     class InvalidMessageError < StandardError; end # undecodable message
 
     # Decode incoming messages
     def decode_message(message)
-      # Marshal 4.8 format
-      if message[0..1].unpack("CC") == [4, 8]
+      if message[0..1].unpack("CC") == [Marshal::MAJOR_VERSION, Marshal::MINOR_VERSION]
         begin
           Marshal.load message
         rescue => ex
           raise InvalidMessageError, "invalid message: #{ex}"
         end
-      else raise InvalidMessageError, "couldn't determine message format"
+      else raise InvalidMessageError, "couldn't determine message format: #{message}"
       end
     end
 

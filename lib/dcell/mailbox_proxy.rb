@@ -14,8 +14,20 @@ module DCell
       @mailbox_id = mailbox_id
     end
 
+    # name@host style address
+    def address
+      "#{@mailbox_id}@#{@node_id}"
+    end
+
     def inspect
-      "#<DCell::MailboxProxy:0x#{object_id.to_s(16)} #{@mailbox_id}@#{@node_id}>"
+      # FIXME: custom inspect is here because the default inspect was causing deadlocks
+      # This needs further investigation at some point...
+      "#<DCell::MailboxProxy:0x#{object_id.to_s(16)} #{address}>"
+    end
+
+    # Send a message to the mailbox
+    def <<(message)
+      @node << SendRequest.new(@mailbox_id, message)
     end
   end
 end
