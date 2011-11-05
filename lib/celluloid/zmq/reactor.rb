@@ -51,7 +51,7 @@ module Celluloid
         # ZMQ::Poller wait on the waker's file descriptor
         if @poller.size == 0
           readable, _ = select [@waker.io]
-          yield if readable.include? @waker.io
+          yield if readable and readable.include? @waker.io
         else
           if ::ZMQ::Util.resultcode_ok? @poller.poll(100)
             @poller.readables.each do |sock|

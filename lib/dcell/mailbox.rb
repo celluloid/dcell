@@ -8,14 +8,14 @@ module DCell
       @addr   = DCell.addr
       @socket = DCell.zmq_context.socket(::ZMQ::PULL)
 
-      unless zmq_success? @socket.setsockopt(::ZMQ::LINGER, 0)
+      unless ::ZMQ::Util.resultcode_ok? @socket.setsockopt(::ZMQ::LINGER, 0)
         @socket.close
-        raise "couldn't ZMQ::LINGER your socket for some reason"
+        raise "couldn't set ZMQ::LINGER: #{::ZMQ::Util.error_string}"
       end
 
-      unless zmq_success? @socket.bind(@addr)
+      unless ::ZMQ::Util.resultcode_ok? @socket.bind(@addr)
         @socket.close
-        raise "couldn't bind to #{@addr}. Is the address in use?"
+        raise "couldn't bind to #{@addr}: #{::ZMQ::Util.error_string}"
       end
 
       run!
@@ -28,10 +28,10 @@ module DCell
         message = ''
 
         rc = @socket.recv_string message
-        if zmq_success? rc
+        if ::ZMQ::Util.resultcode_ok? rc
           handle_message message
         else
-          raise "error receiving ZMQ string: #{rc}"
+          raise "error receiving ZMQ string: #{::ZMQ::Util.error_string}"
         end
       end
     end
@@ -40,8 +40,8 @@ module DCell
     def handle_message(message)
       begin
         message = decode_message message
-      rescue InvalidMessageError
-        Celluloid.logger.warn "got an unrecognized message: #{message.to_s[0..19]}"
+      rescue InvalidMessageError => ex
+        Celluloid.logger.warn "got an unrecognized message: #{message.inspect}"
         return
       end
 
@@ -52,9 +52,13 @@ module DCell
 
     # Decode incoming messages
     def decode_message(message)
+      # Marshal 4.8 format
       if message[0..1].unpack("CC") == [4, 8]
-        # Marshal 4.8 format
-        Marshal.load message
+        begin
+          Marshal.load message
+        rescue => ex
+          raise InvalidMessageError, "invalid message: #{ex}"
+        end
       else raise InvalidMessageError, "couldn't determine message format"
       end
     end
@@ -63,11 +67,6 @@ module DCell
     def terminate
       @socket.close
       super
-    end
-
-    # Did the given 0MQ operation succeed?
-    def zmq_success?(result)
-      ::ZMQ::Util.resultcode_ok? result
     end
   end
 end
