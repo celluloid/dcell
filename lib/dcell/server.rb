@@ -1,9 +1,9 @@
 module DCell
-  # Mailboxes are inter-node communcation endpoints. Each has a unique address
-  class Mailbox
+  # Servers handle incoming 0MQ traffic
+  class Server
     include Celluloid::ZMQ
 
-    # Bind to the given ZeroMQ address (in URL form ala tcp://host:port)
+    # Bind to the given 0MQ address (in URL form ala tcp://host:port)
     def initialize
       @addr   = DCell.addr
       @socket = DCell.zmq_context.socket(::ZMQ::PULL)

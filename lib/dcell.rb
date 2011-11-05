@@ -3,11 +3,11 @@ require 'celluloid/zmq'
 
 require 'dcell/version'
 require 'dcell/directory'
-require 'dcell/mailbox'
 require 'dcell/mailbox_proxy'
 require 'dcell/node'
 require 'dcell/requests'
 require 'dcell/registry'
+require 'dcell/server'
 
 require 'dcell/adapters/zookeeper_adapter'
 require 'dcell/application'
