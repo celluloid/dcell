@@ -23,6 +23,6 @@ describe DCell::Node do
 
   it "looks up remote actors" do
     actor = @node[:drunken_master]
-    actor.class.should == DCell::ActorProxy
+    actor.asses_kicked.should == 42
   end
 end
