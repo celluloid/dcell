@@ -29,5 +29,10 @@ module DCell
     def <<(message)
       @node.send_message! MessageRequest.new(@mailbox_id, message)
     end
+
+    # Is the remote mailbox still alive?
+    def alive?
+      true # FIXME: hax!
+    end
   end
 end

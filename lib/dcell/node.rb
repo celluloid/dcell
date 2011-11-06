@@ -46,7 +46,12 @@ module DCell
       request = LookupRequest.new(our_mailbox, name)
       send_message request
 
-      receive { |msg| msg.is_a? DCell::Response && msg.request_id = request.id }
+      response = receive do |msg|
+        msg.respond_to?(:request_id) && msg.request_id == request.id
+      end
+
+      raise response.value if response.is_a? ErrorResponse
+      response.value
     end
     alias_method :[], :find
 

@@ -39,16 +39,19 @@ module DCell
     # Handle incoming messages
     def handle_message(message)
       begin
-        message = decode_message message
+        request = decode_message message
       rescue InvalidMessageError => ex
         Celluloid.logger.warn "couldn't decode message: #{ex}"
         return
       end
 
-      case message
+      case request
       when LookupRequest
-        Celluloid.logger.debug "LookupRequest: #{message.caller.address} is looking up #{message.name.inspect}"
-        message.caller << SuccessResponse.new(message.id, Celluloid::Actor[message.name])
+        Celluloid.logger.debug "LookupRequest: #{request.caller.address} is looking up #{request.name.inspect}"
+        request.caller << SuccessResponse.new(request.id, Celluloid::Actor[request.name])
+      when MessageRequest
+        recipient = DCell::Registry.find request.recipient
+        recipient << request.message
       else
         Celluloid.logger.warn "Unrecognized DCell request: #{message}"
       end

@@ -23,6 +23,6 @@ describe DCell::Node do
 
   it "looks up remote actors" do
     actor = @node[:drunken_master]
-    actor.should be_a(JackieChan)
+    actor.class.should == DCell::ActorProxy
   end
 end
