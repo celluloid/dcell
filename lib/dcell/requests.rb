@@ -19,7 +19,7 @@ module DCell
   end
 
   # Send a message to the given recipient
-  class SendRequest < Request
+  class MessageRequest < Request
     attr_reader :recipient, :message
 
     def initialize(recipient, message)

@@ -27,7 +27,7 @@ module DCell
 
     # Send a message to the mailbox
     def <<(message)
-      @node << SendRequest.new(@mailbox_id, message)
+      @node.send_message! MessageRequest.new(@mailbox_id, message)
     end
   end
 end

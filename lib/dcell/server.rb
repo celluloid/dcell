@@ -47,10 +47,10 @@ module DCell
 
       case message
       when LookupRequest
-        Celluloid.logger.debug "Got a lookup request for #{message.name} from #{message.caller.address}"
+        Celluloid.logger.debug "LookupRequest: #{message.caller.address} is looking up #{message.name.inspect}"
         message.caller << SuccessResponse.new(message.id, Celluloid::Actor[message.name])
       else
-        Celluloid.logger.warn "got an unrecognized object: #{message}"
+        Celluloid.logger.warn "Unrecognized DCell request: #{message}"
       end
     end
 

@@ -36,6 +36,7 @@ module DCell
 
       unless ::ZMQ::Util.resultcode_ok? @socket.connect(@addr)
         @socket.close
+        raise "error connecting to #{addr}: #{::ZMQ::Util.error_string}"
       end
     end
 
@@ -45,15 +46,7 @@ module DCell
       request = LookupRequest.new(our_mailbox, name)
       send_message request
 
-      if Celluloid.actor?
-        # Yield to the actor scheduler, which resumes us when we get a response
-        response = Fiber.yield(request)
-      else
-        # Otherwise we're inside a normal thread, so block
-        response = our_mailbox.receive do |msg|
-          msg.is_a? Response and msg.call == call
-        end
-      end
+      receive { |msg| msg.is_a? DCell::Response && msg.request_id = request.id }
     end
     alias_method :[], :find
 
