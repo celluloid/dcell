@@ -22,9 +22,10 @@ module DCell
             node = Node.new(id, addr)
           end
 
-          @lock.synchronize { @nodes[id] = node }
-
-          node
+          @lock.synchronize do
+            @nodes[id] ||= node
+            @nodes[id]
+          end
         end
       end
       alias_method :[], :find
@@ -32,12 +33,20 @@ module DCell
 
     def initialize(id, addr)
       @id, @addr = id, addr
-      @socket = DCell.zmq_context.socket(::ZMQ::PUSH)
+      @socket = nil
+    end
 
+    # Obtain the node's 0MQ socket
+    def socket
+      return @socket if @socket
+
+      @socket = DCell.zmq_context.socket(::ZMQ::PUSH)
       unless ::ZMQ::Util.resultcode_ok? @socket.connect(@addr)
         @socket.close
         raise "error connecting to #{addr}: #{::ZMQ::Util.error_string}"
       end
+
+      @socket
     end
 
     # Find an actor registered with a given name on this node
@@ -63,11 +72,16 @@ module DCell
         abort ex
       end
 
-      rc = @socket.send_string string
+      rc = socket.send_string string
       unless ::ZMQ::Util.resultcode_ok? rc
         raise "error sending 0MQ message: #{::ZMQ::Util.error_string}"
       end
     end
     alias_method :<<, :send_message
+
+    # Friendlier inspection
+    def inspect
+      "#<DCell::Node[#{@id}] @addr=#{@addr.inspect}>"
+    end
   end
 end
