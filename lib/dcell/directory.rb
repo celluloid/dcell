@@ -28,6 +28,12 @@ module DCell
         @adapter.set_node node_id, addr
       end
       alias_method :[]=, :set
+      
+      # List all of the node IDs in the directory
+      def all
+        assert_configured
+        @adapter.nodes
+      end
 
       def assert_configured
         raise RequestError, "please run DCell::Directory.setup" unless @adapter

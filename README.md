@@ -76,8 +76,13 @@ node IDs:
     >> node = DCell::Node["cryptosphere.local"]
      => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
 
-Once you've obtained a node object, you can look up services it exports and
-call them just like you'd invoke methods on any other Ruby object:
+DCell::Node.all returns all connected nodes in the cluster:
+
+    >> DCell::Node.all
+     => [#<DCell::Node[test_node] @addr="tcp://127.0.0.1:21264">, #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">]
+
+Once you've obtained a node, you can look up services it exports and call them
+just like you'd invoke methods on any other Ruby object:
 
     >> time_server = node[:time_server]
      => #<Celluloid::Actor(TimeServer:0xee8)> 

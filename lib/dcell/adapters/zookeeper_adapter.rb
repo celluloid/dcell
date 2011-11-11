@@ -48,6 +48,11 @@ module DCell
       @zk.create path, addr
     end
     
+    # Find all of the nodes on the system
+    def nodes
+      @zk.children "#{base_path}/nodes"
+    end
+    
     # Base path for all entries
     def base_path
       "#{PREFIX}/#{@env}"

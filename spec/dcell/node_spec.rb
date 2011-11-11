@@ -6,8 +6,13 @@ describe DCell::Node do
     @node.id.should == 'test_node'
   end
 
-  it "looks up remote actors" do
+  it "finds all available nodes" do
+    nodes = DCell::Node.all
+    nodes.should include(DCell.me)
+  end
+
+  it "finds remote actors" do
     actor = @node[:test_actor]
     actor.class.should == DCell::ActorProxy
-  end
+  end  
 end

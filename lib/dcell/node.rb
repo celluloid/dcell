@@ -8,12 +8,19 @@ module DCell
     @lock  = Mutex.new
 
     class << self
+      # Return all available nodes in the cluster
+      def all
+        Directory.all.map do |node_id|
+          find node_id
+        end
+      end
+      
       # Find a node by its node ID
       def find(id)
         node = @lock.synchronize { @nodes[id] }
         return node if node
 
-        addr = Directory.get(id)
+        addr = Directory[id]
 
         if addr
           if id == DCell.id
