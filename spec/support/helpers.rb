@@ -35,6 +35,6 @@ module TestNode
     Process.kill 9, @pid
   rescue Errno::ESRCH
   ensure
-    Process.wait @pid
+    Process.wait @pid rescue nil
   end
 end
