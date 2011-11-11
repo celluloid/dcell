@@ -31,21 +31,21 @@ module DCell
       end
 
       @zk = ZK.new(*servers)
-      @zk.mkdir_p base_path
+      @zk.mkdir_p "#{base_path}/nodes"
     end
 
-    # Get a particular key from Zookeeper
-    def get(key)
-      result, _ = @zk.get("#{base_path}/#{key}")
+    # Get the address of a particular node
+    def get_node(node_id)
+      result, _ = @zk.get("#{base_path}/nodes/#{node_id}")
       result
     end
 
-    # Set a value within Zookeeper
-    def set(key, value)
-      path = "#{base_path}/#{key}"
-      @zk.set path, value
+    # Set the address of a particular node
+    def set_node(node_id, addr)
+      path = "#{base_path}/nodes/#{node_id}"
+      @zk.set path, addr
     rescue ZK::Exceptions::NoNode
-      @zk.create path, value
+      @zk.create path, addr
     end
     
     # Base path for all entries

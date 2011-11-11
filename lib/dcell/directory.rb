@@ -1,5 +1,5 @@
 module DCell
-  # Directory of the connected DCell cluster
+  # Directory of nodes connected to the DCell cluster
   class Directory
     class RequestError < StandardError; end # The directory couldn't process the given request
 
@@ -16,16 +16,16 @@ module DCell
       end
 
       # Get the URL for a particular Node ID
-      def get(nodeid)
+      def get(node_id)
         assert_configured
-        @adapter.get nodeid
+        @adapter.get_node node_id
       end
       alias_method :[], :get
 
-      # Set the URL for a particular Node ID
-      def set(nodeid, url)
+      # Set the address of a particular Node ID
+      def set(node_id, addr)
         assert_configured
-        @adapter.set nodeid, url
+        @adapter.set_node node_id, addr
       end
       alias_method :[]=, :set
 
