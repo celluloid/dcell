@@ -56,12 +56,12 @@ module Celluloid
           if ::ZMQ::Util.resultcode_ok? @poller.poll(100)
             @poller.readables.each do |sock|
               fiber = @readers.delete sock
-              fiber.resume if fiber
+              Celluloid.resume_fiber fiber if fiber
             end
 
             @poller.writables.each do |sock|
               fiber = @writers.delete sock
-              fiber.resume if fiber
+              Celluloid.resume_fiber fiber if fiber
             end
           end
 
