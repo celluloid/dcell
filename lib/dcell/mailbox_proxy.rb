@@ -20,8 +20,6 @@ module DCell
     end
 
     def inspect
-      # FIXME: custom inspect is here because the default inspect was causing deadlocks
-      # This needs further investigation at some point...
       "#<DCell::MailboxProxy:0x#{object_id.to_s(16)} #{address}>"
     end
 
