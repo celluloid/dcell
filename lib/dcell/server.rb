@@ -39,20 +39,18 @@ module DCell
     # Handle incoming messages
     def handle_message(message)
       begin
-        request = decode_message message
+        message = decode_message message
       rescue InvalidMessageError => ex
-        Celluloid.logger.warn "couldn't decode message: #{ex}"
+        Celluloid.logger.warn "couldn't decode message: #{ex.class}: #{ex}"
         return
       end
 
-      case request
-      when LookupRequest
-        Celluloid.logger.debug "LookupRequest: #{request.caller.address} is looking up #{request.name.inspect}"
-        request.caller << SuccessResponse.new(request.id, Celluloid::Actor[request.name])
-      when MessageRequest
-        DCell::Router.route request
-      else
-        Celluloid.logger.warn "Unrecognized DCell request: #{message}"
+      begin
+        message.dispatch
+      rescue => ex
+        error = "message dispatch failed: #{ex.class}: #{ex}\n  "
+        error << ex.backtrace.join("\n  ")
+        Celluloid.logger.error error if Celluloid.logger
       end
     end
 

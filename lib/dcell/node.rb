@@ -59,14 +59,14 @@ module DCell
     # Find an actor registered with a given name on this node
     def find(name)
       our_mailbox = Thread.current.mailbox
-      request = LookupRequest.new(our_mailbox, name)
+      request = Query.new(our_mailbox, name)
       send_message request
 
       response = receive do |msg|
         msg.respond_to?(:request_id) && msg.request_id == request.id
       end
 
-      raise response.value if response.is_a? ErrorResponse
+      abort response.value if response.is_a? ErrorResponse
       response.value
     end
     alias_method :[], :find
@@ -79,8 +79,7 @@ module DCell
         abort ex
       end
 
-      rc = socket.send_string string
-      unless ::ZMQ::Util.resultcode_ok? rc
+      unless ::ZMQ::Util.resultcode_ok? socket.send_string string
         raise "error sending 0MQ message: #{::ZMQ::Util.error_string}"
       end
     end
