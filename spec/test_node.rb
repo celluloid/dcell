@@ -15,6 +15,10 @@ class TestActor
   def initialize
     @value = 42
   end
+
+  def the_answer
+    DCell::Global[:the_answer]
+  end
 end
 
 class TestApplication < Celluloid::Application

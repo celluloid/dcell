@@ -129,3 +129,16 @@ This same actor is now available using the DCell::Node#[] syntax:
      => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:1870"> 
     >> node[:time_server].time
      => "The time is: 2011-11-10 20:28:27 -0800"
+
+Globals
+-------
+
+DCell provides a registry global for storing configuration data and actors you
+wish to publish globally to the entire cluster:
+
+	>> actor = Celluloid::Actor[:dcell_server]
+	 => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
+	>> DCell::Global[:sweet_server] = actor
+	 => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
+	>> DCell::Global[:sweet_server]
+	 => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
