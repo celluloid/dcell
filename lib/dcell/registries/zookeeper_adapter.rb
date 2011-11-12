@@ -39,6 +39,14 @@ module DCell
       @global_registry = GlobalRegistry.new(@zk, @base_path)
     end
 
+    def clear_nodes
+      @node_registry.clear
+    end
+
+    def clear_globals
+      @global_registry.clear
+    end
+
     class NodeRegistry
       def initialize(zk, base_path)
         @zk, @base_path = zk, "#{base_path}/nodes"
@@ -60,6 +68,11 @@ module DCell
 
       def nodes
         @zk.children @base_path
+      end
+
+      def clear
+        @zk.rm_rf @base_path
+        @zk.mkdir_p @base_path
       end
     end
 
@@ -91,7 +104,12 @@ module DCell
 
       # The keys to all globals in the system
       def global_keys
-        @zk.children(@base_path).map(&:to_sym)
+        @zk.children(@base_path)
+      end
+
+      def clear
+        @zk.rm_rf @base_path
+        @zk.mkdir_p @base_path
       end
     end
 

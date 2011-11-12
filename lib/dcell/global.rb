@@ -17,7 +17,7 @@ module DCell
 
     # Get the keys for all the globals in the system
     def keys
-      DCell.registry.global_keys
+      DCell.registry.global_keys.map(&:to_sym)
     end
   end
 end
