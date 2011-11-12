@@ -20,13 +20,13 @@ module Celluloid
       end
 
       # Wait for the given ZMQ socket to become readable
-      def wait_readable(socket, &block)
-        monitor_zmq socket, @readers, ::ZMQ::POLLIN, &block
+      def wait_readable(socket)
+        monitor_zmq socket, @readers, ::ZMQ::POLLIN
       end
 
       # Wait for the given ZMQ socket to become writeable
-      def wait_writeable(socket, &block)
-        monitor_zmq socket, @writers, ::ZMQ::POLLOUT, &block
+      def wait_writeable(socket)
+        monitor_zmq socket, @writers, ::ZMQ::POLLOUT
       end
 
       # Monitor the given ZMQ socket with the given options
@@ -39,9 +39,9 @@ module Celluloid
 
         @poller.register socket, type
         Fiber.yield
-        result = block_given? ? yield(socket) : socket
+
         @poller.deregister socket, type
-        result
+        socket
       end
 
       # Run the reactor, waiting for events, and calling the given block if

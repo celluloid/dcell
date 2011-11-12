@@ -15,14 +15,14 @@ module Celluloid
     end
 
     # Wait for the given IO object to become readable
-    def wait_readable(socket, &block)
+    def wait_readable(socket)
       # Law of demeter be damned!
-      current_actor.mailbox.reactor.wait_readable(socket, &block)
+      current_actor.mailbox.reactor.wait_readable(socket)
     end
 
     # Wait for the given IO object to become writeable
-    def wait_writeable(socket, &block)
-      current_actor.mailbox.reactor.wait_writeable(socket, &block)
+    def wait_writeable(socket)
+      current_actor.mailbox.reactor.wait_writeable(socket)
     end
   end
 end
