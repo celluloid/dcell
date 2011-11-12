@@ -36,6 +36,11 @@ module DCell
       end
     end
 
+    # Shut down the server
+    def finalize
+      @socket.close
+    end
+
     # Handle incoming messages
     def handle_message(message)
       begin

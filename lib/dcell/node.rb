@@ -14,7 +14,7 @@ module DCell
           find node_id
         end
       end
-      
+
       # Find a node by its node ID
       def find(id)
         node = @lock.synchronize { @nodes[id] }
@@ -43,13 +43,18 @@ module DCell
       @socket = nil
     end
 
+    def finalize
+      @socket.close if socket
+    end
+
     # Obtain the node's 0MQ socket
     def socket
       return @socket if @socket
 
       @socket = DCell.zmq_context.socket(::ZMQ::PUSH)
-      unless ::ZMQ::Util.resultcode_ok? @socket.connect(@addr)
+      unless ::ZMQ::Util.resultcode_ok? @socket.connect @addr
         @socket.close
+        @socket = nil
         raise "error connecting to #{addr}: #{::ZMQ::Util.error_string}"
       end
 
