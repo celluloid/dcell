@@ -11,7 +11,7 @@ module DCell
     #          list has a host/port configuration
     def initialize(options)
       @env = options[:env] || options['env'] || 'production'
-      
+
       # Let them specify a single server instead of many
       server = options[:server] || options['server']
       if server
@@ -47,12 +47,12 @@ module DCell
     rescue ZK::Exceptions::NoNode
       @zk.create path, addr
     end
-    
+
     # Find all of the nodes on the system
     def nodes
       @zk.children "#{base_path}/nodes"
     end
-    
+
     # Base path for all entries
     def base_path
       "#{PREFIX}/#{@env}"

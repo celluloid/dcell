@@ -10,7 +10,7 @@ require 'dcell/responses'
 require 'dcell/router'
 require 'dcell/server'
 
-require 'dcell/adapters/zookeeper_adapter'
+require 'dcell/registries/zookeeper_adapter'
 require 'dcell/application'
 require 'dcell/celluloid_ext'
 
@@ -22,9 +22,13 @@ module DCell
   @config_lock  = Mutex.new
 
   class << self
-    attr_reader :me, :zmq_context
+    attr_reader :me, :registry, :zmq_context
 
-    # Configure DCell
+    # Configure DCell with the following options:
+    #
+    # * id: to identify the local node, defaults to hostname
+    # * addr: 0MQ address of the local node (e.g. tcp://4.3.2.1:7777)
+    # *
     def setup(options = {})
       # Stringify keys :/
       options = options.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
@@ -33,12 +37,16 @@ module DCell
         @configuration = {
           'id'   => generate_node_id,
           'addr' => "tcp://127.0.0.1:#{DEFAULT_PORT}",
-          'directory' => {'adapter' => 'zk', 'server' => 'localhost'}
+          'registry' => {'adapter' => 'zk', 'server' => 'localhost'}
         }.merge(options)
 
         @me = Node.new @configuration['id'], @configuration['addr']
 
-        DCell::Directory.setup @configuration['directory']
+        if @configuration['registry'] and @configuration['registry']['adapter'] == 'zk'
+          @registry = ZookeeperAdapter.new(@configuration['registry'])
+        else raise "invalid registry adapter"
+        end
+
         DCell::Directory.set @configuration['id'], @configuration['addr']
       end
 
