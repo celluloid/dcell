@@ -6,6 +6,8 @@ require 'celluloid/zmq/reactor'
 
 module Celluloid
   # Actors which run alongside 0MQ operations
+  # This is a temporary hack (hopefully) until ffi-rzmq exposes IO objects for
+  # 0MQ sockets that can be used with Celluloid::IO
   module ZMQ
     def self.included(klass)
       klass.send :include, ::Celluloid
