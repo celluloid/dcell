@@ -41,7 +41,7 @@ module Celluloid
     # This custom dumper registers actors with the DCell registry so they can
     # be reached remotely.
     def _dump(level)
-      mailbox_id = DCell::Registry.register self
+      mailbox_id = DCell::Router.register self
       "#{mailbox_id}@#{DCell.id}"
     end
 

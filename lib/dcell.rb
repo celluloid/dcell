@@ -7,7 +7,7 @@ require 'dcell/mailbox_proxy'
 require 'dcell/node'
 require 'dcell/requests'
 require 'dcell/responses'
-require 'dcell/registry'
+require 'dcell/router'
 require 'dcell/server'
 
 require 'dcell/adapters/zookeeper_adapter'

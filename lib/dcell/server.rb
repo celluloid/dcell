@@ -50,8 +50,7 @@ module DCell
         Celluloid.logger.debug "LookupRequest: #{request.caller.address} is looking up #{request.name.inspect}"
         request.caller << SuccessResponse.new(request.id, Celluloid::Actor[request.name])
       when MessageRequest
-        recipient = DCell::Registry.find request.recipient
-        recipient << request.message
+        DCell::Router.route request
       else
         Celluloid.logger.warn "Unrecognized DCell request: #{message}"
       end
