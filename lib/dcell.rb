@@ -12,6 +12,7 @@ require 'dcell/router'
 require 'dcell/server'
 
 require 'dcell/registries/zookeeper_adapter'
+require 'dcell/registries/redis_adapter'
 require 'dcell/application'
 require 'dcell/celluloid_ext'
 
