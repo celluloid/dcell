@@ -24,20 +24,26 @@ DCell requires 0MQ. On OS X, this is available through Homebrew by running:
 
     brew install zeromq
 
-DCell also requires Zookeeper. Before you harumph and bemoan this gargantuan
-Java-encrusted dependency, relax and enhance your calm for a second: DCell
-totally automates installing and starting Zookeeper.
+DCell keeps the state of all connected nodes and global configuration data
+in a service it calls the "registry". There are presently two supported
+registry services:
 
-To install Zookeeper, run:
+* Redis: Fast and Loose
+* Zookeeper: Serious Business
+
+You may pick either one of these services to use as DCell's registry.
+
+To install a local copy of Redis on OS X with Homebrew, run:
+
+    brew install redis
+
+To install a local copy Zookeeper for testing purposes, run:
 
     rake zookeeper:install
 
 and to start it run:
 
     rake zookeeper:start
-
-You will need Zookeeper running to do anything, and will need to start a copy
-before running the tests (that part isn't automated yet, sorry)
 
 Usage
 -----

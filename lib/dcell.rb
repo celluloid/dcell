@@ -11,8 +11,8 @@ require 'dcell/responses'
 require 'dcell/router'
 require 'dcell/server'
 
-require 'dcell/registries/zookeeper_adapter'
 require 'dcell/registries/redis_adapter'
+require 'dcell/registries/zk_adapter'
 require 'dcell/application'
 require 'dcell/celluloid_ext'
 
@@ -39,15 +39,23 @@ module DCell
         @configuration = {
           'id'   => generate_node_id,
           'addr' => "tcp://127.0.0.1:#{DEFAULT_PORT}",
-          'registry' => {'adapter' => 'zk', 'server' => 'localhost'}
+          'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
         }.merge(options)
 
         @me = Node.new @configuration['id'], @configuration['addr']
 
-        if @configuration['registry'] and @configuration['registry']['adapter'] == 'zk'
-          @registry = ZookeeperAdapter.new(@configuration['registry'])
-        else raise "invalid registry adapter"
+        registry_adapter = @configuration['registry']['adapter']
+        raise ArgumentError, "no registry adapter given in config" unless registry_adapter
+
+        registry_class_name = registry_adapter.split("_").map(&:capitalize).join << "Adapter"
+
+        begin
+          registry_class = DCell::Registry.const_get registry_class_name
+        rescue NameError
+          raise ArgumentError, "invalid registry adapter: #{@configuration['registry']['adapter']}"
         end
+
+        @registry = registry_class.new(@configuration['registry'])
 
         DCell::Directory.set @configuration['id'], @configuration['addr']
       end
