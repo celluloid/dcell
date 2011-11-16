@@ -12,7 +12,6 @@ require 'dcell/router'
 require 'dcell/server'
 
 require 'dcell/registries/redis_adapter'
-require 'dcell/registries/zk_adapter'
 require 'dcell/application'
 require 'dcell/celluloid_ext'
 

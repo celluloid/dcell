@@ -19,10 +19,10 @@ Gem::Specification.new do |s|
   s.add_dependency "celluloid", ">= 0.6.0"
   s.add_dependency "ffi"
   s.add_dependency "ffi-rzmq"
-  s.add_dependency "zk"
   s.add_dependency "redis"
   s.add_dependency "redis-namespace"
 
   s.add_development_dependency "rake"
   s.add_development_dependency "rspec", ">= 2.7.0"
+  s.add_development_dependency "zk"
 end
