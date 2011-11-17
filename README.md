@@ -28,10 +28,15 @@ DCell keeps the state of all connected nodes and global configuration data
 in a service it calls the "registry". There are presently two supported
 registry services:
 
-* Redis: Fast and Loose
-* Zookeeper: Serious Business
+* Redis (Fast and Loose): simple and easy to use for development and
+  prototyping, but lacks a good distribution story
 
-You may pick either one of these services to use as DCell's registry.
+* Zookeeper (Serious Business): has slightly more annoying client-side
+  dependencies and more difficult to deploy than Redis, but has rock
+  solid characteristics in a distributed scenario
+
+You may pick either one of these services to use as DCell's registry. The
+default is Redis.
 
 To install a local copy of Redis on OS X with Homebrew, run:
 
@@ -98,9 +103,10 @@ just like you'd invoke methods on any other Ruby object:
 Registering Actors
 ------------------
 
-All services exposed by DCell must take the form of Celluloid actors. What
-follows is an extremely brief introduction, but for more information, you
-should definitely [read the Celluloid documentation](http://celluloid.github.com).
+All services exposed by DCell must take the form of registered Celluloid actors.
+What follows is an extremely brief introduction to creating and registering
+actors, but for more information, you should definitely [read the Celluloid
+documentation](http://celluloid.github.com).
 
 DCell exposes all Celluloid actors you've registered directly onto the network.
 The best way to register an actor is by supervising it. Below is an example of
