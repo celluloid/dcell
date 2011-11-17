@@ -17,6 +17,27 @@ it easier to build robust, fault-tolerant distributed systems.
 
 You can read more about Celluloid at: http://celluloid.github.com
 
+Supported Platforms
+-------------------
+
+DCell works on Ruby 1.9.2/1.9.3, JRuby 1.6 (in 1.9 mode), and Rubinius 2.0.
+
+To use JRuby in 1.9 mode, you'll need to pass the "--1.9" command line
+option to the JRuby executable, or set the "JRUBY_OPTS=--1.9" environment
+variable:
+
+    export JRUBY_OPTS=--1.9
+
+(Note: I'd recommend putting the above in your .bashrc/.zshrc/etc in
+general. 1.9 is the future, time to embrace it)
+
+Celluloid works on Rubinius in either 1.8 or 1.9 mode.
+
+All components, including the 0MQ bindings, Redis, and Zookeeper adapters
+are all certified to work on the above platforms. The 0MQ binding is FFI.
+The Redis adapter is pure Ruby. The Zookeeper adapter uses an MRI-style
+native extension but also supplies a pure-Java backend for JRuby.
+
 Prerequisites
 -------------
 
@@ -74,9 +95,9 @@ by a unique id, which defaults to your hostname. You can obtain the DCell::Node
 object representing the local node by calling DCell.me:
 
     >> DCell.setup
-     => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777"> 
+     => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
     >> DCell.run!
-     => #<Celluloid::Supervisor(DCell::Application):0xed6> 
+     => #<Celluloid::Supervisor(DCell::Application):0xed6>
     >> DCell.me
      => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
 
@@ -96,7 +117,7 @@ Once you've obtained a node, you can look up services it exports and call them
 just like you'd invoke methods on any other Ruby object:
 
     >> time_server = node[:time_server]
-     => #<Celluloid::Actor(TimeServer:0xee8)> 
+     => #<Celluloid::Actor(TimeServer:0xee8)>
     >> time_server.time
      => "The time is: 2011-11-10 20:23:47 -0800"
 
@@ -124,8 +145,8 @@ Now that we've defined the TimeServer, we're going to supervise it and register
 it in the local registry:
 
 	>> TimeServer.supervise_as :time_server
-	 => #<Celluloid::Supervisor(TimeServer):0xee4> 
-	
+	 => #<Celluloid::Supervisor(TimeServer):0xee4>
+
 Supervising actors means that if they crash, they're automatically restarted
 and registered under the same name. We can access registered actors by using
 Celluloid::Actor#[]:
@@ -138,7 +159,7 @@ Celluloid::Actor#[]:
 This same actor is now available using the DCell::Node#[] syntax:
 
     >> node = DCell.me
-     => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:1870"> 
+     => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:1870">
     >> node[:time_server].time
      => "The time is: 2011-11-10 20:28:27 -0800"
 
