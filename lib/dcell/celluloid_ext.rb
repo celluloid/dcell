@@ -8,12 +8,6 @@
 # node you instead get a proxy object that routes messages through the
 # DCell overlay network back to the node where the actor actually exists
 
-module DCell
-  # Proxy object for actors that live on remote nodes
-  # This subclass serves as a marker this is a DCell-based proxy
-  class ActorProxy < Celluloid::ActorProxy; end
-end
-
 module Celluloid
   class ActorProxy
     # Marshal uses respond_to? to determine if this object supports _dump so

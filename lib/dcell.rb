@@ -1,7 +1,8 @@
 require 'celluloid'
 require 'celluloid/zmq'
-
 require 'dcell/version'
+
+require 'dcell/actor_proxy'
 require 'dcell/directory'
 require 'dcell/mailbox_proxy'
 require 'dcell/messages'
