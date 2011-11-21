@@ -10,12 +10,12 @@ describe Celluloid, "extensions" do
 
   it "marshals Celluloid::ActorProxy objects" do
     string = Marshal.dump(@marshal)
-    Marshal.load(string).should be_a(DCell::ActorProxy)
+    Marshal.load(string).should be_alive
   end
 
   it "marshals Celluloid::Mailbox objects" do
     @marshal.mailbox.should be_a(Celluloid::Mailbox)
     string = Marshal.dump(@marshal.mailbox)
-    Marshal.load(string).should be_a(DCell::MailboxProxy)
+    Marshal.load(string).should be_alive
   end
 end

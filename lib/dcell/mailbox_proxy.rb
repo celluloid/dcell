@@ -32,5 +32,25 @@ module DCell
     def alive?
       true # FIXME: hax!
     end
+
+    # Custom marshaller for compatibility with Celluloid::Mailbox marshalling
+    def _dump(level)
+      "#{@mailbox_id}@#{@node_id}"
+    end
+
+    # Loader for custom marshal format
+    def self._load(string)
+      mailbox_id, node_id = string.split("@")
+
+      if DCell.id == node_id
+        # If we're on the local node, find the real mailbox
+        mailbox = DCell::Router.find mailbox_id
+        raise "tried to unmarshal dead Celluloid::Mailbox: #{mailbox_id}" unless mailbox
+        mailbox
+      else
+        # Create a proxy to the mailbox on the remote node
+        DCell::MailboxProxy.new(node_id, mailbox_id)
+      end
+    end
   end
 end

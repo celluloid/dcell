@@ -27,7 +27,15 @@ module Celluloid
     # Create an actor proxy object which routes messages over DCell's overlay
     # network and back to the original mailbox
     def self._load(string)
-      DCell::ActorProxy.new Celluloid::Mailbox._load(string)
+      mailbox = Celluloid::Mailbox._load(string)
+
+      case mailbox
+      when DCell::MailboxProxy
+        DCell::ActorProxy.new mailbox
+      when Celluloid::Mailbox
+        Celluloid::ActorProxy.new(mailbox)
+      else raise "funny, I did not expect to see a #{mailbox.class} here"
+      end
     end
   end
 
@@ -42,8 +50,7 @@ module Celluloid
     # Create a mailbox proxy object which routes messages over DCell's overlay
     # network and back to the original mailbox
     def self._load(string)
-      mailbox_id, node_id = string.split("@")
-      DCell::MailboxProxy.new(node_id, mailbox_id)
+      DCell::MailboxProxy._load(string)
     end
   end
 end

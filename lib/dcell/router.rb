@@ -21,7 +21,7 @@ module DCell
         id
       end
 
-      # Find an actor by its ID
+      # Find a mailbox by its ID
       def find(id)
         @lock.synchronize do
           ref = @table[id]
