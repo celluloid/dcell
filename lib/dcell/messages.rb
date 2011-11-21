@@ -33,7 +33,21 @@ module DCell
     end
 
     def dispatch
-      DCell::Router.route self
+      DCell::Router.route recipient, message
+    end
+  end
+
+  # Send a system event to the given recipient
+  class SystemEvent < Message
+    attr_reader :recipient, :event
+
+    def initialize(recipient, event)
+      super()
+      @recipient, event = recipient, event
+    end
+
+    def dispatch
+      DCell::Router.route_system_event recipient, event
     end
   end
 end

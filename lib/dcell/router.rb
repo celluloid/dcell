@@ -22,28 +22,40 @@ module DCell
       end
 
       # Find a mailbox by its ID
-      def find(id)
+      def find(mailbox_id)
         @lock.synchronize do
-          ref = @table[id]
+          ref = @table[mailbox_id]
           return unless ref
           begin
             ref.__getobj__
           rescue WeakRef::RefError
             # The referenced actor is dead, so prune the registry
-            @table.delete id
+            @table.delete mailbox_id
             nil
           end
         end
       end
-    
-      # Route a message to a given actor
-      def route(packet)
-        recipient = find packet.recipient
-        
+
+      # Route a message to a given mailbox ID
+      def route(mailbox_id, message)
+        recipient = find mailbox_id
+
         if recipient
-          recipient << packet.message
+          recipient << message
         else
-          warning = "received message for invalid actor: #{packet.recipient.inspect}"
+          warning = "received message for invalid actor: #{mailbox_id.inspect}"
+          Celluloid.logger.debug warning if Celluloid.logger
+        end
+      end
+
+      # Route a system event to a given mailbox ID
+      def route_system_event(mailbox_id, event)
+        recipient = find mailbox_id
+
+        if recipient
+          recipient.system_event event
+        else
+          warning = "received message for invalid actor: #{mailbox_id.inspect}"
           Celluloid.logger.debug warning if Celluloid.logger
         end
       end
