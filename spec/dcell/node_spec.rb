@@ -13,6 +13,6 @@ describe DCell::Node do
 
   it "finds remote actors" do
     actor = @node[:test_actor]
-    actor.class.should == DCell::ActorProxy
+    actor.value.should == 42
   end  
 end

@@ -6,7 +6,6 @@ describe DCell::ActorProxy do
     @node.id.should == 'test_node'
 
     @actor = @node[:test_actor]
-    @actor.class.should == DCell::ActorProxy
   end
 
   it "makes synchronous calls to remote actors" do
