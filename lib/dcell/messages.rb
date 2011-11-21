@@ -33,7 +33,7 @@ module DCell
     end
 
     def dispatch
-      DCell::Router.route recipient, message
+      DCell::Router.route @recipient, @message
     end
   end
 
@@ -43,11 +43,11 @@ module DCell
 
     def initialize(recipient, event)
       super()
-      @recipient, event = recipient, event
+      @recipient, @event = recipient, event
     end
 
     def dispatch
-      DCell::Router.route_system_event recipient, event
+      DCell::Router.route_system_event @recipient, @event
     end
   end
 end

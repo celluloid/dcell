@@ -19,6 +19,10 @@ class TestActor
   def the_answer
     DCell::Global[:the_answer]
   end
+
+  def crash
+    raise "the spec purposely crashed me :("
+  end
 end
 
 class TestApplication < Celluloid::Application
