@@ -84,5 +84,11 @@ module DCell
     def run!
       DCell::Application.run!
     end
+
+    # Start combines setup and run! into a single step
+    def start(options = {})
+      setup options
+      run!
+    end
   end
 end
