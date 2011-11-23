@@ -8,10 +8,19 @@ module DCell
     @lock  = Mutex.new
 
     class << self
+      include Enumerable
+
       # Return all available nodes in the cluster
       def all
         Directory.all.map do |node_id|
           find node_id
+        end
+      end
+
+      # Iterate across all available nodes
+      def each
+        Directory.all.each do |node_id|
+          yield find node_id
         end
       end
 
