@@ -5,11 +5,11 @@ module DCell
   module Registry
     class RedisAdapter
       def initialize(options)
-        # Stringify keys :/
-        options = options.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
+        # Convert all options to symbols :/
+        options = options.inject({}) { |h,(k,v)| h[k.to_sym] = v; h }
 
-        @env = options['env'] || 'production'
-        @namespace = options['namespace'] || "dcell_#{@env}"
+        @env = options[:env] || 'production'
+        @namespace = options[:namespace] || "dcell_#{@env}"
 
         redis  = Redis.new options
         @redis = Redis::Namespace.new @namespace, :redis => redis
