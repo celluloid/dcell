@@ -71,33 +71,34 @@ and to start it run:
 
     rake zookeeper:start
 
-Usage
------
+Configuration
+-------------
 
-The fastest way to start up a DCell node is to start Zookeeper (see above)
-then run the following in Ruby:
+The simplest way to configure and start DCell is with the following:
 
     require 'dcell'
 
-    DCell.setup
-    DCell.run!
+    DCell.start
 
-The call to DCell.setup configures DCell (in this case with the default
-settings). The call to DCell.run! starts the services DCell needs to operate
-in a background thread. If you'd like to run multiple nodes on the same
-computer you'll need to give each node a unique name and port number.
-To do this pass the following to DCell.setup:
+This configures DCell with all the default options, however there are many
+options you can override, e.g.:
 
-    DCell.setup :id => "node42", :addr => "tcp://127.0.0.1:2042"
+    DCell.start :id => "node42", :addr => "tcp://127.0.0.1:2042"
+
+DCell identifies each node with a unique node ID, that defaults to your
+hostname. Each node needs to be reachable over 0MQ, and the addr option
+specifies the 0MQ address where the host can be reached. When giving a tcp://
+URL, you *must* specify an IP address and not a hostname.
 
 To join a cluster you'll need to provide the location of the registry server.
-This can be done through the "registry" key:
+This can be done through the "registry" configuration key:
 
-	DCell.setup :id => "node24", :addr => "tcp://127.0.0.1:2042", :registry => {
-	  :adapter => 'redis',
-	  :host    => 'mycluster.example.org',
-	  :port    => 6379
-	}
+	DCell.start :id => "node24", :addr => "tcp://127.0.0.1:2042",
+	  :registry => {
+	    :adapter => 'redis',
+	    :host    => 'mycluster.example.org',
+	    :port    => 6379
+	  }
 
 When configuring DCell to use Redis, use the following options:
 
@@ -106,13 +107,13 @@ When configuring DCell to use Redis, use the following options:
 - **port**: port of the Redis server (*optional, default 6379*)
 - **password**: password to the Redis server (*optional*)
 
-You've now configured a single node in a DCell cluster. This node is identified
-by a unique id, which defaults to your hostname. You can obtain the DCell::Node
-object representing the local node by calling DCell.me:
+Usage
+-----
 
-    >> DCell.setup
-     => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
-    >> DCell.run!
+You've now configured a single node in a DCell cluster. You can obtain the
+DCell::Node object representing the local node by calling DCell.me:
+
+    >> DCell.start
      => #<Celluloid::Supervisor(DCell::Application):0xed6>
     >> DCell.me
      => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
@@ -129,9 +130,14 @@ DCell::Node.all returns all connected nodes in the cluster:
     >> DCell::Node.all
      => [#<DCell::Node[test_node] @addr="tcp://127.0.0.1:21264">, #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">]
 
+DCell::Node is a Ruby Enumerable. You can iterate across all nodes with
+DCell::Node.each.
+
 Once you've obtained a node, you can look up services it exports and call them
 just like you'd invoke methods on any other Ruby object:
 
+	>> node = DCell::Node["cryptosphere.local"]
+	 => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
     >> time_server = node[:time_server]
      => #<Celluloid::Actor(TimeServer:0xee8)>
     >> time_server.time
