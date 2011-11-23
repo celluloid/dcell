@@ -44,7 +44,7 @@ module DCell
 
         @me = Node.new @configuration['id'], @configuration['addr']
 
-        registry_adapter = @configuration['registry']['adapter']
+        registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
         raise ArgumentError, "no registry adapter given in config" unless registry_adapter
 
         registry_class_name = registry_adapter.split("_").map(&:capitalize).join << "Adapter"
@@ -57,7 +57,8 @@ module DCell
 
         @registry = registry_class.new(@configuration['registry'])
 
-        DCell::Directory.set @configuration['id'], @configuration['addr']
+        addr = @configuration['public'] || @configuration['addr']
+        DCell::Directory.set @configuration['id'], addr
       end
 
       me
