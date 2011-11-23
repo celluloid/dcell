@@ -90,6 +90,22 @@ To do this pass the following to DCell.setup:
 
     DCell.setup :id => "node42", :addr => "tcp://127.0.0.1:2042"
 
+To join a cluster you'll need to provide the location of the registry server.
+This can be done through the "registry" key:
+
+	DCell.setup :id => "node24", :addr => "tcp://127.0.0.1:2042", :registry => {
+	  :adapter => 'redis',
+	  :host    => 'mycluster.example.org',
+	  :port    => 6379
+	}
+
+When configuring DCell to use Redis, use the following options:
+
+- **adapter**: "redis" (*optional, alternatively "zk"*)
+- **host**: hostname or IP address of the Redis server (*optional, default localhost*)
+- **port**: port of the Redis server (*optional, default 6379*)
+- **password**: password to the Redis server (*optional*)
+
 You've now configured a single node in a DCell cluster. This node is identified
 by a unique id, which defaults to your hostname. You can obtain the DCell::Node
 object representing the local node by calling DCell.me:
