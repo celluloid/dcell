@@ -1,0 +1,8 @@
+Ideally DCell would use Celluloid::IO to monitor 0MQ sockets. Unfortunately,
+ffi-rzmq presently does not present an API for obtaining an IO object from a
+0MQ socket.
+
+This directory contains a temporary workaround Celluloid::ZMQ which uses
+a ZMQ::Poller to monitor for 0MQ activity. This implementation is hardly
+anywhere near ideal but it works and provides a temporary solution until
+ffi-rzmq implements an API for retrieving IO objects.
