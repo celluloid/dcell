@@ -72,8 +72,7 @@ module DCell
 
     # Find an actor registered with a given name on this node
     def find(name)
-      our_mailbox = Thread.current.mailbox
-      request = Query.new(our_mailbox, name)
+      request = Query.new(Thread.mailbox, name)
       send_message request
 
       response = receive do |msg|
