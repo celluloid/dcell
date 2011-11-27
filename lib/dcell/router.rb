@@ -50,7 +50,6 @@ module DCell
 
       # Route a system event to a given mailbox ID
       def route_system_event(mailbox_id, event)
-        puts "Routing system event: #{event.inspect}"
         recipient = find mailbox_id
 
         if recipient
