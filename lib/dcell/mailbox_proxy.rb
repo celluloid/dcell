@@ -30,7 +30,7 @@ module DCell
 
     # Send a system event
     def system_event(event)
-      @node.send_message! SystemEvent.new(@mailbox_id, event)
+      @node.send_message! Message::SystemEvent.new(@mailbox_id, event)
     end
 
     # Is the remote mailbox still alive?
