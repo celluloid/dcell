@@ -143,6 +143,13 @@ just like you'd invoke methods on any other Ruby object:
     >> time_server.time
      => "The time is: 2011-11-10 20:23:47 -0800"
 
+You can also find all available services on a node with DCell::Node#all:
+
+	>> node = DCell::Node["cryptosphere.local"]
+	 => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
+	>> node.all
+	 => [:time_server]
+
 Registering Actors
 ------------------
 
