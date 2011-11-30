@@ -22,6 +22,20 @@ module DCell
       end
     end
 
+    # List all registered actors
+    class List < Message
+      attr_reader :caller
+
+      def initialize(caller)
+        super()
+        @caller = caller
+      end
+
+      def dispatch
+        @caller << SuccessResponse.new(@id, Celluloid::Actor.registered)
+      end
+    end
+
     # Relay a message to the given recipient
     class Relay < Message
       attr_reader :recipient, :message

@@ -14,5 +14,10 @@ describe DCell::Node do
   it "finds remote actors" do
     actor = @node[:test_actor]
     actor.value.should == 42
-  end  
+  end
+
+  it "lists remote actors" do
+    @node.actors.should include :test_actor
+    @node.all.should include :test_actor
+  end
 end

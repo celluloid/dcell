@@ -84,6 +84,20 @@ module DCell
     end
     alias_method :[], :find
 
+    # List all registered actors on this node
+    def actors
+      request = Message::List.new(Thread.mailbox)
+      send_message request
+
+      response = receive do |msg|
+        msg.respond_to?(:request_id) && msg.request_id == request.id
+      end
+
+      abort response.value if response.is_a? ErrorResponse
+      response.value
+    end
+    alias_method :all, :actors
+
     # Send a message to another DCell node
     def send_message(message)
       begin
