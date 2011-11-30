@@ -17,6 +17,8 @@ it easier to build robust, fault-tolerant distributed systems.
 
 You can read more about Celluloid at: http://celluloid.github.com
 
+Like DCell? [Join the Celluloid Google Group](http://groups.google.com/group/celluloid-ruby)
+
 Supported Platforms
 -------------------
 
