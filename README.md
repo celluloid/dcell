@@ -49,12 +49,15 @@ DCell keeps the state of all connected nodes and global configuration data
 in a service it calls the "registry". There are presently two supported
 registry services:
 
-* Redis (Fast and Loose): simple and easy to use for development and
-  prototyping, but lacks a good distribution story
+* Redis (Fast and Loose): Redis is a persistent data structures server.
+  It's simple and easy to use for development and prototyping, but lacks a
+  good distribution story.
 
-* Zookeeper (Serious Business): has slightly more annoying client-side
-  dependencies and more difficult to deploy than Redis, but has rock
-  solid characteristics in a distributed scenario
+* Zookeeper (Serious Business): Zookeeper is a high-performance coordination
+  service for distributed applications. It exposes common services such as
+  naming, configuration management, synchronization, and group management.
+  Unfortunately, it has slightly more annoying client-side dependencies and is
+  more difficult to deploy than Redis.
 
 You may pick either one of these services to use as DCell's registry. The
 default is Redis.
