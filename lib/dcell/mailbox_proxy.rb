@@ -25,7 +25,7 @@ module DCell
 
     # Send a message to the mailbox
     def <<(message)
-      @node.send_message! Packet.new(@mailbox_id, message)
+      @node.send_message! Message::Relay.new(@mailbox_id, message)
     end
 
     # Send a system event
