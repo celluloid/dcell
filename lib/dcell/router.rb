@@ -43,8 +43,7 @@ module DCell
         if recipient
           recipient << message
         else
-          warning = "received message for invalid actor: #{mailbox_id.inspect}"
-          Celluloid.logger.debug warning if Celluloid.logger
+          Celluloid::Logger.debug("received message for invalid actor: #{mailbox_id.inspect}")
         end
       end
 
@@ -55,8 +54,7 @@ module DCell
         if recipient
           recipient.system_event event
         else
-          warning = "received message for invalid actor: #{mailbox_id.inspect}"
-          Celluloid.logger.debug warning if Celluloid.logger
+          Celluloid::Logger.debug("received message for invalid actor: #{mailbox_id.inspect}")
         end
       end
 
