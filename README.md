@@ -209,3 +209,25 @@ wish to publish globally to the entire cluster:
 	 => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
 	>> DCell::Global[:sweet_server]
 	 => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
+
+What about DRb?
+---------------
+
+Ruby already has a distributed object system as part of its standard library:
+DRb, which stands for Distributed Ruby. What's wrong with DRb? Why do we need
+a new system? DRb has one major drawback: it's inherently synchronous. The
+only thing you can do to an object is to make a method call, which sends a
+remote object a message, executes the method, and returns a response.
+
+Under the covers, DCell uses an asynchronous message protocol. As noted in the
+last section, asynchronous messaging allows many more modes of messaging than
+the standard reqeust/response pattern afforded by DRb. DCell also supports the
+Erlang-style approach to fault-tolerance, advocating that actors shouldn't handle
+errors but should crash and restart in a clean state. Linking to actors on remote
+nodes can be used to detect these sorts of errors and have dependent actors
+restart in a clean state.
+
+By far the biggest difference between DCell and DRb is how the underlying
+Celluloid framework has you think about the problem. Celluloid provides a useful
+concurrent in-process messaging system in its own right without the distributed
+components.
