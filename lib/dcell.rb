@@ -20,7 +20,7 @@ require 'dcell/celluloid_ext'
 module DCell
   DEFAULT_PORT  = 7777 # Default DCell port
   ZMQ_POOL_SIZE = 1 # DCell uses a fixed-size 0MQ thread pool
-  @zmq_context  = ::ZMQ::Context.new(ZMQ_POOL_SIZE)
+  @zmq_context  = Celluloid::ZMQ.context = ::ZMQ::Context.new(ZMQ_POOL_SIZE)
   @config_lock  = Mutex.new
 
   class << self
