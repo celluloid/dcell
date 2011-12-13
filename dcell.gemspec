@@ -17,7 +17,9 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency "celluloid", ">= 0.6.2"
-  gem.add_dependency "celluloid-zmq"
+  gem.add_dependency "celluloid-zmq", ">= 0.0.3"
+  gem.add_dependency "redis"
+  gem.add_dependency "redis-namespace"
 
   gem.add_development_dependency "rake"
   gem.add_development_dependency "rspec", ">= 2.7.0"
