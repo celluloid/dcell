@@ -231,3 +231,8 @@ By far the biggest difference between DCell and DRb is how the underlying
 Celluloid framework has you think about the problem. Celluloid provides a useful
 concurrent in-process messaging system in its own right without the distributed
 components.
+
+Copyright
+---------
+
+Copyright (c) 2011 Tony Arcieri. See LICENSE.txt for further details.

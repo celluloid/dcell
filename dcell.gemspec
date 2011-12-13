@@ -2,27 +2,24 @@
 $:.push File.expand_path("../lib", __FILE__)
 require "dcell/version"
 
-Gem::Specification.new do |s|
-  s.name        = "dcell"
-  s.version     = DCell::VERSION
-  s.authors     = ["Tony Arcieri"]
-  s.email       = ["tony.arcieri@gmail.com"]
-  s.homepage    = "http://github.com/tarcieri/dcell"
-  s.summary     = "An asynchronous distributed object framework based on Celluloid"
-  s.description = "DCell is an distributed object framework based on Celluloid built on 0MQ and Zookeeper"
+Gem::Specification.new do |gem|
+  gem.name        = "dcell"
+  gem.version     = DCell::VERSION
+  gem.authors     = ["Tony Arcieri"]
+  gem.email       = ["tony.arcieri@gmail.com"]
+  gem.homepage    = "http://github.com/tarcieri/dcell"
+  gem.summary     = "An asynchronous distributed object framework based on Celluloid"
+  gem.description = "DCell is an distributed object framework based on Celluloid built on 0MQ and Zookeeper"
 
-  s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
-  s.require_paths = ["lib"]
+  gem.files         = `git ls-files`.split("\n")
+  gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  gem.require_paths = ["lib"]
 
-  s.add_dependency "celluloid", ">= 0.6.2"
-  s.add_dependency "ffi"
-  s.add_dependency "ffi-rzmq"
-  s.add_dependency "redis"
-  s.add_dependency "redis-namespace"
+  gem.add_dependency "celluloid", ">= 0.6.2"
+  gem.add_dependency "celluloid-zmq"
 
-  s.add_development_dependency "rake"
-  s.add_development_dependency "rspec", ">= 2.7.0"
-  #s.add_development_dependency "zk"
+  gem.add_development_dependency "rake"
+  gem.add_development_dependency "rspec", ">= 2.7.0"
+  #gem.add_development_dependency "zk"
 end
