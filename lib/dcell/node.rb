@@ -6,9 +6,11 @@ module DCell
 
     @nodes = {}
     @lock  = Mutex.new
+    @heartbeat_rate = 5 # How often to send heartbeats in seconds
 
     class << self
       include Enumerable
+      attr_reader :heartbeat_rate
 
       # Return all available nodes in the cluster
       def all
@@ -50,6 +52,7 @@ module DCell
     def initialize(id, addr)
       @id, @addr = id, addr
       @socket = nil
+      @heartbeat = nil
     end
 
     def finalize
@@ -67,6 +70,7 @@ module DCell
         raise "error connecting to #{addr}: #{::ZMQ::Util.error_string}"
       end
 
+      @heartbeat = send_heartbeat
       @socket
     end
 
@@ -106,11 +110,28 @@ module DCell
         abort ex
       end
 
-      unless ::ZMQ::Util.resultcode_ok? socket.send_string string
+      if ::ZMQ::Util.resultcode_ok? socket.send_string string
+        # Heartbeats are only sent while idle, so skip them if we've sent a
+        # message in the meantime
+        @heartbeat.reset if @heartbeat
+      else
         raise "error sending 0MQ message: #{::ZMQ::Util.error_string}"
       end
     end
     alias_method :<<, :send_message
+
+    # Send a heartbeat message after the given interval
+    def send_heartbeat
+      after(self.class.heartbeat_rate) do
+        send_message DCell::Message::Heartbeat.new
+        @heartbeat = send_heartbeat
+      end
+    end
+
+    # Handle an incoming heartbeat for this node
+    def handle_heartbeat
+      #puts "HEARTBEAT! I'm lookin' for a HEARTBEAT!"
+    end
 
     # Friendlier inspection
     def inspect

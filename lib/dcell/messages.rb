@@ -8,6 +8,18 @@ module DCell
       @id = object_id
     end
 
+    # Heartbeat messages inform other nodes this node is healthy
+    class Heartbeat < Message
+      def initialize
+        @id = DCell.id
+      end
+
+      def dispatch
+        node = DCell::Node[@id]
+        node.handle_heartbeat if node
+      end
+    end
+
     # Query a node for the address of an actor
     class Find < Message
       attr_reader :caller, :name
