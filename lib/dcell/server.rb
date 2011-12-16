@@ -38,7 +38,7 @@ module DCell
 
     # Shut down the server
     def finalize
-      @socket.close
+      @socket.close if @socket
     end
 
     # Handle incoming messages
