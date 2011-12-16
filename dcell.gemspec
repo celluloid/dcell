@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   gem.require_paths = ["lib"]
 
-  gem.add_dependency "celluloid", ">= 0.6.2"
+  gem.add_dependency "celluloid", ">= 0.7.0"
   gem.add_dependency "celluloid-zmq", ">= 0.0.3"
   gem.add_dependency "redis"
   gem.add_dependency "redis-namespace"
