@@ -1,16 +1,32 @@
 module DCell
   # A node in a DCell cluster
   class Node
-    include Celluloid
+    include Celluloid::FSM
     attr_reader :id, :addr
 
+    # FSM
+    default_state :disconnected
+    state :shutdown
+    state :disconnected, :to => [:connected, :shutdown]
+    state :connected do
+      send_heartbeat
+      Celluloid::Logger.info "Connected to #{id}"
+    end
+    state :partitioned do
+      Celluloid::Logger.warn "Communication with #{id} interrupted"
+    end
+
+    # Ivars
     @nodes = {}
     @lock  = Mutex.new
-    @heartbeat_rate = 5 # How often to send heartbeats in seconds
 
+    @heartbeat_rate    = 5  # How often to send heartbeats in seconds
+    @heartbeat_timeout = 10 # How soon until a lost heartbeat triggers a node partition
+
+    # Singleton methods
     class << self
       include Enumerable
-      attr_reader :heartbeat_rate
+      attr_reader :heartbeat_rate, :heartbeat_timeout
 
       # Return all available nodes in the cluster
       def all
@@ -56,6 +72,7 @@ module DCell
     end
 
     def finalize
+      transition :shutdown
       @socket.close if socket
     end
 
@@ -70,7 +87,7 @@ module DCell
         raise "error connecting to #{addr}: #{::ZMQ::Util.error_string}"
       end
 
-      @heartbeat = send_heartbeat
+      transition :connected
       @socket
     end
 
@@ -125,15 +142,13 @@ module DCell
     # Send a heartbeat message after the given interval
     def send_heartbeat
       send_message DCell::Message::Heartbeat.new
-
-      after(self.class.heartbeat_rate) do
-        @heartbeat = send_heartbeat
-      end
+      @heartbeat = after(self.class.heartbeat_rate) { send_heartbeat }
     end
 
     # Handle an incoming heartbeat for this node
     def handle_heartbeat
-      #puts "HEARTBEAT! I'm lookin' for a HEARTBEAT!"
+      transition :connected
+      transition :partitioned, :delay => self.class.heartbeat_timeout
     end
 
     # Friendlier inspection
