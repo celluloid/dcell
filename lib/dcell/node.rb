@@ -110,11 +110,7 @@ module DCell
         abort ex
       end
 
-      if ::ZMQ::Util.resultcode_ok? socket.send_string string
-        # Heartbeats are only sent while idle, so skip them if we've sent a
-        # message in the meantime
-        @heartbeat.reset if @heartbeat
-      else
+      unless ::ZMQ::Util.resultcode_ok? socket.send_string string
         raise "error sending 0MQ message: #{::ZMQ::Util.error_string}"
       end
     end
@@ -122,8 +118,9 @@ module DCell
 
     # Send a heartbeat message after the given interval
     def send_heartbeat
+      send_message DCell::Message::Heartbeat.new
+
       after(self.class.heartbeat_rate) do
-        send_message DCell::Message::Heartbeat.new
         @heartbeat = send_heartbeat
       end
     end
