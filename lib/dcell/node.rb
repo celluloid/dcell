@@ -110,7 +110,13 @@ module DCell
         abort ex
       end
 
-      unless ::ZMQ::Util.resultcode_ok? socket.send_string string
+      if ::ZMQ::Util.resultcode_ok? socket.send_string string
+        # Ideally we could reset the heartbeat counter now because we've sent
+        # a message. Heartbeats could work off all messages rather than just
+        # DCell::Message::Heartbeat. Unfortunately this functionality is not
+        # yet implemented, sorry!
+        # @heartbeat.reset
+      else
         raise "error sending 0MQ message: #{::ZMQ::Util.error_string}"
       end
     end
