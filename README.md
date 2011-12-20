@@ -19,6 +19,14 @@ You can read more about Celluloid at: http://celluloid.github.com
 
 Like DCell? [Join the Celluloid Google Group](http://groups.google.com/group/celluloid-ruby)
 
+### Is It Good?
+
+Yes.
+
+### Is It "Production Ready™"?
+
+Not entirely, but eager early adopters are welcome!
+
 Supported Platforms
 -------------------
 
