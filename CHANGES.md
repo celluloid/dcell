@@ -1,5 +1,6 @@
-0.1.0
+0.7.0
 -----
+* Bump version to match Celluloid
 * Factor 0MQ bindings into the celluloid-zmq gem
 * Heartbeat system for detecting downed nodes
 
