@@ -89,14 +89,18 @@ Configuration
 
 The simplest way to configure and start DCell is with the following:
 
-    require 'dcell'
+```ruby
+require 'dcell'
 
-    DCell.start
+DCell.start
+```
 
 This configures DCell with all the default options, however there are many
 options you can override, e.g.:
 
-    DCell.start :id => "node42", :addr => "tcp://127.0.0.1:2042"
+```ruby
+DCell.start :id => "node42", :addr => "tcp://127.0.0.1:2042"
+```
 
 DCell identifies each node with a unique node ID, that defaults to your
 hostname. Each node needs to be reachable over 0MQ, and the addr option
@@ -106,12 +110,14 @@ URL, you *must* specify an IP address and not a hostname.
 To join a cluster you'll need to provide the location of the registry server.
 This can be done through the "registry" configuration key:
 
-	DCell.start :id => "node24", :addr => "tcp://127.0.0.1:2042",
-	  :registry => {
-	    :adapter => 'redis',
-	    :host    => 'mycluster.example.org',
-	    :port    => 6379
-	  }
+```ruby
+DCell.start :id => "node24", :addr => "tcp://127.0.0.1:2042",
+  :registry => {
+    :adapter => 'redis',
+    :host    => 'mycluster.example.org',
+    :port    => 6379
+  }
+```
 
 When configuring DCell to use Redis, use the following options:
 
@@ -126,22 +132,28 @@ Usage
 You've now configured a single node in a DCell cluster. You can obtain the
 DCell::Node object representing the local node by calling DCell.me:
 
-    >> DCell.start
-     => #<Celluloid::Supervisor(DCell::Application):0xed6>
-    >> DCell.me
-     => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
+```ruby
+>> DCell.start
+ => #<Celluloid::Supervisor(DCell::Application):0xed6>
+>> DCell.me
+ => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
+```
 
 DCell::Node objects are the entry point for locating actors on the system.
 DCell.me returns the local node. Other nodes can be obtained by their
 node IDs:
 
-    >> node = DCell::Node["cryptosphere.local"]
-     => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
+```ruby
+>> node = DCell::Node["cryptosphere.local"]
+ => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
+```
 
 DCell::Node.all returns all connected nodes in the cluster:
 
-    >> DCell::Node.all
-     => [#<DCell::Node[test_node] @addr="tcp://127.0.0.1:21264">, #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">]
+```ruby
+>> DCell::Node.all
+ => [#<DCell::Node[test_node] @addr="tcp://127.0.0.1:21264">, #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">]
+```
 
 DCell::Node is a Ruby Enumerable. You can iterate across all nodes with
 DCell::Node.each.
@@ -149,19 +161,23 @@ DCell::Node.each.
 Once you've obtained a node, you can look up services it exports and call them
 just like you'd invoke methods on any other Ruby object:
 
-	>> node = DCell::Node["cryptosphere.local"]
-	 => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
-    >> time_server = node[:time_server]
-     => #<Celluloid::Actor(TimeServer:0xee8)>
-    >> time_server.time
-     => "The time is: 2011-11-10 20:23:47 -0800"
+```ruby
+>> node = DCell::Node["cryptosphere.local"]
+ => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
+>> time_server = node[:time_server]
+ => #<Celluloid::Actor(TimeServer:0xee8)>
+>> time_server.time
+ => "The time is: 2011-11-10 20:23:47 -0800"
+```
 
 You can also find all available services on a node with DCell::Node#all:
 
-	>> node = DCell::Node["cryptosphere.local"]
-	 => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
-	>> node.all
-	 => [:time_server]
+```ruby
+>> node = DCell::Node["cryptosphere.local"]
+ => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:7777">
+>> node.all
+ => [:time_server]
+```
 
 Registering Actors
 ------------------
@@ -175,35 +191,43 @@ DCell exposes all Celluloid actors you've registered directly onto the network.
 The best way to register an actor is by supervising it. Below is an example of
 how to create an actor and register it on the network:
 
-    class TimeServer
-      include Celluloid
+```ruby
+class TimeServer
+  include Celluloid
 
-      def time
-        "The time is: #{Time.now}"
-      end
-    end
+  def time
+    "The time is: #{Time.now}"
+  end
+end
+```
 
 Now that we've defined the TimeServer, we're going to supervise it and register
 it in the local registry:
 
-	>> TimeServer.supervise_as :time_server
-	 => #<Celluloid::Supervisor(TimeServer):0xee4>
+```ruby
+>> TimeServer.supervise_as :time_server
+ => #<Celluloid::Supervisor(TimeServer):0xee4>
+```
 
 Supervising actors means that if they crash, they're automatically restarted
 and registered under the same name. We can access registered actors by using
 Celluloid::Actor#[]:
 
-	>> Celluloid::Actor[:time_server]
-	 => #<Celluloid::Actor(TimeServer:0xee8)>
-	>> Celluloid::Actor[:time_server].time
-	 => "The time is: 2011-11-10 20:17:48 -0800"
+```ruby
+>> Celluloid::Actor[:time_server]
+ => #<Celluloid::Actor(TimeServer:0xee8)>
+>> Celluloid::Actor[:time_server].time
+ => "The time is: 2011-11-10 20:17:48 -0800"
+```
 
 This same actor is now available using the DCell::Node#[] syntax:
 
-    >> node = DCell.me
-     => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:1870">
-    >> node[:time_server].time
-     => "The time is: 2011-11-10 20:28:27 -0800"
+```ruby
+>> node = DCell.me
+ => #<DCell::Node[cryptosphere.local] @addr="tcp://127.0.0.1:1870">
+>> node[:time_server].time
+ => "The time is: 2011-11-10 20:28:27 -0800"
+```
 
 Globals
 -------
@@ -211,12 +235,14 @@ Globals
 DCell provides a registry global for storing configuration data and actors you
 wish to publish globally to the entire cluster:
 
-	>> actor = Celluloid::Actor[:dcell_server]
-	 => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
-	>> DCell::Global[:sweet_server] = actor
-	 => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
-	>> DCell::Global[:sweet_server]
-	 => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
+```ruby
+>> actor = Celluloid::Actor[:dcell_server]
+ => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
+>> DCell::Global[:sweet_server] = actor
+ => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
+>> DCell::Global[:sweet_server]
+ => #<Celluloid::Actor(DCell::Server:0xf2e) @addr="tcp://127.0.0.1:7777">
+```
 
 What about DRb?
 ---------------
