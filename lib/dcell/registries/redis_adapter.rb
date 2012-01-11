@@ -59,7 +59,7 @@ module DCell
 
         def get(key)
           string = @redis.hget 'globals', key.to_s
-          Marshal.load string
+          Marshal.load string if string
         end
 
         # Set a global value
