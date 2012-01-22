@@ -1,5 +1,5 @@
 task :redis do
   sh "git clone https://github.com/antirez/redis.git"
   sh "cd redis && make"
-  Process.spawn "redis/src/redis-server"
+  sh "redis/src/redis-server &"
 end
