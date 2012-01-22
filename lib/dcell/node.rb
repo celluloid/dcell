@@ -70,6 +70,9 @@ module DCell
       @id, @addr = id, addr
       @socket = nil
       @heartbeat = nil
+
+      # Total hax to accommodate the new Celluloid::FSM API
+      attach self
     end
 
     def finalize
