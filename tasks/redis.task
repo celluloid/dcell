@@ -1,5 +1,0 @@
-task :redis do
-  sh "git clone https://github.com/antirez/redis.git"
-  sh "cd redis && make"
-  sh "redis/src/redis-server &"
-end
