@@ -25,9 +25,9 @@ class TestActor
   end
 end
 
-class TestApplication < Celluloid::Application
-  supervise DCell::Application
+class TestGroup < Celluloid::Group
+  supervise DCell::Group
   supervise TestActor, :as => :test_actor
 end
 
-TestApplication.run
+TestGroup.run
