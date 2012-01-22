@@ -13,7 +13,6 @@ require 'dcell/router'
 require 'dcell/server'
 
 require 'dcell/registries/redis_adapter'
-require 'dcell/application'
 require 'dcell/celluloid_ext'
 
 # Distributed Celluloid
@@ -78,12 +77,12 @@ module DCell
 
     # Run the DCell application
     def run
-      DCell::Application.run
+      DCell::Group.run
     end
 
     # Run the DCell application in the background
     def run!
-      DCell::Application.run!
+      DCell::Group.run!
     end
 
     # Start combines setup and run! into a single step
@@ -91,5 +90,10 @@ module DCell
       setup options
       run!
     end
+  end
+
+  # DCell's actor dependencies
+  class Group < Celluloid::Group
+    supervise Server, :as => :dcell_server
   end
 end

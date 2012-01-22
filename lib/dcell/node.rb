@@ -1,6 +1,7 @@
 module DCell
   # A node in a DCell cluster
   class Node
+    include Celluloid
     include Celluloid::FSM
     attr_reader :id, :addr
 
