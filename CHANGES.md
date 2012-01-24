@@ -1,3 +1,8 @@
+0.8.0
+-----
+* Track calls in-flight with DCell::RPC and DCell::RPC::Manager
+* Compatibility changes for Celluloid 0.8.0
+
 0.7.1
 -----
 * Bump version to match Celluloid
