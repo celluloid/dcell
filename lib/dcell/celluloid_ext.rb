@@ -54,4 +54,16 @@ module Celluloid
       DCell::MailboxProxy._load(string)
     end
   end
+
+  class SyncCall
+    def _dump(level)
+      rpc_id = DCell::RPC::Manager.register self
+      payload = Marshal.dump([@caller,@method,@arguments,@block])
+      "#{rpc_id.to_s(16)}@#{DCell.id}:#{payload}"
+    end
+
+    def self._load(string)
+      DCell::RPC._load(string)
+    end
+  end
 end

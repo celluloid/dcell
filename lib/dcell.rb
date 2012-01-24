@@ -10,6 +10,7 @@ require 'dcell/node'
 require 'dcell/global'
 require 'dcell/responses'
 require 'dcell/router'
+require 'dcell/rpc'
 require 'dcell/server'
 
 require 'dcell/registries/redis_adapter'
@@ -19,6 +20,7 @@ require 'dcell/celluloid_ext'
 module DCell
   DEFAULT_PORT  = 7777 # Default DCell port
   ZMQ_POOL_SIZE = 1 # DCell uses a fixed-size 0MQ thread pool
+
   @zmq_context  = Celluloid::ZMQ.context = ::ZMQ::Context.new(ZMQ_POOL_SIZE)
   @config_lock  = Mutex.new
 
