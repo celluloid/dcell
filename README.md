@@ -30,9 +30,9 @@ Not entirely, but eager early adopters are welcome!
 Supported Platforms
 -------------------
 
-DCell works on Ruby 1.9.2/1.9.3, JRuby 1.6 (in 1.9 mode), and Rubinius 2.0.
+DCell works on Ruby 1.9.2/1.9.3, JRuby 1.6 (in 1.9 mode), JRuby 1.7, and Rubinius 2.0.
 
-To use JRuby in 1.9 mode, you'll need to pass the "--1.9" command line
+To use JRuby 1.6 in 1.9 mode, you'll need to pass the "--1.9" command line
 option to the JRuby executable, or set the "JRUBY_OPTS=--1.9" environment
 variable:
 
@@ -40,6 +40,8 @@ variable:
 
 (Note: I'd recommend putting the above in your .bashrc/.zshrc/etc in
 general. 1.9 is the future, time to embrace it)
+
+To use JRuby 1.7 in 1.9 mode...just use it :)
 
 Celluloid works on Rubinius in either 1.8 or 1.9 mode.
 
