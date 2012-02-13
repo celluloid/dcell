@@ -1,7 +1,7 @@
 require 'weakref'
 
 module DCell
-  EPOCH = Time.new(2012, 1, 1, 0, 0, 0, "+00:00") # All things begin in 2012
+  EPOCH = Time.gm(2012) # All things begin in 2012
 
   class RPC < Celluloid::SyncCall
     def initialize(id, caller, method, arguments, block)
