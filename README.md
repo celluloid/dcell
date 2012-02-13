@@ -1,5 +1,13 @@
 DCell
 =====
+[![Build Status](http://travis-ci.org/tarcieri/dcell.png)](http://travis-ci.org/tarcieri/dcell)
+
+> "Objects can message objects transparently that live on other machines
+> over the network, and you don't have to worry about the networking gunk,
+> and you don't have to worry about finding them, and you don't have to
+> worry about anything. It's just as if you messaged an object that's
+> right next door."
+> _--Steve Jobs describing the NeXT Portable Distributed Object system_
 
 DCell is a simple and easy way to build distributed applications in Ruby.
 Somewhat similar to DRb, DCell lets you easily expose Ruby objects as network
