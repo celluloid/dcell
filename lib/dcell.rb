@@ -14,6 +14,8 @@ require 'dcell/rpc'
 require 'dcell/server'
 
 require 'dcell/registries/redis_adapter'
+require 'dcell/registries/moneta_adapter'
+
 require 'dcell/celluloid_ext'
 
 # Distributed Celluloid
