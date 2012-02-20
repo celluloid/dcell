@@ -20,6 +20,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "celluloid-zmq", "~> 0.9.0"
   gem.add_dependency "redis"
   gem.add_dependency "redis-namespace"
+  gem.add_dependency "moneta"
 
   gem.add_development_dependency "rake"
   gem.add_development_dependency "rspec"
