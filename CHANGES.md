@@ -1,3 +1,7 @@
+0.9.0
+-----
+* Use new Celluloid::ZMQ APIs
+
 0.8.0
 -----
 * Track calls in-flight with DCell::RPC and DCell::RPC::Manager
@@ -12,7 +16,3 @@
 0.0.1
 -----
 * Initial release
-
-0.0.0
------
-* Vapoware release to claim the "dcell" gem name >:D
