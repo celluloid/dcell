@@ -84,11 +84,13 @@ module DCell
     def socket
       return @socket if @socket
 
-      @socket = Celluloid::ZMQ.context.socket(::ZMQ::PUSH)
-      unless ::ZMQ::Util.resultcode_ok? @socket.connect @addr
+      @socket = Celluloid::ZMQ::PushSocket.new
+      begin
+        @socket.connect addr
+      rescue IOError
         @socket.close
         @socket = nil
-        raise "error connecting to #{addr}: #{::ZMQ::Util.error_string}"
+        raise
       end
 
       transition :connected
@@ -126,20 +128,12 @@ module DCell
     # Send a message to another DCell node
     def send_message(message)
       begin
-        string = Marshal.dump(message)
+        message = Marshal.dump(message)
       rescue => ex
         abort ex
       end
 
-      if ::ZMQ::Util.resultcode_ok? socket.send_string string
-        # Ideally we could reset the heartbeat counter now because we've sent
-        # a message. Heartbeats could work off all messages rather than just
-        # DCell::Message::Heartbeat. Unfortunately this functionality is not
-        # yet implemented, sorry!
-        # @heartbeat.reset
-      else
-        raise "error sending 0MQ message: #{::ZMQ::Util.error_string}"
-      end
+      socket << message
     end
     alias_method :<<, :send_message
 
