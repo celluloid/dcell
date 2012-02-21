@@ -6,16 +6,13 @@ module DCell
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
     def initialize
       @addr   = DCell.addr
-      @socket = DCell.zmq_context.socket(::ZMQ::PULL)
+      @socket = PullSocket.new
 
-      unless ::ZMQ::Util.resultcode_ok? @socket.setsockopt(::ZMQ::LINGER, 0)
+      begin
+        @socket.bind(@addr)
+      rescue IOError
         @socket.close
-        raise "couldn't set ZMQ::LINGER: #{::ZMQ::Util.error_string}"
-      end
-
-      unless ::ZMQ::Util.resultcode_ok? @socket.bind(@addr)
-        @socket.close
-        raise "couldn't bind to #{@addr}: #{::ZMQ::Util.error_string}"
+        raise
       end
 
       run!
@@ -23,17 +20,7 @@ module DCell
 
     # Wait for incoming 0MQ messages
     def run
-      while true
-        wait_readable @socket
-        message = ''
-
-        rc = @socket.recv_string message
-        if ::ZMQ::Util.resultcode_ok? rc
-          handle_message message
-        else
-          raise "error receiving ZMQ string: #{::ZMQ::Util.error_string}"
-        end
-      end
+      while true; handle_message @socket.read; end
     end
 
     # Shut down the server

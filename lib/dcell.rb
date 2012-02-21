@@ -1,7 +1,9 @@
 require 'celluloid'
 require 'celluloid/zmq'
-require 'dcell/version'
 
+Celluloid::ZMQ.init
+
+require 'dcell/version'
 require 'dcell/actor_proxy'
 require 'dcell/directory'
 require 'dcell/mailbox_proxy'
@@ -21,13 +23,10 @@ require 'dcell/celluloid_ext'
 # Distributed Celluloid
 module DCell
   DEFAULT_PORT  = 7777 # Default DCell port
-  ZMQ_POOL_SIZE = 1 # DCell uses a fixed-size 0MQ thread pool
-
-  @zmq_context  = Celluloid::ZMQ.context = ::ZMQ::Context.new(ZMQ_POOL_SIZE)
   @config_lock  = Mutex.new
 
   class << self
-    attr_reader :me, :registry, :zmq_context
+    attr_reader :me, :registry
 
     # Configure DCell with the following options:
     #

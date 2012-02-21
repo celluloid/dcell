@@ -84,7 +84,7 @@ module DCell
     def socket
       return @socket if @socket
 
-      @socket = DCell.zmq_context.socket(::ZMQ::PUSH)
+      @socket = Celluloid::ZMQ.context.socket(::ZMQ::PUSH)
       unless ::ZMQ::Util.resultcode_ok? @socket.connect @addr
         @socket.close
         @socket = nil
