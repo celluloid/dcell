@@ -20,7 +20,7 @@ module DCell
 
     # Wait for incoming 0MQ messages
     def run
-      while true; handle_message @socket.read; end
+      while true; handle_message! @socket.read; end
     end
 
     # Shut down the server
