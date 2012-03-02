@@ -1,6 +1,6 @@
 ![DCell](https://github.com/celluloid/dcell/raw/master/logo.png)
 =====
-[![Build Status](http://travis-ci.org/tarcieri/dcell.png)](http://travis-ci.org/tarcieri/dcell)
+[![Build Status](http://travis-ci.org/celluloid/dcell.png)](http://travis-ci.org/celluloid/dcell)
 
 > "Objects can message objects transparently that live on other machines
 > over the network, and you don't have to worry about the networking gunk,
