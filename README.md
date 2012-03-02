@@ -1,4 +1,4 @@
-![DCell](https://github.com/tarcieri/dcell/raw/master/logo.png)
+![DCell](https://github.com/celluloid/dcell/raw/master/logo.png)
 =====
 [![Build Status](http://travis-ci.org/tarcieri/dcell.png)](http://travis-ci.org/tarcieri/dcell)
 
