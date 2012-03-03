@@ -7,7 +7,7 @@ Gem::Specification.new do |gem|
   gem.version     = DCell::VERSION
   gem.authors     = ["Tony Arcieri"]
   gem.email       = ["tony.arcieri@gmail.com"]
-  gem.homepage    = "http://github.com/tarcieri/dcell"
+  gem.homepage    = "http://github.com/celluloid/dcell"
   gem.summary     = "An asynchronous distributed object framework based on Celluloid"
   gem.description = "DCell is an distributed object framework based on Celluloid built on 0MQ and Zookeeper"
 
