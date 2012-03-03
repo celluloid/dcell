@@ -14,6 +14,7 @@ require 'dcell/responses'
 require 'dcell/router'
 require 'dcell/rpc'
 require 'dcell/server'
+require 'dcell/info_service'
 
 require 'dcell/registries/redis_adapter'
 require 'dcell/registries/moneta_adapter'
@@ -97,6 +98,7 @@ module DCell
 
   # DCell's actor dependencies
   class Group < Celluloid::Group
-    supervise Server, :as => :dcell_server
+    supervise Server,      :as => :dcell_server
+    supervise InfoService, :as => :info
   end
 end

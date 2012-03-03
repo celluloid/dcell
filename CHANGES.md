@@ -1,3 +1,7 @@
+HEAD
+----
+* Info service
+
 0.9.0
 -----
 * Use new Celluloid::ZMQ APIs
