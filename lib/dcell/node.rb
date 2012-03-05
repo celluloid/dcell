@@ -77,7 +77,7 @@ module DCell
 
     def finalize
       transition :shutdown
-      @socket.close if socket
+      @socket.close if @socket
     end
 
     # Obtain the node's 0MQ socket
