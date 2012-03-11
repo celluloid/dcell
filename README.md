@@ -279,4 +279,4 @@ components.
 Copyright
 ---------
 
-Copyright (c) 2011 Tony Arcieri. See LICENSE.txt for further details.
+Copyright (c) 2012 Tony Arcieri. See LICENSE.txt for further details.
