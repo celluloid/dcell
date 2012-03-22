@@ -79,7 +79,13 @@ registry services:
   Unfortunately, it has slightly more annoying client-side dependencies and is
   more difficult to deploy than Redis.
 
-You may pick either one of these services to use as DCell's registry. The
+* Cassandra (eventual consistency): Apache Cassandra has no single points of
+  failure and can store huge amounts of data. Setup requires creating a
+  keyspace and defining a single column family before staring DCell. The
+  Cassandra backend defaults to a keyspace/CF both named "dcell". There
+  are two rows, "nodes" and "globals" each with one column per entry.
+
+You may pick any of these services to use as DCell's registry. The
 default is Redis.
 
 To install a local copy of Redis on OS X with Homebrew, run:
@@ -93,6 +99,11 @@ To install a local copy Zookeeper for testing purposes, run:
 and to start it run:
 
     rake zookeeper:start
+
+To install a local copy Apache Cassandra for testing purposes, run:
+
+    rake cassandra:install
+    rake cassandra:start
 
 Configuration
 -------------
