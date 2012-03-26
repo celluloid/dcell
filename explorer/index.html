@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>DCell Explorer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="An interactive explorer for distributed systems built with DCell">
+    <meta name="author" content="Tony Arcieri">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .sidebar-nav {
+        padding: 9px 0;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/ico/favicon.ico">
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="/"><img src="/img/logo.png" alt="DCell Explorer"></a>
+          <div class="nav-collapse">
+            <p class="navbar-text pull-right">Connected to <a href="#">node1.domain</a></p>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span3">
+          <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+              <li class="nav-header">Nodes</li>
+              <li class="active"><a href="#"><img src="/img/greenball.png" alt="[OK]"> node1.domain</a></li>
+              <li><a href="#"><img src="/img/greenball.png" alt="[OK]"> node2.domain</a></li>
+              <li><a href="#"><img src="/img/yellowball.png" alt="[DISCONNECTED]"> node3.domain</a></li>
+              <li><a href="#"><img src="/img/redball.png" alt="[DOWN]"> node4.domain</a></li>
+            </ul>
+          </div><!--/.well -->
+        </div><!--/span-->
+        <div class="span9">
+          <div class="hero-unit">
+            <h1><img src="/img/greenball_large.png"> node1.domain</h1>
+						<br>
+						<h2>Uptime: 127 hours</h2>
+						<h2>Load average: 2.22, 2.88, 1.93</h2>
+          </div>
+          <div class="row-fluid">
+            <div class="span4">
+              <h2>System Info</h2>
+							<ul>
+								<li>x86_64 CPU (8 cores)</li>
+								<li>Mac OS X 11.3.0 (11D50b)</li>
+							</ul>
+            </div><!--/span-->
+            <div class="span4">
+              <h2>Ruby Interpreter</h2>
+							<ul>
+								<li>YARV</li>
+								<li>Ruby 1.9.3</li>
+							</ul>
+            </div><!--/span-->
+          </div><!--/row-->
+        </div><!--/span-->
+      </div><!--/row-->
+
+      <hr>
+
+      <footer>
+        <p>&copy; Tony Arcieri 2012</p>
+      </footer>
+
+    </div><!--/.fluid-container-->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>
