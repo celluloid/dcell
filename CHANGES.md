@@ -1,5 +1,6 @@
 HEAD
 ----
+* DCell::Explorer provides a web UI with Reel
 * Info service
 
 0.9.0
