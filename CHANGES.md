@@ -2,6 +2,7 @@ HEAD
 ----
 * DCell::Explorer provides a web UI with Reel
 * Info service
+* Cassandra registry
 
 0.9.0
 -----

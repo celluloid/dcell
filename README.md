@@ -76,20 +76,19 @@ DCell requires 0MQ. On OS X, this is available through Homebrew by running:
     brew install zeromq
 
 DCell keeps the state of all connected nodes and global configuration data
-in a service it calls the "registry". There are presently two supported
-registry services:
+in a service it calls the "registry". DCell supports any of the following for
+use as registries:
 
-* Redis (Fast and Loose): Redis is a persistent data structures server.
-  It's simple and easy to use for development and prototyping, but lacks a
-  good distribution story.
+* **Redis**: a persistent data structures server. It's simple and easy to use
+  for development and prototyping, but lacks a good distribution story.
 
-* Zookeeper (Serious Business): Zookeeper is a high-performance coordination
-  service for distributed applications. It exposes common services such as
-  naming, configuration management, synchronization, and group management.
+* **Zookeeper**: Zookeeper is a high-performance coordination service for
+  distributed applications. It exposes common services such as naming,
+  configuration management, synchronization, and group management.
   Unfortunately, it has slightly more annoying client-side dependencies and is
   more difficult to deploy than Redis.
 
-* Cassandra (eventual consistency): Apache Cassandra has no single points of
+* **Cassandra**: a distributed database with no single points of
   failure and can store huge amounts of data. Setup requires creating a
   keyspace and defining a single column family before staring DCell. The
   Cassandra backend defaults to a keyspace/CF both named "dcell". There
