@@ -1,5 +1,6 @@
 require 'reel'
 require 'pathname'
+require 'erb'
 
 module DCell
   class Explorer
@@ -31,6 +32,9 @@ module DCell
         file = File.read(asset_path.to_s, :mode => 'rb')
         connection.respond :ok, file
         Celluloid::Logger.info "200 OK: #{request.url}"
+      elsif File.exist?(asset_path.to_s + ".erb")
+        template = ERB.new File.read("#{asset_path.to_s}.erb", :mode => 'rb')
+        connection.respond :ok, template.result(binding)
       else
         connection.respond :not_found, "Not found"
         Celluloid::Logger.info "404 Not Found: #{request.url}"
