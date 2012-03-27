@@ -17,15 +17,25 @@ and register several available services on a given node, obtain handles to
 them, and easily pass these handles around the network just like any other
 objects.
 
-DCell is a distributed extension to Celluloid, which provides concurrent
-objects for Ruby with many of the features of Erlang, such as the ability
-to supervise objects and restart them when they crash, and also link to
+DCell is a distributed extension to [Celluloid][celluloid], which provides
+concurrent objects for Ruby with many of the features of Erlang, such as the
+ability to supervise objects and restart them when they crash, and also link to
 other objects and receive event notifications of when they crash. This makes
 it easier to build robust, fault-tolerant distributed systems.
 
-You can read more about Celluloid at: http://celluloid.github.com
+DCell uses the [0MQ][zeromq] messaging protocol which provides a robust,
+fault-tolerant brokerless transport for asynchronous messages sent between
+nodes. DCell is built on top of the [Celluloid::ZMQ][celluloid-zmq] library,
+which provides a Celluloid-oriented wrapper around the underlying
+[ffi-rzmq][ffi-rzmq] library.
 
-Like DCell? [Join the Celluloid Google Group](http://groups.google.com/group/celluloid-ruby)
+Like DCell? [Join the Celluloid Google Group][googlegroup]
+
+[celluloid]: http://celluloid.io/
+[zeromq]: http://www.zeromq.org/
+[celluloid-zmq]: https://github.com/celluloid/celluloid-zmq
+[ffi-rzmq]: https://github.com/chuckremes/ffi-rzmq
+[googlegroup]: http://groups.google.com/group/celluloid-ruby
 
 ### Is It Good?
 
