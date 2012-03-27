@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -38,7 +38,7 @@
           </a>
           <a class="brand" href="/"><img src="/img/logo.png" alt="DCell Explorer"></a>
           <div class="nav-collapse">
-            <p class="navbar-text pull-right">Connected to <a href="#">node1.domain</a></p>
+            <p class="navbar-text pull-right">Connected to <a href="#"><%= DCell.me %></a></p>
           </div><!--/.nav-collapse -->
         </div>
       </div>
@@ -50,34 +50,33 @@
           <div class="well sidebar-nav">
             <ul class="nav nav-list">
               <li class="nav-header">Nodes</li>
-              <li class="active"><a href="#"><img src="/img/greenball.png" alt="[OK]"> node1.domain</a></li>
-              <li><a href="#"><img src="/img/greenball.png" alt="[OK]"> node2.domain</a></li>
-              <li><a href="#"><img src="/img/yellowball.png" alt="[DISCONNECTED]"> node3.domain</a></li>
-              <li><a href="#"><img src="/img/redball.png" alt="[DOWN]"> node4.domain</a></li>
+              <% DCell::Node.each do |node| %>
+                <li<%= ' class="active"' if node.id == DCell.id %>><a href="#"><img src="/img/greenball.png" alt="[OK]"> <%= node.id %></a></li>
+              <% end %>
             </ul>
           </div><!--/.well -->
         </div><!--/span-->
         <div class="span9">
           <div class="hero-unit">
             <h1><img src="/img/greenball-large.png"> node1.domain</h1>
-						<br>
-						<h2>Uptime: 127 hours</h2>
-						<h2>Load average: 2.22, 2.88, 1.93</h2>
+            <br>
+            <h2>Uptime: 127 hours</h2>
+            <h2>Load average: 2.22, 2.88, 1.93</h2>
           </div>
           <div class="row-fluid">
             <div class="span4">
               <h2>System Info</h2>
-							<ul>
-								<li>x86_64 CPU (8 cores)</li>
-								<li>Mac OS X 11.3.0 (11D50b)</li>
-							</ul>
+              <ul>
+                <li>x86_64 CPU (8 cores)</li>
+                <li>Mac OS X 11.3.0 (11D50b)</li>
+              </ul>
             </div><!--/span-->
             <div class="span4">
               <h2>Ruby Interpreter</h2>
-							<ul>
-								<li>YARV</li>
-								<li>Ruby 1.9.3</li>
-							</ul>
+              <ul>
+                <li>YARV</li>
+                <li>Ruby 1.9.3</li>
+              </ul>
             </div><!--/span-->
           </div><!--/row-->
         </div><!--/span-->
