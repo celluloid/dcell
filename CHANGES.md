@@ -4,6 +4,7 @@ HEAD
 * Info service
 * Use Celluloid.uuid for call IDs
 * Cassandra registry
+* celluloid-zmq split out into a separate gem
 
 0.9.0
 -----
