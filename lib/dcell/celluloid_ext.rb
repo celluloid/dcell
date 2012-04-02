@@ -57,9 +57,9 @@ module Celluloid
 
   class SyncCall
     def _dump(level)
-      rpc_id = DCell::RPC::Manager.register self
+      uuid = DCell::RPC::Manager.register self
       payload = Marshal.dump([@caller,@method,@arguments,@block])
-      "#{rpc_id.to_s(16)}@#{DCell.id}:#{payload}"
+      "#{uuid}@#{DCell.id}:#{payload}"
     end
 
     def self._load(string)
