@@ -19,6 +19,10 @@ require 'dcell/info_service'
 require 'dcell/registries/redis_adapter'
 require 'dcell/registries/moneta_adapter'
 
+require 'dcell/registries/gossip'
+require 'dcell/registries/gossip/core'
+require 'dcell/registries/gossip_adapter'
+
 require 'dcell/celluloid_ext'
 
 # Distributed Celluloid
@@ -62,6 +66,27 @@ module DCell
 
         addr = @configuration['public'] || @configuration['addr']
         DCell::Directory.set @configuration['id'], addr
+
+        registry_options = @configuration['registry']
+        registry_options = registry_options.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
+        # Let them specify a single server instead of many
+        server = registry_options['server']
+        if server
+          servers = [server]
+        else
+          servers = registry_options['servers'] || []
+        end
+
+        # Add the specified servers to the directory and
+        # force them into the connected state
+        servers.each do |srv|
+          srv = srv.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
+          DCell::Directory.set srv['id'], srv['addr']
+          DCell::Node.find(srv['id']).socket
+        end
+
+        # Force local transition to the connected state
+        @me.socket
       end
 
       me

@@ -8,15 +8,15 @@ module DCell
       @id = object_id
     end
 
-    # Heartbeat messages inform other nodes this node is healthy
-    class Heartbeat < Message
-      def initialize
-        @id = DCell.id
+    # Gossip messages contain health and membership information
+    class Gossip < Message
+      def initialize(id, peers, data)
+        @id, @peers, @data = id, peers, data
       end
 
       def dispatch
         node = DCell::Node[@id]
-        node.handle_heartbeat if node
+        node.handle_gossip(@peers, @data) if node
       end
     end
 
