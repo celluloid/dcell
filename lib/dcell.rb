@@ -19,7 +19,6 @@ require 'dcell/info_service'
 require 'dcell/registries/redis_adapter'
 require 'dcell/registries/moneta_adapter'
 
-require 'dcell/registries/gossip'
 require 'dcell/registries/gossip/core'
 require 'dcell/registries/gossip_adapter'
 

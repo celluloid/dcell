@@ -99,36 +99,27 @@ module DCell
 
     class Store
       class Data
-        attr_reader :key, :value, :vector, :changed
+        attr_reader :key, :value, :vector
         def initialize(key, value, id)
-          @key    = key
-          @value  = value
-          @vector = VersionVector.new(id)
-          changed!
+          @key     = key
+          @value   = value
+          @vector  = VersionVector.new(id)
+          @changed = true
         end
 
         def clear
           @vector.update_at DCell.id
           @deleted = true
           @value   = nil
-          changed!
+          @changed = true
         end
 
         def deleted?
           @deleted
         end
 
-        def send?
-          if @changed > 0
-            @changed -= 1
-            true
-          else
-            false
-          end
-        end
-
-        def changed!
-          @changed = 2
+        def changed?
+          @changed
         end
 
         def observe
@@ -140,7 +131,7 @@ module DCell
             @vector.update_at DCell.id
             @value   = value
             @deleted = value.nil?
-            changed!
+            @changed = true
             Celluloid::Logger.debug "Updated key #{key} to #{value}"
           end
         end
@@ -159,7 +150,6 @@ module DCell
               end
               @value   = other.value
               @deleted = @value.nil?
-              @changed = other.changed - 1
             end
           elsif status.succeeds?
             Celluloid::Logger.info "Data succeeds for #{@key}"
@@ -169,6 +159,9 @@ module DCell
             @vector.merge!(other.vector)
             Celluloid::Logger.debug "Merged vector #{@vector}"
           end
+
+          # Stop gossiping if this has been seen by every known node
+          @changed = false if @vector.versions.size == DCell::Node.all.size and status.equal?
         end
       end
 
@@ -216,7 +209,7 @@ module DCell
       end
 
       def changed
-        @data.each_value.select(&:send?)
+        @data.each_value.select(&:changed?)
       end
     end
   end
