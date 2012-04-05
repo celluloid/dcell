@@ -38,8 +38,15 @@ module DCell
         @versions[id] ||= 0
       end
 
-      def covers?(nodes)
-        nodes.each { |node| return false unless @versions.keys.include? node }
+      def covers?(nodes, vector)
+        nodes.each do |node|
+          # We must have an entry for the node
+          return false unless @versions.keys.include? node
+          
+          # And someone else must have seen the entry, too.
+          version = vector.versions[node] || 0
+          return false if @versions[node] != version
+        end
         true
       end
 
@@ -167,8 +174,9 @@ module DCell
           end
           @vector.merge!(other.vector) unless status.equal?
 
-          # Stop gossiping if this has been seen by every known node
-          @changed = false if @vector.covers?(DCell::Node.all) and status.equal?
+          # Stop gossiping if this has been seen by every known, healthy node
+          nodes = DCell::Node.all.map { |node| node.state == :connected }
+          @changed = false if @vector.covers?(nodes, other.vector)
         end
       end
 
