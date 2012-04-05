@@ -4,7 +4,7 @@ module DCell
     include Celluloid
     include Celluloid::FSM
     attr_reader :id, :addr
-    attr_accessor :timestamp
+    attr_accessor :timestamp, :fresh
 
     # FSM
     default_state :disconnected
@@ -72,6 +72,7 @@ module DCell
       @timestamp = 0
       @socket = nil
       @gossip = nil
+      @fresh = true
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self
@@ -143,10 +144,11 @@ module DCell
     def gossip
       peers = Node.select { |node| node.state == :connected }
       peers = peers.inject([]) { |a,n| a << [n.id, n.addr, n.timestamp]; a } 
-      send_message DCell::Message::Gossip.new id, peers, DCell.registry.changed
+      data = @fresh ? DCell.registry.values : DCell.registry.changed
+      send_message DCell::Message::Gossip.new id, peers, data
     end
 
-    # Send gossip to a random node after the given interval
+    # Send gossip to a random node (except ourself) after the given interval
     def gossip_timeout
       @timestamp += 1
       peer = Node.select { |node| node.id != DCell.id }.sample(1)[0]
@@ -158,6 +160,7 @@ module DCell
     def handle_gossip(peers, data)
       peers.each do |id, addr, timestamp|
         if (node = Node.find(id))
+          node.fresh = false if timestamp > 0
           if timestamp > node.timestamp
             node.timestamp = timestamp
             node.handle_heartbeat

@@ -15,7 +15,7 @@ module DCell
       def_delegator  :@global_registry, :set,     :set_global
       def_delegator  :@global_registry, :clear,   :clear_globals
       def_delegator  :@global_registry, :keys,    :global_keys
-      def_delegators :@global_registry, :changed, :observe
+      def_delegators :@global_registry, :changed, :observe, :values
 
       def initialize(options)
         # Convert all options to symbols :/

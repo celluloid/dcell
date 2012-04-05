@@ -32,11 +32,15 @@ module DCell
       def update_at(id)
         observe id
         @versions[id] += 1
-        Celluloid::Logger.debug "Vector updated #{self.to_s}"
       end
       
       def observe(id)
         @versions[id] ||= 0
+      end
+
+      def covers?(nodes)
+        nodes.each { |node| return false unless @versions.keys.include? node }
+        true
       end
 
       def compare(other)
@@ -45,6 +49,12 @@ module DCell
 
         @versions.each do |id, version|
           if not other.versions.include? id
+            # Version vectors behave like vector clocks, with slightly
+            # different update rules. A vector clock assumes that all
+            # processes initially observe version 0. Since we don't
+            # know the topology ahead of time, we assume that a missing
+            # entry corresponds to a node that has not yet been discovered,
+            # and thus the version is implicitly 0.
             v1_bigger = true if version > 0
           else
             v1_bigger = true if version > other.versions[id]
@@ -54,6 +64,7 @@ module DCell
 
         other.versions.each do |id, version|
           if not @versions.include? id
+            # See the comment above for the similar v1_bigger calculation.
             v2_bigger = true if version > 0
           else
             v2_bigger = true if version > @versions[id]
@@ -144,7 +155,7 @@ module DCell
           if status.precedes? or status.concurrent?
             if other.value != @value
               if status.concurrent?
-                Celluloid::Logger.info "Dropping local copy of concurrent data for #{@key}, #{@vector}, other #{other.vector}"
+                Celluloid::Logger.debug "Dropping local copy of concurrent data for #{@key}"
               else
                 Celluloid::Logger.debug "Observed updated data #{key} => #{other.value}"
               end
@@ -152,16 +163,12 @@ module DCell
               @deleted = @value.nil?
             end
           elsif status.succeeds?
-            Celluloid::Logger.info "Data succeeds for #{@key}"
+            Celluloid::Logger.debug "Local data succeeds for #{@key}"
           end
-          unless status.equal?
-            Celluloid::Logger.debug "Merging #{other.vector} into #{@vector}"
-            @vector.merge!(other.vector)
-            Celluloid::Logger.debug "Merged vector #{@vector}"
-          end
+          @vector.merge!(other.vector) unless status.equal?
 
           # Stop gossiping if this has been seen by every known node
-          @changed = false if @vector.versions.size == DCell::Node.all.size and status.equal?
+          @changed = false if @vector.covers?(DCell::Node.all) and status.equal?
         end
       end
 
@@ -201,7 +208,7 @@ module DCell
       end
 
       def keys
-        @data.keys
+        @data.keys.map { |k| k =~ /#{@base_path}\/(.+)$/; $1 }
       end
 
       def clear
@@ -210,6 +217,10 @@ module DCell
 
       def changed
         @data.each_value.select(&:changed?)
+      end
+
+      def values
+        @data.values
       end
     end
   end

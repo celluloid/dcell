@@ -45,7 +45,7 @@ module DCell
         @configuration = {
           'id'   => generate_node_id,
           'addr' => "tcp://127.0.0.1:#{DEFAULT_PORT}",
-          'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
+          'registry' => {'adapter' => 'gossip'}
         }.merge(options)
 
         @me = Node.new @configuration['id'], @configuration['addr']
@@ -75,6 +75,9 @@ module DCell
         else
           servers = registry_options['servers'] || []
         end
+
+        # If none was specified, then the server is me.
+        servers = [{'id' => id, 'addr' => addr}] if servers.size == 0
 
         # Add the specified servers to the directory and
         # force them into the connected state
