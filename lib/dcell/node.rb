@@ -3,75 +3,32 @@ module DCell
   class Node
     include Celluloid
     include Celluloid::FSM
-    attr_reader :id, :addr
-    attr_accessor :timestamp, :fresh
+    attr_reader :id, :addr, :timestamp
 
     # FSM
     default_state :disconnected
     state :shutdown
     state :disconnected, :to => [:connected, :shutdown]
     state :connected do
-      gossip_timeout if id == DCell.id
       Celluloid::Logger.info "Connected to #{id}"
     end
     state :partitioned do
       Celluloid::Logger.warn "Communication with #{id} interrupted"
     end
 
-    # Ivars
-    @nodes = {}
-    @lock  = Mutex.new
-
-    @gossip_rate       = 5  # How often to send gossip in seconds
-    @heartbeat_timeout = 20 # How soon until a lost heartbeat triggers a node partition
-
     # Singleton methods
     class << self
       include Enumerable
-      attr_reader :gossip_rate, :heartbeat_timeout
+      extend Forwardable
 
-      # Return all available nodes in the cluster
-      def all
-        Directory.all.map do |node_id|
-          find node_id
-        end
-      end
-
-      # Iterate across all available nodes
-      def each
-        Directory.all.each do |node_id|
-          yield find node_id
-        end
-      end
-
-      # Find a node by its node ID
-      def find(id)
-        node = @lock.synchronize { @nodes[id] }
-        return node if node
-
-        addr = Directory[id]
-
-        if addr
-          if id == DCell.id
-            node = DCell.me
-          else
-            node = Node.new(id, addr)
-          end
-
-          @lock.synchronize do
-            @nodes[id] ||= node
-            @nodes[id]
-          end
-        end
-      end
-      alias_method :[], :find
+      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[], :handle_gossip
+      def_delegators "Celluloid::Actor[:node_manager]", :gossip_rate, :heartbeat_timeout
     end
 
     def initialize(id, addr)
       @id, @addr = id, addr
       @timestamp = 0
       @socket = nil
-      @gossip = nil
       @fresh = true
 
       # Total hax to accommodate the new Celluloid::FSM API
@@ -141,45 +98,25 @@ module DCell
     end
     alias_method :<<, :send_message
 
-    def gossip
-      peers = Node.select { |node| node.state == :connected }
-      peers = peers.inject([]) { |a,n| a << [n.id, n.addr, n.timestamp]; a } 
-      data = @fresh ? DCell.registry.values : DCell.registry.changed
-      send_message DCell::Message::Gossip.new id, peers, data
-    end
-
-    # Send gossip to a random node (except ourself) after the given interval
-    def gossip_timeout
+    def tick
       @timestamp += 1
-      peer = Node.select { |node| node.id != DCell.id }.sample(1)[0]
-      peer.gossip if peer
-
-      @gossip = after(self.class.gossip_rate) { gossip_timeout }
     end
-    
-    def handle_gossip(peers, data)
-      peers.each do |id, addr, timestamp|
-        if (node = Node.find(id))
-          node.fresh = false if timestamp > 0
-          if timestamp > node.timestamp
-            node.timestamp = timestamp
-            node.handle_heartbeat
-            unless node.state == :connected
-              Celluloid::Logger.info "Revived node #{id}"
-            end
-          end
-        else
-          Directory[id] = addr
-          Celluloid::Logger.info "Found node #{id}"
+
+    def fresh?
+      @fresh
+    end
+
+    # Handle an incoming timestamp observation for this node
+    def handle_timestamp(t)
+      @fresh = false if t > 0
+      if @timestamp < t
+        @timestamp = t
+        transition :connected
+        transition :partitioned, :delay => self.class.heartbeat_timeout
+        unless state == :connected
+          Celluloid::Logger.info "Revived node #{id}"
         end
       end
-      data.map { |data| DCell.registry.observe data }
-    end
-
-    # Handle an incoming heartbeat for this node
-    def handle_heartbeat
-      transition :connected
-      transition :partitioned, :delay => self.class.heartbeat_timeout
     end
 
     # Friendlier inspection

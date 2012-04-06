@@ -3,66 +3,73 @@ require 'weakref'
 module DCell
   # Route incoming messages to their recipient actors
   class Router
-    @lock = Mutex.new
-    @table = {}
+    @mutex     = Mutex.new
+    @addresses = {}
+    @mailboxes = {}
 
     class << self
       # Enter a mailbox into the registry
       def register(mailbox)
-        id = mailbox.object_id.to_s(16)
-
-        @lock.synchronize do
-          ref = @table[id]
-          unless ref && ref.weakref_alive?
-            @table[id] = WeakRef.new(mailbox)
+        @mutex.lock
+        begin
+          address = @addresses[mailbox.object_id]
+          unless address
+            address = Celluloid.uuid
+            @addresses[mailbox.object_id] = address
           end
-        end
 
-        id
+          ref = @mailboxes[address]
+          @mailboxes[address] = WeakRef.new(mailbox) unless ref && ref.weakref_alive?
+
+          address
+        ensure
+          @mutex.unlock rescue nil
+        end
       end
 
-      # Find a mailbox by its ID
-      def find(mailbox_id)
-        @lock.synchronize do
-          ref = @table[mailbox_id]
+      # Find a mailbox by its address
+      def find(mailbox_address)
+        @mutex.lock
+        begin
+          ref = @mailboxes[mailbox_address]
           return unless ref
-          begin
-            ref.__getobj__
-          rescue WeakRef::RefError
-            # The referenced actor is dead, so prune the registry
-            @table.delete mailbox_id
-            nil
-          end
+          ref.__getobj__
+        rescue WeakRef::RefError
+          # The referenced actor is dead, so prune the registry
+          @mailboxes.delete mailbox_address
+          nil
+        ensure
+          @mutex.unlock rescue nil
         end
       end
 
       # Route a message to a given mailbox ID
-      def route(mailbox_id, message)
-        recipient = find mailbox_id
+      def route(mailbox_address, message)
+        recipient = find mailbox_address
 
         if recipient
           recipient << message
         else
-          Celluloid::Logger.debug("received message for invalid actor: #{mailbox_id.inspect}")
+          Celluloid::Logger.debug("received message for invalid actor: #{mailbox_address.inspect}")
         end
       end
 
       # Route a system event to a given mailbox ID
-      def route_system_event(mailbox_id, event)
-        recipient = find mailbox_id
+      def route_system_event(mailbox_address, event)
+        recipient = find mailbox_address
 
         if recipient
           recipient.system_event event
         else
-          Celluloid::Logger.debug("received message for invalid actor: #{mailbox_id.inspect}")
+          Celluloid::Logger.debug("received message for invalid actor: #{mailbox_address.inspect}")
         end
       end
 
       # Prune all entries that point to dead objects
       def gc
-        @lock.synchronize do
-          @table.each do |id, ref|
-            @table.delete id unless ref.weakref_alive?
+        @mutex.synchronize do
+          @mailboxes.each do |id, ref|
+            @mailboxes.delete id unless ref.weakref_alive?
           end
         end
       end

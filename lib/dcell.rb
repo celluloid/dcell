@@ -9,6 +9,7 @@ require 'dcell/directory'
 require 'dcell/mailbox_proxy'
 require 'dcell/messages'
 require 'dcell/node'
+require 'dcell/node_manager'
 require 'dcell/global'
 require 'dcell/responses'
 require 'dcell/router'
@@ -79,16 +80,11 @@ module DCell
         # If none was specified, then the server is me.
         servers = [{'id' => id, 'addr' => addr}] if servers.size == 0
 
-        # Add the specified servers to the directory and
-        # force them into the connected state
+        # Add the specified servers to the directory.
         servers.each do |srv|
           srv = srv.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
           DCell::Directory.set srv['id'], srv['addr']
-          DCell::Node.find(srv['id']).socket
         end
-
-        # Force local transition to the connected state
-        @me.socket
       end
 
       me
@@ -127,5 +123,6 @@ module DCell
   class Group < Celluloid::Group
     supervise Server,      :as => :dcell_server
     supervise InfoService, :as => :info
+    supervise NodeManager, :as => :node_manager
   end
 end

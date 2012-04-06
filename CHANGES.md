@@ -2,9 +2,10 @@ HEAD
 ----
 * DCell::Explorer provides a web UI with Reel
 * Info service
-* Use Celluloid.uuid for call IDs
+* Use Celluloid.uuid for mailbox and call IDs
 * Cassandra registry
 * celluloid-zmq split out into a separate gem
+* Initial DCell::NodeManager
 
 0.9.0
 -----

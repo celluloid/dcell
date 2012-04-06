@@ -10,13 +10,12 @@ module DCell
 
     # Gossip messages contain health and membership information
     class Gossip < Message
-      def initialize(id, peers, data)
-        @id, @peers, @data = id, peers, data
+      def initialize(peers, data)
+        @peers, @data = peers, data
       end
 
       def dispatch
-        node = DCell::Node[@id]
-        node.handle_gossip(@peers, @data) if node
+        Node.handle_gossip(@peers, @data)
       end
     end
 
