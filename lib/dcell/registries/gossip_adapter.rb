@@ -6,11 +6,6 @@ module DCell
       extend Forwardable
       PREFIX = "/dcell"
 
-      def_delegator :@node_registry, :[],    :get_node
-      def_delegator :@node_registry, :[]=,   :set_node
-      def_delegator :@node_registry, :clear, :clear_nodes
-      def_delegator :@node_registry, :keys,  :nodes
-
       def_delegator  :@global_registry, :get,     :get_global
       def_delegator  :@global_registry, :set,     :set_global
       def_delegator  :@global_registry, :clear,   :clear_globals
@@ -24,7 +19,6 @@ module DCell
         @env = options[:env] || 'production'
         @base_path = options[:namespace] || "#{PREFIX}/#{@env}"
 
-        @node_registry   = {}
         @global_registry = Gossip::Store.new("#{@base_path}/globals")
       end
     end

@@ -14,43 +14,12 @@ module DCell
         redis  = Redis.new options
         @redis = Redis::Namespace.new @namespace, :redis => redis
 
-        @node_registry   = NodeRegistry.new(@redis)
         @global_registry = GlobalRegistry.new(@redis)
-      end
-
-      def clear_nodes
-        @node_registry.clear
       end
 
       def clear_globals
         @global_registry.clear
       end
-
-      class NodeRegistry
-        def initialize(redis)
-          @redis = redis
-        end
-
-        def get(node_id)
-          @redis.hget 'nodes', node_id
-        end
-
-        def set(node_id, addr)
-          @redis.hset 'nodes', node_id, addr
-        end
-
-        def nodes
-          @redis.hkeys 'nodes'
-        end
-
-        def clear
-          @redis.del 'nodes'
-        end
-      end
-
-      def get_node(node_id);       @node_registry.get(node_id) end
-      def set_node(node_id, addr); @node_registry.set(node_id, addr) end
-      def nodes;                   @node_registry.nodes end
 
       class GlobalRegistry
         def initialize(redis)

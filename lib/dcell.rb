@@ -46,10 +46,20 @@ module DCell
         @configuration = {
           'id'   => generate_node_id,
           'addr' => "tcp://127.0.0.1:#{DEFAULT_PORT}",
-          'registry' => {'adapter' => 'gossip'}
+          'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
         }.merge(options)
 
         @me = Node.new @configuration['id'], @configuration['addr']
+
+        # Specify the directory server (defaults to me), and add it
+        # to the local directory.
+        directory = @configuration['directory'] || {}
+        directory = directory.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
+        directory = {
+          'id'   => @configuration['id'],
+          'addr' => @configuration['addr']
+        }.merge(directory)
+        DCell::Directory.set directory['id'], directory['addr']
 
         registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
         raise ArgumentError, "no registry adapter given in config" unless registry_adapter
@@ -66,25 +76,6 @@ module DCell
 
         addr = @configuration['public'] || @configuration['addr']
         DCell::Directory.set @configuration['id'], addr
-
-        registry_options = @configuration['registry']
-        registry_options = registry_options.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
-        # Let them specify a single server instead of many
-        server = registry_options['server']
-        if server
-          servers = [server]
-        else
-          servers = registry_options['servers'] || []
-        end
-
-        # If none was specified, then the server is me.
-        servers = [{'id' => id, 'addr' => addr}] if servers.size == 0
-
-        # Add the specified servers to the directory.
-        servers.each do |srv|
-          srv = srv.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
-          DCell::Directory.set srv['id'], srv['addr']
-        end
       end
 
       me

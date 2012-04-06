@@ -36,50 +36,12 @@ module DCell
         end
 
         @zk = ZK.new(*servers)
-        @node_registry = NodeRegistry.new(@zk, @base_path)
         @global_registry = GlobalRegistry.new(@zk, @base_path)
-      end
-
-      def clear_nodes
-        @node_registry.clear
       end
 
       def clear_globals
         @global_registry.clear
       end
-
-      class NodeRegistry
-        def initialize(zk, base_path)
-          @zk, @base_path = zk, "#{base_path}/nodes"
-          @zk.mkdir_p @base_path
-        end
-
-        def get(node_id)
-          result, _ = @zk.get("#{@base_path}/#{node_id}")
-          result
-        rescue ZK::Exceptions::NoNode
-        end
-
-        def set(node_id, addr)
-          path = "#{@base_path}/#{node_id}"
-          @zk.set path, addr
-        rescue ZK::Exceptions::NoNode
-          @zk.create path, addr
-        end
-
-        def nodes
-          @zk.children @base_path
-        end
-
-        def clear
-          @zk.rm_rf @base_path
-          @zk.mkdir_p @base_path
-        end
-      end
-
-      def get_node(node_id);       @node_registry.get(node_id) end
-      def set_node(node_id, addr); @node_registry.set(node_id, addr) end
-      def nodes;                   @node_registry.nodes end
 
       class GlobalRegistry
         def initialize(zk, base_path)

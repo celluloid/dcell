@@ -3,21 +3,33 @@ module DCell
   module Directory
     extend self
 
+    @@directory = {}
+    @@directory_lock = Mutex.new
+
     # Get the URL for a particular Node ID
     def get(node_id)
-      DCell.registry.get_node node_id
+      @@directory_lock.synchronize do
+        @@directory[node_id]
+      end
     end
     alias_method :[], :get
 
     # Set the address of a particular Node ID
     def set(node_id, addr)
-      DCell.registry.set_node node_id, addr
+      @@directory_lock.synchronize do
+        @@directory[node_id] = addr
+      end
     end
     alias_method :[]=, :set
 
     # List all of the node IDs in the directory
     def all
-      DCell.registry.nodes
+      @@directory_lock.synchronize { @@directory.keys }
+    end
+
+    # Clear the directory.
+    def clear
+      @@directory_lock.synchronize { @@directory.clear }
     end
   end
 end

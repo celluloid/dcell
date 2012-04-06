@@ -11,6 +11,7 @@ module DCell
 
       @gossip_rate       = 5  # How often to send gossip in seconds
       @heartbeat_timeout = 10 # How soon until a lost heartbeat triggers a node partition
+      each { |node| node.socket if node } # Connect all so we can gossip
       @gossip = after(gossip_rate) { gossip_timeout }
     end
 
@@ -49,11 +50,14 @@ module DCell
 
     # Send gossip to a random node (except ourself) after the given interval
     def gossip_timeout
-      nodes = select { |node| node.state == :connected or node.fresh? }
+      nodes = select { |node| node.state == :connected }
       peer = nodes.select { |node| node.id != DCell.id }.sample(1)[0]
       if peer
-        nodes = nodes.inject([]) { |a,n| a << [n.id, n.addr, n.timestamp]; a } 
-        data = peer.fresh? ? DCell.registry.values : DCell.registry.changed
+        nodes = nodes.inject([]) { |a,n| a << [n.id, n.addr, n.timestamp]; a }
+        data = nil
+        if DCell.registry.is_a? Registry::GossipAdapter
+          data = peer.fresh? ? DCell.registry.values : DCell.registry.changed
+        end
         DCell.me.tick
         peer.send_message DCell::Message::Gossip.new nodes, data
       end
@@ -69,7 +73,9 @@ module DCell
           Celluloid::Logger.info "Found node #{id}"
         end
       end
-      data.map { |data| DCell.registry.observe data }
+      if DCell.registry.is_a? Registry::GossipAdapter
+        data.map { |data| DCell.registry.observe data } if data
+      end
     end
   end
 end
