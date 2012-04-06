@@ -75,9 +75,18 @@ DCell requires 0MQ. On OS X, this is available through Homebrew by running:
 
     brew install zeromq
 
-DCell keeps the state of all connected nodes and global configuration data
+DCell keeps the state of all global configuration data
 in a service it calls the "registry". DCell supports any of the following for
 use as registries:
+
+* **Gossip**: node connection info is tracked via a native gossip protocol.
+  This adapter uses the same protocol to distribute data lazily to all
+  connected nodes. It uses version vectors to determine update ordering.
+  Be forewarned: when updates are found to be concurrent, one is arbitrarily
+  dropped. Furthermore, this may not be a good choice if you have many nodes
+  or a lot of global data, since each piece of data has a version vector
+  (which contains a version for every peer node) at every node. **This adapter
+  is experimental**.
 
 * **Redis**: a persistent data structures server. It's simple and easy to use
   for development and prototyping, but lacks a good distribution story.
