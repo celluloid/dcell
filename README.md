@@ -146,8 +146,21 @@ hostname. Each node needs to be reachable over 0MQ, and the addr option
 specifies the 0MQ address where the host can be reached. When giving a tcp://
 URL, you *must* specify an IP address and not a hostname.
 
-To join a cluster you'll need to provide the location of the registry server.
-This can be done through the "registry" configuration key:
+To join a cluster you'll need to provide the location of the unique node id of
+the directory server. This can be done through the "directory" configuration
+key:
+
+```ruby
+DCell.start :id => "node24", :addr => "tcp://127.0.0.1:2042",
+  :directory => {
+    :id   => 'node42',
+    :addr => 'tcp://127.0.0.1:2042'
+  }
+```
+
+To use the registry for global data distribution, you'll need to provide the
+location of the registry server. This can be done through the "registry"
+configuration key:
 
 ```ruby
 DCell.start :id => "node24", :addr => "tcp://127.0.0.1:2042",
