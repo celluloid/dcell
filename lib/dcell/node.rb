@@ -27,43 +27,10 @@ module DCell
     # Singleton methods
     class << self
       include Enumerable
-      attr_reader :heartbeat_rate, :heartbeat_timeout
+      extend Forwardable
 
-      # Return all available nodes in the cluster
-      def all
-        Directory.all.map do |node_id|
-          find node_id
-        end
-      end
-
-      # Iterate across all available nodes
-      def each
-        Directory.all.each do |node_id|
-          yield find node_id
-        end
-      end
-
-      # Find a node by its node ID
-      def find(id)
-        node = @lock.synchronize { @nodes[id] }
-        return node if node
-
-        addr = Directory[id]
-
-        if addr
-          if id == DCell.id
-            node = DCell.me
-          else
-            node = Node.new(id, addr)
-          end
-
-          @lock.synchronize do
-            @nodes[id] ||= node
-            @nodes[id]
-          end
-        end
-      end
-      alias_method :[], :find
+      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[]
+      def_delegators "Celluloid::Actor[:node_manager]", :heartbeat_rate, :heartbeat_timeout
     end
 
     def initialize(id, addr)

@@ -5,6 +5,7 @@ HEAD
 * Use Celluloid.uuid for mailbox and call IDs
 * Cassandra registry
 * celluloid-zmq split out into a separate gem
+* Initial DCell::NodeManager
 
 0.9.0
 -----
