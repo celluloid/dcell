@@ -45,7 +45,6 @@ module Celluloid
     # be reached remotely.
     def _dump(level)
       mailbox_id = DCell::Router.register self
-      #"#{mailbox_id}@#{DCell.id}"
       "#{mailbox_id}@#{DCell.id}@#{DCell.addr}"
     end
 

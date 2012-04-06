@@ -10,7 +10,6 @@ module DCell
       @node_id = node_id
       @node = Node[node_id]
       @node = Node.new(node_id, node_addr) unless @node
-      #raise ArgumentError, "invalid node_id given" unless @node
       @mailbox_id = mailbox_id
     end
 
