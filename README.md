@@ -173,7 +173,7 @@ DCell.start :id => "node24", :addr => "tcp://127.0.0.1:2042",
 
 When configuring DCell to use Redis, use the following options:
 
-- **adapter**: "redis" (*optional, alternatively "zk"*)
+- **adapter**: "redis" (*optional, alternatively "zk", "moneta", "cassandra" or "gossip"*)
 - **host**: hostname or IP address of the Redis server (*optional, default localhost*)
 - **port**: port of the Redis server (*optional, default 6379*)
 - **password**: password to the Redis server (*optional*)
