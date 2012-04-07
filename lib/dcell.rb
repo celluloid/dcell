@@ -24,6 +24,8 @@ require 'dcell/celluloid_ext'
 
 # Distributed Celluloid
 module DCell
+  class NotConfiguredError < RuntimeError; end # Not configured yet
+
   DEFAULT_PORT  = 7777 # Default DCell port
   @config_lock  = Mutex.new
 
@@ -69,7 +71,10 @@ module DCell
     end
 
     # Obtain the local node ID
-    def id; @configuration['id']; end
+    def id
+      raise NotConfiguredError, "please configure DCell with DCell.setup" unless @configuration
+      @configuration['id']
+    end
 
     # Obtain the 0MQ address to the local mailbox
     def addr; @configuration['addr']; end
