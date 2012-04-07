@@ -6,7 +6,7 @@ module DCell
     attr_reader :arch, :os, :os_version, :hostname, :platform, :distribution, :ncpus
     attr_reader :ruby_version, :ruby_engine, :ruby_platform
 
-    UPTIME_REGEX = /up ((\d+ days?,)?\s*\d+:\d+).*(( \d.\d{2},?){3})/
+    UPTIME_REGEX = /up ((\d+ days?,)?\s*(\d+:\d+|\d+ \w+)),.*(( \d.\d{2},?){3})/
 
     def initialize
       @arch = RbConfig::CONFIG['host_cpu']
@@ -60,7 +60,21 @@ module DCell
     end
     alias_method :load_average, :load_averages
 
+    def uptime(uptime_string = `uptime`)
+      matches = uptime_string.match(UPTIME_REGEX)
+      unless matches
+        Logger.warn "Couldn't parse uptime output: #{uptime_string}"
+        return
+      end
+
+      uptime = matches[1]
+      days_string = uptime[/^(\d+) days/, 1]
+      days_string ? Integer(days_string) : 0
+    end
+
     def to_hash
+      uptime_string = `uptime`
+
       {
         :arch          => arch,
         :os            => os,
@@ -72,7 +86,8 @@ module DCell
         :ruby_version  => ruby_version,
         :ruby_engine   => ruby_engine,
         :ruby_platform => ruby_platform,
-        :load_averages => load_averages
+        :load_averages => load_averages(uptime_string),
+        :uptime        => uptime(uptime_string)
       }
     end
   end
