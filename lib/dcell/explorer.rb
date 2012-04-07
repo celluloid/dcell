@@ -1,3 +1,4 @@
+require 'dcell'
 require 'reel'
 require 'pathname'
 require 'erb'

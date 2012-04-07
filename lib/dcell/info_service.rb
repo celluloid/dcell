@@ -55,7 +55,7 @@ module DCell
         return
       end
 
-      averages = matches[3].strip
+      averages = matches[4].strip
       averages.split(/,? /).map(&:to_f)
     end
     alias_method :load_average, :load_averages

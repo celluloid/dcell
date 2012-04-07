@@ -9,16 +9,8 @@
 
     <!-- Le styles -->
     <link href="/css/bootstrap.css" rel="stylesheet">
-    <style type="text/css">
-      body {
-        padding-top: 60px;
-        padding-bottom: 40px;
-      }
-      .sidebar-nav {
-        padding: 9px 0;
-      }
-    </style>
     <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/explorer.css" rel="stylesheet">
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -51,7 +43,7 @@
             <ul class="nav nav-list">
               <li class="nav-header">Nodes</li>
               <% DCell::Node.each do |node| %>
-                <li<%= ' class="active"' if node.id == DCell.id %>><a href="#"><img src="/img/greenball.png" alt="[OK]"> <%= node.id %></a></li>
+                <li<%= ' class="active"' if node.id == DCell.id %>><a href="#"><span class="status status-small status-ok"></span> <%= node.id %></a></li>
               <% end %>
             </ul>
           </div><!--/.well -->
@@ -59,7 +51,7 @@
         <div class="span9">
 					<% node_info = DCell.me[:info].to_hash %>
           <div class="hero-unit">
-            <h1><img src="/img/greenball-large.png"> <%= node_info[:hostname] %></h1>
+            <h1><div class="status status-large status-ok"></div> <%= node_info[:hostname] %></h1>
             <br>
             <h2>Uptime: <%= node_info[:uptime] %> days</h2>
             <h2>Load average: <%= node_info[:load_averages].join(", ") %></h2>

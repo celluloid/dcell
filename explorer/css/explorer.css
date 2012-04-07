@@ -1,0 +1,30 @@
+body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+}
+
+.sidebar-nav {
+    padding: 9px 0;
+}
+
+.status {
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.status-small {
+    width: 16px;
+    height: 16px;
+    border: 1px solid black;
+}
+
+.status-large {
+    width: 48px;
+    height: 48px;
+    border: 3px solid black;
+}
+
+.status-ok {
+    background: #468847;
+}
