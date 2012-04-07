@@ -50,6 +50,11 @@ module DCell
 
     def load_averages(uptime_string = `uptime`)
       matches = uptime_string.match(UPTIME_REGEX)
+      unless matches
+        Logger.warn "Couldn't parse uptime output: #{uptime_string}"
+        return
+      end
+
       averages = matches[3].strip
       averages.split(/,? /).map(&:to_f)
     end

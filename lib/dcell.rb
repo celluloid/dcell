@@ -103,4 +103,6 @@ module DCell
     supervise InfoService, :as => :info
     supervise NodeManager, :as => :node_manager
   end
+
+  Logger = Celluloid::Logger
 end
