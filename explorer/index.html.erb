@@ -60,7 +60,8 @@
             <div class="span4">
               <h2>System Info</h2>
               <ul>
-                <li><%= node_info[:arch] %> CPU (<%= node_info[:ncpus] %> cores)</li>
+                <li><%= node_info[:cpu][:type] %> @ <%= node_info[:cpu][:speed] %>Ghz (<%= node_info[:cpu][:count] %> cores)</li>
+								<li><%= node_info[:cpu][:arch] %> CPU architecture</li>
                 <li><%= node_info[:distribution] %></li>
               </ul>
             </div><!--/span-->

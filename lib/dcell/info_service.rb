@@ -3,14 +3,15 @@ require 'rbconfig'
 module DCell
   class InfoService
     include Celluloid
-    attr_reader :arch, :os, :os_version, :hostname, :platform, :distribution, :ncpus
+    attr_reader :os, :os_version, :hostname, :platform, :distribution
+    attr_reader :cpu_arch, :cpu_type, :cpu_vendor, :cpu_speed, :cpu_count
     attr_reader :ruby_version, :ruby_engine, :ruby_platform
 
     UPTIME_REGEX = /up ((\d+ days?,)?\s*(\d+:\d+|\d+ \w+)),.*(( \d.\d{2},?){3})/
 
     def initialize
-      @arch = RbConfig::CONFIG['host_cpu']
-      @os   = RbConfig::CONFIG['host_os'][/^[A-Za-z]+/]
+      @cpu_arch = RbConfig::CONFIG['host_cpu']
+      @os       = RbConfig::CONFIG['host_os'][/^[A-Za-z]+/]
 
       uname = `uname -a`.match(/\w+ (\w[\w+\.\-]*) ([\w+\.\-]+)/)
       @hostname, @os_version = uname[1], uname[2]
@@ -21,15 +22,32 @@ module DCell
 
       case os
       when 'darwin'
-        @ncpus = Integer(`sysctl hw.ncpu`[/\d+/])
+        cpu_info = `sysctl -n machdep.cpu.brand_string`.match(/^((\w+).*) @ (\d+.\d+)GHz/)
+        if cpu_info
+          @cpu_type   = cpu_info[1]
+          @cpu_vendor = cpu_info[2].downcase.to_sym
+          @cpu_speed  = Float(cpu_info[3])
+        end
+
+        @cpu_count = Integer(`sysctl hw.ncpu`[/\d+/])
         os, release, build = `sw_vers`.scan(/:\t(.*)$/).flatten
         @distribution = "#{os} #{release} (#{build})"
       when 'linux'
-        cores = File.read("/proc/cpuinfo").scan(/core id\s+: \d+/).uniq.size
-        @ncpus = cores > 0 ? cores : 1
+        cpu_info = File.read("/proc/cpuinfo")
+
+        @cpu_vendor = cpu_info[/vendor_id:\s+\s+(Genuine)?(\w+)/, 2]
+        model_name  = cpu_info.match(/model name\s+:\s+((\w+).*) @ (\d+.\d+)GHz/)
+        if model_name
+          @cpu_type   = cpu_info[1].gsub(/\s+/, ' ')
+          @cpu_vendor = cpu_info[2].downcase.to_sym
+          @cpu_speed  = Float(cpu_info[3])
+        end
+
+        cores = cpuinfo.scan(/core id\s+: \d+/).uniq.size
+        @cpu_count = cores > 0 ? cores : 1
         @distribution = `lsb_release -d`[/Description:\s+(.*)\s*$/, 1]
       else
-        @ncpus = nil
+        @cpu_type = @cpu_vendor = @cpu_speed = @cpu_count = nil
       end
 
       case RUBY_ENGINE
@@ -76,18 +94,23 @@ module DCell
       uptime_string = `uptime`
 
       {
-        :arch          => arch,
         :os            => os,
         :os_version    => os_version,
         :hostname      => hostname,
         :platform      => platform,
         :distribution  => distribution,
-        :ncpus         => ncpus,
         :ruby_version  => ruby_version,
         :ruby_engine   => ruby_engine,
         :ruby_platform => ruby_platform,
         :load_averages => load_averages(uptime_string),
-        :uptime        => uptime(uptime_string)
+        :uptime        => uptime(uptime_string),
+        :cpu => {
+          :arch   => cpu_arch,
+          :type   => cpu_type,
+          :vendor => cpu_vendor,
+          :speed  => cpu_speed,
+          :count  => cpu_count
+        }
       }
     end
   end
