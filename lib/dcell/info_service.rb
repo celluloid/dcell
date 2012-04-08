@@ -43,7 +43,7 @@ module DCell
           @cpu_speed  = Float(model_name[3])
         end
 
-        cores = cpuinfo.scan(/core id\s+: \d+/).uniq.size
+        cores = cpu_info.scan(/core id\s+: \d+/).uniq.size
         @cpu_count = cores > 0 ? cores : 1
         @distribution = `lsb_release -d`[/Description:\s+(.*)\s*$/, 1]
       else
