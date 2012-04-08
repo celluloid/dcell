@@ -36,7 +36,7 @@ module DCell
     def render_resource(connection, path)
       asset_path = ASSET_ROOT.join(path)
       if asset_path.exist?
-        File.open(asset_path.to_s, "r") do |file|
+        asset_path.open("r") do |file|
           connection.respond :ok, file
         end
 
