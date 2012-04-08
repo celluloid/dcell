@@ -38,9 +38,9 @@ module DCell
         @cpu_vendor = cpu_info[/vendor_id:\s+\s+(Genuine)?(\w+)/, 2]
         model_name  = cpu_info.match(/model name\s+:\s+((\w+).*) @ (\d+.\d+)GHz/)
         if model_name
-          @cpu_type   = cpu_info[1].gsub(/\s+/, ' ')
-          @cpu_vendor = cpu_info[2].downcase.to_sym
-          @cpu_speed  = Float(cpu_info[3])
+          @cpu_type   = model_name[1].gsub(/\s+/, ' ')
+          @cpu_vendor = model_name[2].downcase.to_sym
+          @cpu_speed  = Float(model_name[3])
         end
 
         cores = cpuinfo.scan(/core id\s+: \d+/).uniq.size
