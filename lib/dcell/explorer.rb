@@ -11,11 +11,13 @@ module DCell
       @server = Reel::Server.new(host, port, &method(:handle_connection))
     end
 
-    # TODO: real static file service for Reel :/
     def handle_connection(connection)
       request = connection.request
       return unless request
+      route connection, request
+    end
 
+    def route(connection, request)
       if request.url == "/"
         path = "index.html"
       else
@@ -28,11 +30,17 @@ module DCell
         return
       end
 
+      render_resource connection, path
+    end
+
+    def render_resource(connection, path)
       asset_path = ASSET_ROOT.join(path)
       if asset_path.exist?
-        file = File.read(asset_path.to_s, :mode => 'rb')
-        connection.respond :ok, file
-        Celluloid::Logger.info "200 OK: #{request.url}"
+        File.open(asset_path.to_s, "r") do |file|
+          connection.respond :ok, file
+        end
+
+        Celluloid::Logger.info "200 OK: #{path}"
       elsif File.exist?(asset_path.to_s + ".erb")
         template = ERB.new File.read("#{asset_path.to_s}.erb", :mode => 'rb')
         connection.respond :ok, template.result(binding)
