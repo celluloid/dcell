@@ -24,7 +24,7 @@ module DCell
         path = request.url[%r{^/([a-z0-9\.\-_]+(/[a-z0-9\.\-_]+)*)$}, 1]
       end
 
-      unless path or path[".."]
+      if !path or path[".."]
         Logger.info "404 Not Found: #{request.path}"
         connection.respond :not_found, "Not found"
         return
