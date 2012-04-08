@@ -25,7 +25,7 @@ module DCell
       end
 
       unless path or path[".."]
-        Celluloid::Logger.info "404 Not Found: #{request.path}"
+        Logger.info "404 Not Found: #{request.path}"
         connection.respond :not_found, "Not found"
         return
       end
@@ -40,13 +40,15 @@ module DCell
           connection.respond :ok, file
         end
 
-        Celluloid::Logger.info "200 OK: #{path}"
+        Logger.info "200 OK: #{path}"
       elsif File.exist?(asset_path.to_s + ".erb")
         template = ERB.new File.read("#{asset_path.to_s}.erb", :mode => 'rb')
         connection.respond :ok, template.result(binding)
+
+        Logger.info "200 OK: #{path}"
       else
         connection.respond :not_found, "Not found"
-        Celluloid::Logger.info "404 Not Found: #{request.url}"
+        Logger.info "404 Not Found: #{request.url}"
       end
     end
   end
