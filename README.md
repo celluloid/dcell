@@ -76,9 +76,18 @@ DCell requires 0MQ. On OS X, this is available through Homebrew by running:
 
     brew install zeromq
 
-DCell keeps the state of all connected nodes and global configuration data
+DCell keeps the state of all global configuration data
 in a service it calls the "registry". DCell supports any of the following for
 use as registries:
+
+* **Gossip**: node connection info is tracked via a native gossip protocol.
+  This adapter uses the same protocol to distribute data lazily to all
+  connected nodes. It uses version vectors to determine update ordering.
+  Be forewarned: when updates are found to be concurrent, one is arbitrarily
+  dropped. Furthermore, this may not be a good choice if you have many nodes
+  or a lot of global data, since each piece of data has a version vector
+  (which contains a version for every peer node) at every node. **This adapter
+  is experimental**.
 
 * **Redis**: a persistent data structures server. It's simple and easy to use
   for development and prototyping, but lacks a good distribution story.
@@ -138,8 +147,21 @@ hostname. Each node needs to be reachable over 0MQ, and the addr option
 specifies the 0MQ address where the host can be reached. When giving a tcp://
 URL, you *must* specify an IP address and not a hostname.
 
-To join a cluster you'll need to provide the location of the registry server.
-This can be done through the "registry" configuration key:
+To join a cluster you'll need to provide the location of the unique node id of
+the directory server. This can be done through the "directory" configuration
+key:
+
+```ruby
+DCell.start :id => "node24", :addr => "tcp://127.0.0.1:2042",
+  :directory => {
+    :id   => 'node42',
+    :addr => 'tcp://127.0.0.1:2042'
+  }
+```
+
+To use the registry for global data distribution, you'll need to provide the
+location of the registry server. This can be done through the "registry"
+configuration key:
 
 ```ruby
 DCell.start :id => "node24", :addr => "tcp://127.0.0.1:2042",
@@ -152,7 +174,7 @@ DCell.start :id => "node24", :addr => "tcp://127.0.0.1:2042",
 
 When configuring DCell to use Redis, use the following options:
 
-- **adapter**: "redis" (*optional, alternatively "zk"*)
+- **adapter**: "redis" (*optional, alternatively "zk", "moneta", "cassandra" or "gossip"*)
 - **host**: hostname or IP address of the Redis server (*optional, default localhost*)
 - **port**: port of the Redis server (*optional, default 6379*)
 - **password**: password to the Redis server (*optional*)

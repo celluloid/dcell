@@ -3,40 +3,33 @@ module DCell
   class Node
     include Celluloid
     include Celluloid::FSM
-    attr_reader :id, :addr
+    attr_reader :id, :addr, :timestamp
 
     # FSM
     default_state :disconnected
     state :shutdown
     state :disconnected, :to => [:connected, :shutdown]
     state :connected do
-      send_heartbeat
       Celluloid::Logger.info "Connected to #{id}"
     end
     state :partitioned do
       Celluloid::Logger.warn "Communication with #{id} interrupted"
     end
 
-    # Ivars
-    @nodes = {}
-    @lock  = Mutex.new
-
-    @heartbeat_rate    = 5  # How often to send heartbeats in seconds
-    @heartbeat_timeout = 10 # How soon until a lost heartbeat triggers a node partition
-
     # Singleton methods
     class << self
       include Enumerable
       extend Forwardable
 
-      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[]
-      def_delegators "Celluloid::Actor[:node_manager]", :heartbeat_rate, :heartbeat_timeout
+      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[], :handle_gossip
+      def_delegators "Celluloid::Actor[:node_manager]", :gossip_rate, :heartbeat_timeout
     end
 
     def initialize(id, addr)
       @id, @addr = id, addr
+      @timestamp = 0
       @socket = nil
-      @heartbeat = nil
+      @fresh = true
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self
@@ -44,6 +37,7 @@ module DCell
 
     def finalize
       transition :shutdown
+      @gossip.cancel if @gossip
       @socket.close if @socket
     end
 
@@ -104,16 +98,25 @@ module DCell
     end
     alias_method :<<, :send_message
 
-    # Send a heartbeat message after the given interval
-    def send_heartbeat
-      send_message DCell::Message::Heartbeat.new
-      @heartbeat = after(self.class.heartbeat_rate) { send_heartbeat }
+    def tick
+      @timestamp += 1
     end
 
-    # Handle an incoming heartbeat for this node
-    def handle_heartbeat
-      transition :connected
-      transition :partitioned, :delay => self.class.heartbeat_timeout
+    def fresh?
+      @fresh
+    end
+
+    # Handle an incoming timestamp observation for this node
+    def handle_timestamp(t)
+      @fresh = false if t > 0
+      if @timestamp < t
+        @timestamp = t
+        transition :connected
+        transition :partitioned, :delay => self.class.heartbeat_timeout
+        unless state == :connected
+          Celluloid::Logger.info "Revived node #{id}"
+        end
+      end
     end
 
     # Friendlier inspection
