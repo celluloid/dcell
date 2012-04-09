@@ -39,7 +39,7 @@ module DCell
 
       begin
         message.dispatch
-      rescue Exception => ex
+      rescue => ex
         Celluloid::Logger.crash("DCell::Server: message dispatch failed", ex)
       end
     end
