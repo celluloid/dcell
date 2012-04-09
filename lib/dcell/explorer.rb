@@ -48,8 +48,12 @@ module DCell
         Logger.info "200 OK: #{path}"
       else
         connection.respond :not_found, "Not found"
-        Logger.info "404 Not Found: #{request.url}"
+        Logger.info "404 Not Found: #{path}"
       end
+    end
+
+    def node_path(node)
+      "/nodes/#{node.id}"
     end
   end
 end

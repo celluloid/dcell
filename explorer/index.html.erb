@@ -30,7 +30,7 @@
           </a>
           <a class="brand" href="/"><img src="/img/logo.png" alt="DCell Explorer"></a>
           <div class="nav-collapse">
-            <p class="navbar-text pull-right">Connected to <a href="#"><%= DCell.id %></a></p>
+            <p class="navbar-text pull-right">Connected to <a href="<%= node_path(DCell.me) %>"><%= DCell.id %></a></p>
           </div><!--/.nav-collapse -->
         </div>
       </div>
@@ -43,7 +43,9 @@
             <ul class="nav nav-list">
               <li class="nav-header">Nodes</li>
               <% DCell::Node.each do |node| %>
-                <li<%= ' class="active"' if node.id == DCell.id %>><a href="#"><span class="status status-small status-ok"></span> <%= node.id %></a></li>
+                <li<%= ' class="active"' if node.id == DCell.id %>>
+									<a href="<%= node_path(node) %>"><span class="status status-small status-ok"></span> <%= node.id %></a>
+								</li>
               <% end %>
             </ul>
           </div><!--/.well -->
