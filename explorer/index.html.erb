@@ -43,35 +43,34 @@
             <ul class="nav nav-list">
               <li class="nav-header">Nodes</li>
               <% DCell::Node.each do |node| %>
-                <li<%= ' class="active"' if node.id == DCell.id %>>
-									<a href="<%= node_path(node) %>"><span class="status status-small status-ok"></span> <%= node.id %></a>
-								</li>
+                <li<%= ' class="active"' if node == @node %>>
+                  <a href="<%= node_path(node) %>"><span class="status status-small status-ok"></span> <%= node.id %></a>
+                </li>
               <% end %>
             </ul>
           </div><!--/.well -->
         </div><!--/span-->
         <div class="span9">
-					<% node_info = DCell.me[:info].to_hash %>
           <div class="hero-unit">
-            <h1><div class="status status-large status-ok"></div> <%= node_info[:hostname] %></h1>
+            <h1><div class="status status-large status-ok"></div> <%= @info[:hostname] %></h1>
             <br>
-            <h2>Uptime: <%= node_info[:uptime] %> days</h2>
-            <h2>Load average: <%= node_info[:load_averages].join(", ") %></h2>
+            <h2>Uptime: <%= @info[:uptime] %> days</h2>
+            <h2>Load average: <%= @info[:load_averages].join(", ") %></h2>
           </div>
           <div class="row-fluid">
             <div class="span4">
               <h2>System Info</h2>
               <ul>
-                <li><%= node_info[:cpu][:type] %> @ <%= node_info[:cpu][:speed] %>Ghz (<%= node_info[:cpu][:count] %> cores)</li>
-								<li><%= node_info[:cpu][:arch] %> CPU architecture</li>
-                <li><%= node_info[:distribution] %></li>
+                <li><%= @info[:cpu][:type] %> @ <%= @info[:cpu][:speed] %>Ghz (<%= @info[:cpu][:count] %> cores)</li>
+                <li><%= @info[:cpu][:arch] %> CPU architecture</li>
+                <li><%= @info[:distribution] %></li>
               </ul>
             </div><!--/span-->
             <div class="span4">
               <h2>Ruby Interpreter</h2>
               <ul>
-                <li><%= node_info[:ruby_engine] == "ruby" ? "MRI/YARV" : node_info[:ruby_platform] %></li>
-                <li>Ruby <%= node_info[:ruby_version] %></li>
+                <li><%= @info[:ruby_engine] == "ruby" ? "MRI/YARV" : @info[:ruby_platform] %></li>
+                <li>Ruby <%= @info[:ruby_version] %></li>
               </ul>
             </div><!--/span-->
           </div><!--/row-->

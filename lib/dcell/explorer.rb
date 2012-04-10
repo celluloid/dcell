@@ -4,6 +4,8 @@ require 'pathname'
 require 'erb'
 
 module DCell
+  # Web UI for DCell
+  # TODO: rewrite this entire thing with less hax
   class Explorer
     ASSET_ROOT = Pathname.new File.expand_path("../../../explorer", __FILE__)
 
@@ -34,22 +36,36 @@ module DCell
     end
 
     def render_resource(connection, path)
+      if node_id = path[%r{^nodes/(.*)$}, 1]
+        p node_id
+        node = DCell::Node[node_id]
+        path = "index.html"
+      else
+        node = DCell.me
+      end
+
       asset_path = ASSET_ROOT.join(path)
       if asset_path.exist?
         asset_path.open("r") do |file|
           connection.respond :ok, file
         end
 
-        Logger.info "200 OK: #{path}"
-      elsif File.exist?(asset_path.to_s + ".erb")
-        template = ERB.new File.read("#{asset_path.to_s}.erb", :mode => 'rb')
-        connection.respond :ok, template.result(binding)
-
-        Logger.info "200 OK: #{path}"
+        Logger.info "200 OK: /#{path}"
+      elsif File.exist?(asset_path.to_s + ".erb") and node
+        connection.respond :ok, render_template(asset_path.to_s + ".erb", node)
+        Logger.info "200 OK: /#{path}"
       else
         connection.respond :not_found, "Not found"
-        Logger.info "404 Not Found: #{path}"
+        Logger.info "404 Not Found: /#{path}"
       end
+    end
+
+    def render_template(template, node)
+      @node = node
+      @info = @node[:info].to_hash
+
+      template = ERB.new File.read(template, :mode => 'rb')
+      template.result(binding)
     end
 
     def node_path(node)
