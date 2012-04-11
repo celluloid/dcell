@@ -5,6 +5,9 @@ module DCell
 
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
     def initialize
+      # The gossip protocol is dependent on the node manager
+      link Actor[:node_manager]
+
       @addr   = DCell.addr
       @socket = PullSocket.new
 
