@@ -2,6 +2,8 @@ require 'spec_helper'
 
 describe DCell::Node do
   before do
+    fail "testing that failed tests break the build on travis"
+
     @node = DCell::Node['test_node']
     @node.id.should == 'test_node'
   end
