@@ -44,8 +44,8 @@ module DCell
       end
 
       # Route a message to a given mailbox ID
-      def route(mailbox_address, message)
-        recipient = find mailbox_address
+      def route(recipient, message)
+        recipient = find(recipient) if recipient.is_a? String
 
         if recipient
           recipient << message

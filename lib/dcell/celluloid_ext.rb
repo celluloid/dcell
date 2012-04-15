@@ -66,4 +66,15 @@ module Celluloid
       DCell::RPC._load(string)
     end
   end
+
+  class Future
+    def _dump(level)
+      mailbox_id = DCell::Router.register self
+      "#{mailbox_id}@#{DCell.id}@#{DCell.addr}"
+    end
+
+    def self._load(string)
+      DCell::FutureProxy._load(string)
+    end
+  end
 end

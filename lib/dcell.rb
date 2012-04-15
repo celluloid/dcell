@@ -14,6 +14,7 @@ require 'dcell/global'
 require 'dcell/responses'
 require 'dcell/router'
 require 'dcell/rpc'
+require 'dcell/future_proxy'
 require 'dcell/server'
 require 'dcell/info_service'
 
