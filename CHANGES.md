@@ -1,11 +1,13 @@
-HEAD
-----
+0.10.0
+------
 * DCell::Explorer provides a web UI with Reel
-* Info service
-* Use Celluloid.uuid for mailbox and call IDs
+* Info service at DCell::Node#[:info]
+* Distributed gossip protocol, now default adapter
+* Support for marshaling Celluloid::Futures
 * Cassandra registry
-* celluloid-zmq split out into a separate gem
 * Initial DCell::NodeManager
+* celluloid-zmq split out into a separate gem
+* Use Celluloid.uuid for mailbox and call IDs
 
 0.9.0
 -----
