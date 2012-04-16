@@ -6,14 +6,15 @@ require 'erb'
 module DCell
   # Web UI for DCell
   # TODO: rewrite this entire thing with less hax
-  class Explorer
+  class Explorer < Reel::Server
+    include Celluloid::IO # FIXME: this should really be unnecessary
     ASSET_ROOT = Pathname.new File.expand_path("../../../explorer", __FILE__)
 
     def initialize(host = "127.0.0.1", port = 7778)
-      @server = Reel::Server.new(host, port, &method(:handle_connection))
+      super(host, port, &method(:on_connection))
     end
 
-    def handle_connection(connection)
+    def on_connection(connection)
       request = connection.request
       return unless request
       route connection, request
