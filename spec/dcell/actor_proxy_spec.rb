@@ -26,6 +26,10 @@ describe DCell::ActorProxy do
     @remote_actor.value.should == 42
   end
 
+  it "makes future calls to remote actors" do
+    @remote_actor.future(:value).value.should == 42
+  end
+
   context :linking do
     before :each do
       @local_actor = LocalActor.new
