@@ -16,13 +16,13 @@ Gem::Specification.new do |gem|
   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   gem.require_paths = ["lib"]
 
-  gem.add_dependency "celluloid",     "~> 0.10.0"
-  gem.add_dependency "celluloid-zmq", "~> 0.10.0"
-  gem.add_dependency "redis"
-  gem.add_dependency "redis-namespace"
-  gem.add_dependency "moneta"
+  gem.add_runtime_dependency "celluloid",     "~> 0.10.0"
+  gem.add_runtime_dependency "celluloid-zmq", "~> 0.10.0"
+  gem.add_runtime_dependency "reel", "~> 0.0.1"
+  gem.add_runtime_dependency "redis"
+  gem.add_runtime_dependency "redis-namespace"
+  gem.add_runtime_dependency "moneta"
 
   gem.add_development_dependency "rake"
   gem.add_development_dependency "rspec"
-  gem.add_development_dependency "reel"
 end
