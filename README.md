@@ -60,6 +60,14 @@ box on MRI/YARV, and requires the following flags elsewhere:
 * JRuby: --1.9 command line option, or JRUBY_OPTS=--1.9 environment variable
 * rbx: -X19 command line option
 
+Contributing to DCell
+-------------------------
+
+* Fork this repository on github
+* Make your changes and send me a pull request
+* If I like them I'll merge them
+* If I've accepted a patch, feel free to ask for commit access
+
 Copyright
 ---------
 
