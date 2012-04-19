@@ -41,9 +41,9 @@ Like DCell? [Join the Celluloid Google Group][googlegroup]
 [ffi-rzmq]: https://github.com/chuckremes/ffi-rzmq
 [googlegroup]: http://groups.google.com/group/celluloid-ruby
 
-### Is It Good?
+### Is it any good?
 
-Yes.
+[Yes.](http://news.ycombinator.com/item?id=3067434)
 
 ### Is It "Production Ready™"?
 
