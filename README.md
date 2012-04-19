@@ -71,4 +71,5 @@ Contributing to DCell
 Copyright
 ---------
 
-Copyright (c) 2012 Tony Arcieri. See LICENSE.txt for further details.
+Copyright (c) 2012 Tony Arcieri. Distributed under the MIT License.
+See LICENSE.txt for further details.
