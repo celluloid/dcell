@@ -1,3 +1,7 @@
+HEAD
+----
+* Switch default port to 7890 (7777 is heavily used by other programs)
+
 0.10.0
 ------
 * DCell::Explorer provides a web UI with Reel
