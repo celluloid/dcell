@@ -32,11 +32,22 @@ module Celluloid
 
       case mailbox
       when DCell::MailboxProxy
-        DCell::ActorProxy.new mailbox
+        actor = DCell::Actor.new(mailbox)
+        DCell::ActorProxy.new actor
       when Celluloid::Mailbox
-        Celluloid::ActorProxy.new(mailbox)
+        actor = find_actor(mailbox)
+        Celluloid::ActorProxy.new(actor)
       else raise "funny, I did not expect to see a #{mailbox.class} here"
       end
+    end
+
+    def self.find_actor(mailbox)
+      Thread.list.each do |t|
+        if actor = t[:actor]
+          return actor if actor.mailbox == mailbox
+        end
+      end
+      raise "no actor found for mailbox: #{mailbox.inspect}"
     end
   end
 
