@@ -57,7 +57,7 @@ module DCell
       end
 
       def dispatch
-        DCell::Router.route @recipient, @message
+        @recipient << @message
       end
     end
 
@@ -71,7 +71,7 @@ module DCell
       end
 
       def dispatch
-        DCell::Router.route_system_event @recipient, @event
+        @recipient << @event
       end
     end
   end
