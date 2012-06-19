@@ -43,28 +43,6 @@ module DCell
         end
       end
 
-      # Route a message to a given mailbox ID
-      def route(recipient, message)
-        recipient = find(recipient) if recipient.is_a? String
-
-        if recipient
-          recipient << message
-        else
-          Celluloid::Logger.debug("received message for invalid actor: #{mailbox_address.inspect}")
-        end
-      end
-
-      # Route a system event to a given mailbox ID
-      def route_system_event(mailbox_address, event)
-        recipient = find mailbox_address
-
-        if recipient
-          recipient.system_event event
-        else
-          Celluloid::Logger.debug("received message for invalid actor: #{mailbox_address.inspect}")
-        end
-      end
-
       # Prune all entries that point to dead objects
       def gc
         @mutex.synchronize do
