@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+__END__
+
 describe DCell::Global do
   it "can handle unexisting keys" do
     expect { DCell::Global[:unexisting] }.to_not raise_exception

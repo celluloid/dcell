@@ -32,6 +32,7 @@ module TestNode
   end
 
   def self.stop
+    return unless @pid
     Process.kill 9, @pid
   rescue Errno::ESRCH
   ensure
