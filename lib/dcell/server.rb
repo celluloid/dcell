@@ -5,7 +5,8 @@ module DCell
 
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
     def initialize
-      NodeManager.spawn_link
+      # The gossip protocol is dependent on the node manager
+      link Celluloid::Actor[:node_manager]
 
       @addr   = DCell.addr
       @socket = PullSocket.new

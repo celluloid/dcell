@@ -52,6 +52,8 @@ module DCell
           'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
         }.merge(options)
 
+        @me = Node.new @configuration['id'], @configuration['addr']
+
         # Specify the directory server (defaults to me), and add it
         # to the local directory.
         directory = @configuration['directory'] || {}
@@ -62,23 +64,21 @@ module DCell
         }.merge(directory)
         DCell::Directory.set directory['id'], directory['addr']
 
-        if @configuration['registry']
-          registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
-          raise ArgumentError, "no registry adapter given in config" unless registry_adapter
+        registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
+        raise ArgumentError, "no registry adapter given in config" unless registry_adapter
 
-          registry_class_name = registry_adapter.split("_").map(&:capitalize).join << "Adapter"
+        registry_class_name = registry_adapter.split("_").map(&:capitalize).join << "Adapter"
 
-          begin
-            registry_class = DCell::Registry.const_get registry_class_name
-          rescue NameError
-            raise ArgumentError, "invalid registry adapter: #{@configuration['registry']['adapter']}"
-          end
-
-          @registry = registry_class.new(@configuration['registry'])
+        begin
+          registry_class = DCell::Registry.const_get registry_class_name
+        rescue NameError
+          raise ArgumentError, "invalid registry adapter: #{@configuration['registry']['adapter']}"
         end
 
+        @registry = registry_class.new(@configuration['registry'])
+
         addr = @configuration['public'] || @configuration['addr']
-        @me = DCell::Directory.set @configuration['id'], addr
+        DCell::Directory.set @configuration['id'], addr
       end
 
       me
@@ -118,6 +118,7 @@ module DCell
 
   # DCell's actor dependencies
   class Group < Celluloid::Group
+    supervise NodeManager, :as => :node_manager
     supervise Server,      :as => :dcell_server
     supervise InfoService, :as => :info
   end
