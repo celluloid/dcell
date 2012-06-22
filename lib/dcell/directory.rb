@@ -2,6 +2,7 @@ module DCell
   # Directory of nodes connected to the DCell cluster
   module Directory
     extend self
+    extend Enumerable
 
     @@directory = {}
     @@directory_lock = Mutex.new

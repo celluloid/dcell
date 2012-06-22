@@ -9,7 +9,7 @@ require 'dcell/directory'
 require 'dcell/mailbox_proxy'
 require 'dcell/messages'
 require 'dcell/node'
-#require 'dcell/node_manager'
+require 'dcell/node_manager'
 #require 'dcell/global'
 require 'dcell/responses'
 require 'dcell/router'
@@ -116,7 +116,6 @@ module DCell
 
   # DCell's actor dependencies
   class Group < Celluloid::Group
-    #supervise NodeManager, :as => :node_manager
     supervise Server,      :as => :dcell_server
     supervise InfoService, :as => :info
   end

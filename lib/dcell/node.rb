@@ -12,24 +12,27 @@ module DCell
     state :connected do
       Celluloid::Logger.info "Connected to #{id}"
     end
-    state :partitioned do
-      Celluloid::Logger.warn "Communication with #{id} interrupted"
-    end
 
     # Singleton methods
     class << self
       include Enumerable
       extend Forwardable
 
-      #def_delegators "Celluloid::Actor[:node_manager]", :handle_gossip, :gossip_rate, :heartbeat_timeout
       def_delegators Directory, :all, :each, :get, :[]
+
+      def find(id, addr = nil)
+        unless node = get(id)
+          if addr
+            node = Directory.set(id, addr)
+          end
+        end
+        node
+      end
     end
 
     def initialize(id, addr)
       @id, @addr = id, addr
-      @timestamp = 0
       @socket = nil
-      @fresh = true
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self
@@ -97,27 +100,6 @@ module DCell
       socket << message
     end
     alias_method :<<, :send_message
-
-    def tick
-      @timestamp += 1
-    end
-
-    def fresh?
-      @fresh
-    end
-
-    # Handle an incoming timestamp observation for this node
-    def handle_timestamp(t)
-      @fresh = false if t > 0
-      if @timestamp < t
-        @timestamp = t
-        transition :connected
-        transition :partitioned, :delay => self.class.heartbeat_timeout
-        unless state == :connected
-          Celluloid::Logger.info "Revived node #{id}"
-        end
-      end
-    end
 
     # Friendlier inspection
     def inspect

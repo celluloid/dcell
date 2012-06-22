@@ -8,8 +8,7 @@ module DCell
       raise ArgumentError, "no mailbox_id given" unless mailbox_id
       
       @node_id = node_id
-      @node = Node[node_id]
-      @node = Node.new(node_id, node_addr) unless @node
+      @node = Node.find(node_id, node_addr)
       @mailbox_id = mailbox_id
     end
 

@@ -15,7 +15,7 @@ module DCell
       end
 
       def dispatch
-        Node.handle_gossip(@peers, @data)
+        Celluloid::Actor[:node_manager].handle_gossip(@peers, @data)
       end
     end
 
