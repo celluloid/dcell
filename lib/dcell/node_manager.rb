@@ -22,9 +22,9 @@ module DCell
       if peer = random_peer
         registry_data = nil
         # registry should register with manager
-        #if DCell.registry.is_a? Registry::GossipAdapter
-          #registry_data = peer.fresh? ? DCell.registry.values : DCell.registry.changed
-        #end
+        if DCell.registry.is_a? Registry::GossipAdapter
+          registry_data = peer.fresh? ? DCell.registry.values : DCell.registry.changed
+        end
         @timestamp += 1
 
         peer.gossip(peer_data, registry_data)
@@ -38,9 +38,9 @@ module DCell
         next if node.id == DCell.id
         @peers[id].handle_timestamp!(timestamp)
       end
-      #if DCell.registry.is_a? Registry::GossipAdapter
-        #data.map { |data| DCell.registry.observe data } if data
-      #end
+      if DCell.registry.is_a? Registry::GossipAdapter
+        data.map { |data| DCell.registry.observe data } if data
+      end
     end
 
     def random_peer
