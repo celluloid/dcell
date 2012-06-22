@@ -10,7 +10,7 @@ require 'dcell/mailbox_proxy'
 require 'dcell/messages'
 require 'dcell/node'
 require 'dcell/node_manager'
-require 'dcell/global'
+#require 'dcell/global'
 require 'dcell/responses'
 require 'dcell/router'
 require 'dcell/rpc'
@@ -18,11 +18,11 @@ require 'dcell/future_proxy'
 require 'dcell/server'
 require 'dcell/info_service'
 
-require 'dcell/registries/redis_adapter'
-require 'dcell/registries/moneta_adapter'
+#require 'dcell/registries/redis_adapter'
+#require 'dcell/registries/moneta_adapter'
 
-require 'dcell/registries/gossip/core'
-require 'dcell/registries/gossip_adapter'
+#require 'dcell/registries/gossip/core'
+#require 'dcell/registries/gossip_adapter'
 
 require 'dcell/celluloid_ext'
 
@@ -49,10 +49,8 @@ module DCell
         @configuration = {
           'id'   => generate_node_id,
           'addr' => "tcp://127.0.0.1:#{DEFAULT_PORT}",
-          'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
+          #'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
         }.merge(options)
-
-        @me = Node.new @configuration['id'], @configuration['addr']
 
         # Specify the directory server (defaults to me), and add it
         # to the local directory.
@@ -64,21 +62,21 @@ module DCell
         }.merge(directory)
         DCell::Directory.set directory['id'], directory['addr']
 
-        registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
-        raise ArgumentError, "no registry adapter given in config" unless registry_adapter
+        #registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
+        #raise ArgumentError, "no registry adapter given in config" unless registry_adapter
 
-        registry_class_name = registry_adapter.split("_").map(&:capitalize).join << "Adapter"
+        #registry_class_name = registry_adapter.split("_").map(&:capitalize).join << "Adapter"
 
-        begin
-          registry_class = DCell::Registry.const_get registry_class_name
-        rescue NameError
-          raise ArgumentError, "invalid registry adapter: #{@configuration['registry']['adapter']}"
-        end
+        #begin
+          #registry_class = DCell::Registry.const_get registry_class_name
+        #rescue NameError
+          #raise ArgumentError, "invalid registry adapter: #{@configuration['registry']['adapter']}"
+        #end
 
-        @registry = registry_class.new(@configuration['registry'])
+        #@registry = registry_class.new(@configuration['registry'])
 
         addr = @configuration['public'] || @configuration['addr']
-        DCell::Directory.set @configuration['id'], addr
+        @me = DCell::Directory.set @configuration['id'], addr
       end
 
       me
@@ -118,7 +116,6 @@ module DCell
 
   # DCell's actor dependencies
   class Group < Celluloid::Group
-    supervise NodeManager, :as => :node_manager
     supervise Server,      :as => :dcell_server
     supervise InfoService, :as => :info
   end

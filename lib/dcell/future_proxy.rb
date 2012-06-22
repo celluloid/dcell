@@ -7,8 +7,7 @@ module DCell
     end
 
     def <<(message)
-      node = Node[@node_id]
-      node = Node.new(@node_id, @node_addr) unless node
+      node = Node.find(@node_id, @node_addr)
       node.send_message! Message::Relay.new(self, message)
     end
 
