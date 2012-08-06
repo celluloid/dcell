@@ -38,7 +38,6 @@ module DCell
 
     def render_resource(connection, path)
       if node_id = path[%r{^nodes/(.*)$}, 1]
-        p node_id
         node = DCell::Node[node_id]
         path = "index.html"
       else
