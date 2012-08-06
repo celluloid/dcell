@@ -101,12 +101,12 @@ module DCell
 
     # Run the DCell application
     def run
-      DCell::Group.run
+      DCell::SupervisionGroup.run
     end
 
     # Run the DCell application in the background
     def run!
-      DCell::Group.run!
+      DCell::SupervisionGroup.run!
     end
 
     # Start combines setup and run! into a single step
@@ -117,7 +117,7 @@ module DCell
   end
 
   # DCell's actor dependencies
-  class Group < Celluloid::Group
+  class SupervisionGroup < Celluloid::SupervisionGroup
     supervise NodeManager, :as => :node_manager
     supervise Server,      :as => :dcell_server
     supervise InfoService, :as => :info

@@ -25,8 +25,8 @@ class TestActor
   end
 end
 
-class TestGroup < Celluloid::Group
-  supervise DCell::Group
+class TestGroup < Celluloid::SupervisionGroup
+  supervise DCell::SupervisionGroup
   supervise TestActor, :as => :test_actor
 end
 

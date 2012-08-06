@@ -29,8 +29,8 @@ class Progenator
   end
 end
 
-class BenchmarkApplication < Celluloid::Group
-  supervise DCell::Group
+class BenchmarkApplication < Celluloid::SupervisonGroup
+  supervise DCell::SupervisionGroup
   supervise Progenator, :as => :progenator
 end
 
