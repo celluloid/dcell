@@ -28,26 +28,26 @@ module Celluloid
     # Create an actor proxy object which routes messages over DCell's overlay
     # network and back to the original mailbox
     def self._load(string)
-      mailbox = Celluloid::Mailbox._load(string)
+      mailbox = ::Celluloid::Mailbox._load(string)
 
       case mailbox
-      when DCell::MailboxProxy
-        actor = DCell::Actor.new(mailbox)
-        DCell::ActorProxy.new actor
-      when Celluloid::Mailbox
+      when ::DCell::MailboxProxy
+        actor = ::DCell::Actor.new(mailbox)
+        ::DCell::ActorProxy.new actor
+      when ::Celluloid::Mailbox
         actor = find_actor(mailbox)
-        Celluloid::ActorProxy.new(actor)
-      else raise "funny, I did not expect to see a #{mailbox.class} here"
+        ::Celluloid::ActorProxy.new(actor)
+      else ::Kernel.raise "funny, I did not expect to see a #{mailbox.class} here"
       end
     end
 
     def self.find_actor(mailbox)
-      Thread.list.each do |t|
+      ::Thread.list.each do |t|
         if actor = t[:actor]
           return actor if actor.mailbox == mailbox
         end
       end
-      raise "no actor found for mailbox: #{mailbox.inspect}"
+      ::Kernel.raise "no actor found for mailbox: #{mailbox.inspect}"
     end
   end
 
