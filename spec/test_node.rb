@@ -25,5 +25,5 @@ class TestActor
   end
 end
 
-TestActor.supervise
+TestActor.supervise_as :test_actor
 sleep
