@@ -6,7 +6,7 @@ require 'bundler'
 Bundler.setup
 
 require 'dcell'
-DCell.setup :id => 'test_node', :addr => 'tcp://127.0.0.1:21264'
+DCell.start :id => 'test_node', :addr => 'tcp://127.0.0.1:21264'
 
 class TestActor
   include Celluloid
@@ -25,9 +25,5 @@ class TestActor
   end
 end
 
-class TestGroup < Celluloid::SupervisionGroup
-  supervise DCell::SupervisionGroup
-  supervise TestActor, :as => :test_actor
-end
-
-TestGroup.run
+TestActor.supervise
+sleep
