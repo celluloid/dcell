@@ -49,6 +49,27 @@ Like DCell? [Join the Celluloid Google Group][googlegroup]
 
 Not entirely, but eager early adopters are welcome!
 
+Installation
+------------
+
+Add this line to your application's Gemfile:
+
+    gem 'dcell'
+
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    $ gem install dcell
+
+Inside of your Ruby program do:
+
+    require 'dcell'
+
+...to pull it in as a dependency.
+
 Supported Platforms
 -------------------
 
