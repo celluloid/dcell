@@ -70,6 +70,57 @@ Inside of your Ruby program do:
 
 ...to pull it in as a dependency.
 
+Example
+-------
+
+Create a ruby script with the following contents:
+
+    # node1.rb
+
+    require 'dcell'
+
+    class Duck
+      include Celluloid
+
+      def quack
+        puts "Quack!"
+      end
+    end
+
+    Duck.supervise_as :duck_actor
+
+    DCell.start :id => "node1", :addr => "tcp://127.0.0.1:4000"
+
+    sleep
+
+Now save and run the script via the command line and open a new shell. In there, create another ruby script:
+
+    # node2.rb
+
+    require 'dcell'
+
+    DCell.start :id => "node2", :addr => "tcp://127.0.0.1:4001", :directory => {:id => "node1", :addr => "tcp://127.0.0.1:4000"}
+
+    loop {
+      node = DCell::Node["node1"]
+      duck = node[:duck_actor]
+      duck.quack
+      sleep 3
+    }
+
+When you run the second script in the second shell, you will see the following output in your first shell:
+
+    $ ruby node1.rb
+    I, [2012-08-30T20:00:00.759342 #26124]  INFO -- : Connected to node1
+    I, [2012-08-30T20:00:04.454006 #26124]  INFO -- : Connected to node2
+    Quack!
+    Quack!
+    Quack!
+
+The loop in the second script looks up the node we registered in the first script, takes the registered Duck actor and calls the `quack` method every three seconds.
+
+This is a basic example how individual DCell::Nodes have registered Celluloid actors which can be accessed remotely by other DCell::Nodes.
+
 Supported Platforms
 -------------------
 
