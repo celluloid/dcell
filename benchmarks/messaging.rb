@@ -10,7 +10,7 @@ require 'dcell'
 DCell.setup
 DCell.run!
 
-RECEIVER_PORT = 12345
+RECEIVER_PORT = 2043
 
 $receiver_pid = Process.spawn Gem.ruby, File.expand_path("../receiver.rb", __FILE__)
 STDERR.print "Waiting for test node to start up..."
@@ -51,6 +51,12 @@ class AsyncPerformanceTest
     signal :complete
   end
 end
+
+DCell.start :id => "messaging_node", :addr => "tcp://127.0.0.1:2042",
+  :directory => {
+    :id => "benchmark_receiver",
+    :addr => "tcp://127.0.0.1:#{RECEIVER_PORT}"
+  }
 
 receiver = DCell::Node['benchmark_receiver']
 progenator = receiver[:progenator]

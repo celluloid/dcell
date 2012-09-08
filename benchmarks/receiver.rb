@@ -3,7 +3,7 @@ require 'bundler'
 Bundler.setup
 
 require 'dcell'
-DCell.setup :id => 'benchmark_receiver', :addr => 'tcp://127.0.0.1:12345'
+DCell.start :id => 'benchmark_receiver', :addr => 'tcp://127.0.0.1:2043'
 
 class AsyncReceiver
   include Celluloid
