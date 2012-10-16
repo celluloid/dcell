@@ -1,6 +1,6 @@
 ![DCell](https://github.com/celluloid/dcell/raw/master/logo.png)
 =====
-[![Build Status](http://travis-ci.org/celluloid/dcell.png)](http://travis-ci.org/celluloid/dcell)
+[![Build Status](https://secure.travis-ci.org/celluloid/dcell.png?branch=master)](http://travis-ci.org/celluloid/dcell)
 [![Dependency Status](https://gemnasium.com/celluloid/dcell.png)](https://gemnasium.com/celluloid/dcell)
 
 > "Objects can message objects transparently that live on other machines
