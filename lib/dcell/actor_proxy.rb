@@ -4,11 +4,11 @@ module DCell
 
   class ThreadHandleProxy
     def kill
-      raise "Cannot kill with remote Actors"
+      raise NotImplementedError, "remote kill not supported"
     end
 
     def join
-      raise "Cannot join with remote Actors"
+      raise NotImplementedError, "remote join not supported"
     end
   end
 
@@ -21,7 +21,7 @@ module DCell
   class Actor
     def initialize(mailbox)
       @mailbox = mailbox
-      @thread = ThreadHandleProxy.new
+      @thread  = ThreadHandleProxy.new
       @subject = SubjectProxy.new
     end
     attr_reader :mailbox, :thread, :subject
