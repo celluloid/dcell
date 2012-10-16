@@ -61,19 +61,5 @@ module DCell
         @recipient << @message
       end
     end
-
-    # Send a system event to the given recipient
-    class SystemEvent < Message
-      attr_reader :recipient, :event
-
-      def initialize(recipient, event)
-        super()
-        @recipient, @event = recipient, event
-      end
-
-      def dispatch
-        @recipient << @event
-      end
-    end
   end
 end

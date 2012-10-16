@@ -28,11 +28,6 @@ module DCell
       @node.send_message! Message::Relay.new(self, message)
     end
 
-    # Send a system event
-    def system_event(event)
-      @node.send_message! Message::SystemEvent.new(self, event)
-    end
-
     # Is the remote mailbox still alive?
     def alive?
       true # FIXME: hax!
