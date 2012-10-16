@@ -14,7 +14,7 @@ RSpec.configure do |config|
     TestNode.wait_until_ready
   end
 
-#  config.after(:suite) do
-#    TestNode.stop
-#  end
+  config.after(:suite) do
+    TestNode.stop
+  end
 end
