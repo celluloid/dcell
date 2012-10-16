@@ -56,7 +56,7 @@ module Celluloid
     # be reached remotely.
     def _dump(level)
       mailbox_id = DCell::Router.register self
-      "#{mailbox_id}@#{DCell.id}@#{DCell.addr}"
+      "#{mailbox_id}@#{DCell.id}"
     end
 
     # Create a mailbox proxy object which routes messages over DCell's overlay
@@ -81,7 +81,7 @@ module Celluloid
   class Future
     def _dump(level)
       mailbox_id = DCell::Router.register self
-      "#{mailbox_id}@#{DCell.id}@#{DCell.addr}"
+      "#{mailbox_id}@#{DCell.id}"
     end
 
     def self._load(string)

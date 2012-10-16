@@ -16,6 +16,7 @@ module DCell
         # @moneta = Moneta::TieredCache.new options
         @moneta = Moneta::Memory.new options
 
+        @node_registry   = Registry.new(@moneta, :nodes)
         @global_registry = Registry.new(@moneta, :globals)
       end
 
@@ -38,12 +39,18 @@ module DCell
         end
 
         # DCell registry behaviors
+        alias_method :nodes, :all
         alias_method :global_keys, :all
 
         def clear
           @moneta.delete(@name)
         end
       end
+
+      def get_node(node_id);       @node_registry.get(node_id) end
+      def set_node(node_id, addr); @node_registry.set(node_id, addr) end
+      def nodes;                   @node_registry.nodes end
+      def clear_nodes;             @node_registry.clear end
 
       def get_global(key);        @global_registry.get(key) end
       def set_global(key, value); @global_registry.set(key, value) end

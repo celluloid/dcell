@@ -21,9 +21,6 @@ require 'dcell/info_service'
 require 'dcell/registries/redis_adapter'
 require 'dcell/registries/moneta_adapter'
 
-require 'dcell/registries/gossip/core'
-require 'dcell/registries/gossip_adapter'
-
 require 'dcell/celluloid_ext'
 
 # Distributed Celluloid
@@ -53,16 +50,6 @@ module DCell
         }.merge(options)
 
         @me = Node.new @configuration['id'], @configuration['addr']
-
-        # Specify the directory server (defaults to me), and add it
-        # to the local directory.
-        directory = @configuration['directory'] || {}
-        directory = directory.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
-        directory = {
-          'id'   => @configuration['id'],
-          'addr' => @configuration['addr']
-        }.merge(directory)
-        DCell::Directory.set directory['id'], directory['addr']
 
         registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
         raise ArgumentError, "no registry adapter given in config" unless registry_adapter

@@ -11,10 +11,6 @@ describe DCell::Global do
 
     # Double check the global value is available on all nodes
     node = DCell::Node['test_node']
-    20.downto(0) do |i|
-      break if node[:test_actor].the_answer
-      sleep 1
-    end
     node[:test_actor].the_answer.should == 42
   end
 

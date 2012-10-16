@@ -44,12 +44,44 @@ module DCell
 
         cass = Cassandra.new(keyspace, options[:servers])
 
+        @node_registry   = NodeRegistry.new(cass, columnfamily)
         @global_registry = GlobalRegistry.new(cass, columnfamily)
+      end
+
+      def clear_nodes
+        @node_registry.clear
       end
 
       def clear_globals
         @global_registry.clear
       end
+
+      class NodeRegistry
+        def initialize(cass, cf)
+          @cass = cass
+          @cf = cf
+        end
+
+        def get(node_id)
+          @cass.get @cf, "nodes", node_id
+        end
+
+        def set(node_id, addr)
+          @cass.insert @cf, "nodes", { node_id => addr }
+        end
+
+        def nodes
+          @cass.get(@cf, "nodes").keys
+        end
+
+        def clear
+          @cass.del @cf, "nodes"
+        end
+      end
+
+      def get_node(node_id);       @node_registry.get(node_id) end
+      def set_node(node_id, addr); @node_registry.set(node_id, addr) end
+      def nodes;                   @node_registry.nodes end
 
       class GlobalRegistry
         def initialize(cass, cf)
