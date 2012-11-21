@@ -4,10 +4,7 @@ rvm:
   - ruby-head
   - jruby-19mode
   - jruby-head
-
-# https://github.com/rubinius/rubinius/issues/1628
-#  - rbx-18mode
-#  - rbx-19mode
+  - rbx-19mode
 
 notifications:
   irc: "irc.freenode.org#celluloid"
