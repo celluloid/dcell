@@ -12,3 +12,5 @@ gem 'coveralls',     require: false
 
 # Specify your gem's dependencies in dcell.gemspec
 gemspec
+
+gem 'zk'
