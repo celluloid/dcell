@@ -14,10 +14,10 @@ module Celluloid
     # unfortunately we have to monkeypatch in _dump support as the proxy
     # itself normally jacks respond_to? and proxies to the actor
     alias_method :__respond_to?, :respond_to?
-    def respond_to?(meth)
+    def respond_to?(meth, check_private = false)
       return false if meth == :marshal_dump
       return true  if meth == :_dump
-      __respond_to? meth
+      __respond_to?(meth, check_private)
     end
 
     # Dump an actor proxy via its mailbox
