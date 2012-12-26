@@ -43,7 +43,7 @@ module Celluloid
 
     def self.find_actor(mailbox)
       ::Thread.list.each do |t|
-        if actor = t[:actor]
+        if actor = t[:celluloid_actor]
           return actor if actor.mailbox == mailbox
         end
       end
