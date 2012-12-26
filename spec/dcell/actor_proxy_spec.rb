@@ -58,7 +58,7 @@ describe DCell::ActorProxy do
 
       sleep 0.1 # hax to prevent a race between exit handling and the next call
       @local_actor.crash_reason.should be_a(RuntimeError)
-      @local_actor.crash_reason.to_s.should == "the spec purposely crashed me :("
+      @local_actor.crash_reason.message.should == "the spec purposely crashed me :("
     end
   end
 end
