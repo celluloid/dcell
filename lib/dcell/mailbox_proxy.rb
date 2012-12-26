@@ -4,7 +4,10 @@ module DCell
   class MailboxProxy
     class InvalidNodeError < StandardError; end
 
-    def initialize(node_id, mailbox_id)
+    def initialize(address)
+      mailbox_id, node_id = address.split("@")
+
+      # Create a proxy to the mailbox on the remote node
       raise ArgumentError, "no mailbox_id given" unless mailbox_id
      
       @node_id = node_id
@@ -39,17 +42,11 @@ module DCell
     end
 
     # Loader for custom marshal format
-    def self._load(string)
-      mailbox_id, node_id = string.split("@")
-
-      if DCell.id == node_id
-        # If we're on the local node, find the real mailbox
-        mailbox = DCell::Router.find mailbox_id
-        raise "tried to unmarshal dead Celluloid::Mailbox: #{mailbox_id}" unless mailbox
+    def self._load(address)
+      if mailbox = DCell::Router.find(address)
         mailbox
       else
-        # Create a proxy to the mailbox on the remote node
-        DCell::MailboxProxy.new(node_id, mailbox_id)
+        DCell::MailboxProxy.new(address)
       end
     end
   end

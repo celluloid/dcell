@@ -52,11 +52,15 @@ module Celluloid
   end
 
   class Mailbox
+    def address
+      "#{@address}@#{DCell.id}"
+    end
+
     # This custom dumper registers actors with the DCell registry so they can
     # be reached remotely.
     def _dump(level)
-      mailbox_id = DCell::Router.register self
-      "#{mailbox_id}@#{DCell.id}"
+      DCell::Router.register self
+      address
     end
 
     # Create a mailbox proxy object which routes messages over DCell's overlay
@@ -79,6 +83,11 @@ module Celluloid
   end
 
   class Future
+    def address
+      # FIXME: hax!
+      @address ||= Celluloid.uuid
+    end
+
     def _dump(level)
       mailbox_id = DCell::Router.register self
       "#{mailbox_id}@#{DCell.id}"

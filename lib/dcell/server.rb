@@ -36,14 +36,14 @@ module DCell
       begin
         message = decode_message message
       rescue InvalidMessageError => ex
-        Celluloid::Logger.warn("couldn't decode message: #{ex.class}: #{ex}")
+        Logger.crash("couldn't decode message", ex)
         return
       end
 
       begin
         message.dispatch
       rescue => ex
-        Celluloid::Logger.crash("DCell::Server: message dispatch failed", ex)
+        Logger.crash("DCell::Server: message dispatch failed", ex)
       end
     end
 
