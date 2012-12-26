@@ -125,12 +125,12 @@ puts "Fighting itchy! (check itchy's output)"
 end
 ```
 
-Now run scratchy side-by-side with itchy. You should see this:
+Now run scratchy side-by-side with itchy. You should see this on itchy:
 
 ```
-$ ruby node1.rb
-I, [2012-08-30T20:00:00.759342 #26124]  INFO -- : Connected to itchy
-I, [2012-08-30T20:00:04.454006 #26124]  INFO -- : Connected to scratchy
+$ bundle exec examples/itchy.rb
+Ready for mayhem!
+I, [2012-12-25T22:52:45.362355 #74272]  INFO -- : Connected to scratchy
 Bite!
 Bite!
 Bite!
