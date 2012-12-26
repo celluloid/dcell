@@ -5,5 +5,10 @@ rvm:
   - jruby-head
   - rbx-19mode
 
+matrix:
+  allow_failures:
+    # rbx seems to be losing exception messages o_O
+    - rvm: rbx-19mode
+
 notifications:
   irc: "irc.freenode.org#celluloid"
