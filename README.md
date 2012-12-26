@@ -74,51 +74,70 @@ Inside of your Ruby program do:
 Example
 -------
 
-Create a ruby script with the following contents:
+Copy and paste this into `itchy.rb` (or run `bundle exec examples/itchy.rb`):
 
-    # node1.rb
+```ruby
+require 'dcell'
 
-    require 'dcell'
+DCell.start :id => "itchy", :addr => "tcp://127.0.0.1:9001"
 
-    class Duck
-      include Celluloid
+class Itchy
+  include Celluloid
 
-      def quack
-        puts "Quack!"
-      end
+  def initialize
+    puts "Ready for mayhem!"
+    @n = 0
+  end
+
+  def fight
+    @n = (@n % 6) + 1
+    if @n <= 3
+      puts "Bite!"
+    else
+      puts "Fight!"
     end
+  end
+end
 
-    Duck.supervise_as :duck_actor
+Itchy.supervise_as :itchy
+sleep
+```
 
-    DCell.start :id => "node1", :addr => "tcp://127.0.0.1:4000"
+You can now launch itchy with:
 
-    sleep
+```
+ruby itchy.rb
+```
 
-Now save and run the script via the command line and open a new shell. In there, create another ruby script:
+Now copy and paste the following into `scratchy.rb` (also in examples)
 
-    # node2.rb
+```ruby
+require 'dcell'
 
-    require 'dcell'
+DCell.start :id => "scratchy", :addr => "tcp://127.0.0.1:9002"
+itchy_node = DCell::Node["itchy"]
 
-    DCell.start :id => "node2", :addr => "tcp://127.0.0.1:4001", :directory => {:id => "node1", :addr => "tcp://127.0.0.1:4000"}
+puts "Fighting itchy! (check itchy's output)"
 
-    loop {
-      node = DCell::Node["node1"]
-      duck = node[:duck_actor]
-      duck.quack
-      sleep 3
-    }
+6.times do
+  itchy_node[:itchy].fight
+  sleep 1
+end
+```
 
-When you run the second script in the second shell, you will see the following output in your first shell:
+Now run scratchy side-by-side with itchy. You should see this:
 
-    $ ruby node1.rb
-    I, [2012-08-30T20:00:00.759342 #26124]  INFO -- : Connected to node1
-    I, [2012-08-30T20:00:04.454006 #26124]  INFO -- : Connected to node2
-    Quack!
-    Quack!
-    Quack!
-
-The loop in the second script looks up the node we registered in the first script, takes the registered Duck actor and calls the `quack` method every three seconds.
+```
+$ ruby node1.rb
+I, [2012-08-30T20:00:00.759342 #26124]  INFO -- : Connected to itchy
+I, [2012-08-30T20:00:04.454006 #26124]  INFO -- : Connected to scratchy
+Bite!
+Bite!
+Bite!
+Fight!
+Fight!
+Fight!
+```
 
 This is a basic example how individual DCell::Nodes have registered Celluloid actors which can be accessed remotely by other DCell::Nodes.
 
