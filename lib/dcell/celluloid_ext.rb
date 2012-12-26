@@ -83,11 +83,6 @@ module Celluloid
   end
 
   class Future
-    def address
-      # FIXME: hax!
-      @address ||= Celluloid.uuid
-    end
-
     def _dump(level)
       mailbox_id = DCell::Router.register self
       "#{mailbox_id}@#{DCell.id}"
