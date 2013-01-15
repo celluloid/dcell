@@ -5,6 +5,8 @@ module DCell
     include Celluloid::FSM
     attr_reader :id, :addr
 
+    finalizer :shutdown
+
     # FSM
     default_state :disconnected
     state :shutdown
@@ -41,7 +43,7 @@ module DCell
       attach self
     end
 
-    def finalize
+    def shutdown
       transition :shutdown
       @socket.close if @socket
     end

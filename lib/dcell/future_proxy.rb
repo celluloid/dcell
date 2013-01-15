@@ -9,7 +9,7 @@ module DCell
     def <<(message)
       node = Node[@node_id]
       node = Node.new(@node_id, @node_addr) unless node
-      node.send_message! Message::Relay.new(self, message)
+      node.async.send_message Message::Relay.new(self, message)
     end
 
     def _dump(level)

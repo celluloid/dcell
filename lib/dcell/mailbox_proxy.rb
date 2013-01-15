@@ -28,7 +28,7 @@ module DCell
 
     # Send a message to the mailbox
     def <<(message)
-      @node.send_message! Message::Relay.new(self, message)
+      @node.async.send_message Message::Relay.new(self, message)
     end
 
     # Is the remote mailbox still alive?

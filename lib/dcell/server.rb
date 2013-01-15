@@ -3,6 +3,8 @@ module DCell
   class Server
     include Celluloid::ZMQ
 
+    finalizer :close
+
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
     def initialize
       # The gossip protocol is dependent on the node manager
@@ -18,16 +20,15 @@ module DCell
         raise
       end
 
-      run!
+      async.run
     end
 
     # Wait for incoming 0MQ messages
     def run
-      while true; handle_message! @socket.read; end
+      while true; async.handle_message @socket.read; end
     end
 
-    # Shut down the server
-    def finalize
+    def close
       @socket.close if @socket
     end
 
