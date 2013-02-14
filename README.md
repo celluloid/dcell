@@ -2,7 +2,7 @@
 =====
 [![Build Status](https://secure.travis-ci.org/celluloid/dcell.png?branch=master)](http://travis-ci.org/celluloid/dcell)
 [![Dependency Status](https://gemnasium.com/celluloid/dcell.png)](https://gemnasium.com/celluloid/dcell)
-[![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/celluloid/dcell)
+[![Code Climate](https://codeclimate.com/github/celluloid/dcell.png)](https://codeclimate.com/github/celluloid/dcell)
 
 > "Objects can message objects transparently that live on other machines
 > over the network, and you don't have to worry about the networking gunk,
