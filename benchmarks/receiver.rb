@@ -16,7 +16,7 @@ class AsyncReceiver
 
   def increment
     @count += 1
-    @actor.complete! if @count == @n
+    @actor.async.complete if @count == @n
     @count
   end
 end

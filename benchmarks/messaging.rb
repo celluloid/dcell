@@ -43,7 +43,7 @@ class AsyncPerformanceTest
   end
 
   def run
-    @n.times { @receiver.increment! }
+    @n.times { @receiver.async.increment }
     wait :complete
   end
 
