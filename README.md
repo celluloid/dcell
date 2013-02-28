@@ -1,5 +1,6 @@
 ![DCell](https://github.com/celluloid/dcell/raw/master/logo.png)
 =====
+[![Gem Version](https://badge.fury.io/rb/dcell.png)](http://rubygems.org/gems/dcell)
 [![Build Status](https://secure.travis-ci.org/celluloid/dcell.png?branch=master)](http://travis-ci.org/celluloid/dcell)
 [![Dependency Status](https://gemnasium.com/celluloid/dcell.png)](https://gemnasium.com/celluloid/dcell)
 [![Code Climate](https://codeclimate.com/github/celluloid/dcell.png)](https://codeclimate.com/github/celluloid/dcell)
