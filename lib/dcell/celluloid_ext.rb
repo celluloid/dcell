@@ -74,7 +74,31 @@ module Celluloid
     def _dump(level)
       uuid = DCell::RPC::Manager.register self
       payload = Marshal.dump([@sender,@method,@arguments,@block])
-      "#{uuid}@#{DCell.id}:#{payload}"
+      "#{uuid}@#{DCell.id}:rpc:#{payload}"
+    end
+
+    def self._load(string)
+      DCell::RPC._load(string)
+    end
+  end
+
+  class BlockProxy
+    def _dump(level)
+      uuid = DCell::RPC::Manager.register self
+      payload = Marshal.dump([@mailbox,@execution,@arguments])
+      "#{uuid}@#{DCell.id}:rpb:#{payload}"
+    end
+
+    def self._load(string)
+      DCell::RPC._load(string)
+    end
+  end
+
+  class BlockCall
+    def _dump(level)
+      uuid = DCell::RPC::Manager.register self
+      payload = Marshal.dump([@block_proxy,@sender,@arguments])
+      "#{uuid}@#{DCell.id}:rpbc:#{payload}"
     end
 
     def self._load(string)
