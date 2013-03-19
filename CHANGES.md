@@ -1,10 +1,9 @@
-0.13.0.pre
-----------
+0.13.0
+------
 * First semi-stable release in nearly forever! Yay!
 * Rip out the unstable gossip system, replace the original Zookeeper and
   Redis adapters.
 * Compatibility fixes with newer versions of the Celluloid suite
-* Switch default port to 7890 (7777 is heavily used by other programs)
 
 0.10.0
 ------
