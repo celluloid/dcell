@@ -27,7 +27,7 @@ require 'dcell/celluloid_ext'
 module DCell
   class NotConfiguredError < RuntimeError; end # Not configured yet
 
-  DEFAULT_PORT  = 7890 # Default DCell port
+  DEFAULT_PORT  = 7777 # Default DCell port
   @config_lock  = Mutex.new
 
   class << self
@@ -36,7 +36,7 @@ module DCell
     # Configure DCell with the following options:
     #
     # * id: to identify the local node, defaults to hostname
-    # * addr: 0MQ address of the local node (e.g. tcp://4.3.2.1:7890)
+    # * addr: 0MQ address of the local node (e.g. tcp://4.3.2.1:7777)
     # *
     def setup(options = {})
       # Stringify keys :/
