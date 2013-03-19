@@ -4,6 +4,7 @@
 [![Build Status](https://secure.travis-ci.org/celluloid/dcell.png?branch=master)](http://travis-ci.org/celluloid/dcell)
 [![Dependency Status](https://gemnasium.com/celluloid/dcell.png)](https://gemnasium.com/celluloid/dcell)
 [![Code Climate](https://codeclimate.com/github/celluloid/dcell.png)](https://codeclimate.com/github/celluloid/dcell)
+[![Coverage Status](https://coveralls.io/repos/celluloid/dcell/badge.png?branch=master)](https://coveralls.io/r/celluloid/dcell)
 
 > "Objects can message objects transparently that live on other machines
 > over the network, and you don't have to worry about the networking gunk,
