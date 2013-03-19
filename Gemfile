@@ -5,7 +5,7 @@ source "http://rubygems.org"
 #gem 'celluloid-zmq', github: 'celluloid/celluloid-zmq'
 #gem 'reel',          github: 'celluloid/reel'
 
-#gem 'ffi-rzmq', github: 'chuckremes/ffi-rzmq'
+gem 'ffi-rzmq', github: 'chuckremes/ffi-rzmq'
 
 gem 'jruby-openssl', platform: :jruby
 gem 'coveralls',     require: false
