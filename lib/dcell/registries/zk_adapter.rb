@@ -64,7 +64,7 @@ module DCell
           path = "#{@base_path}/#{node_id}"
           @zk.set path, addr
         rescue ZK::Exceptions::NoNode
-          @zk.create path, addr
+          @zk.create path, addr, :ephemeral => true
         end
 
         def nodes
