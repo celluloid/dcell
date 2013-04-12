@@ -2,13 +2,13 @@ require 'weakref'
 
 module DCell
   class RPC < Celluloid::SyncCall
-    def initialize(id, caller, method, arguments, block)
-      @id, @caller, @method, @arguments, @block = id, caller, method, arguments, block
+    def initialize(id, sender, method, arguments, block)
+      @id, @sender, @method, @arguments, @block = id, sender, method, arguments, block
     end
 
     # Custom marshaller for compatibility with Celluloid::Mailbox marshalling
     def _dump(level)
-      payload = Marshal.dump [@caller, @method, @arguments, @block]
+      payload = Marshal.dump [@sender, @method, @arguments, @block]
       "#{@id}:#{payload}"
     end
 
@@ -23,8 +23,8 @@ module DCell
       if DCell.id == node_id
         Manager.claim uuid
       else
-        caller, method, arguments, block = Marshal.load(string)
-        RPC.new("#{uuid}@#{node_id}", caller, method, arguments, block)
+        sender, method, arguments, block = Marshal.load(string)
+        RPC.new("#{uuid}@#{node_id}", sender, method, arguments, block)
       end
     end
 
