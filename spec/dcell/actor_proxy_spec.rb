@@ -26,6 +26,14 @@ describe DCell::ActorProxy do
     @remote_actor.value.should == 42
   end
 
+  it "handles blocks" do
+    result = nil
+    @remote_actor.win do |value|
+      result = value
+    end
+    result.should == 10000
+  end
+
   it "makes future calls to remote actors" do
     @remote_actor.future(:value).value.should == 42
   end

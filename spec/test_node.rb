@@ -20,6 +20,11 @@ class TestActor
     DCell::Global[:the_answer]
   end
 
+  def win(&block)
+    yield 10000
+    20000
+  end
+
   def crash
     raise "the spec purposely crashed me :("
   end

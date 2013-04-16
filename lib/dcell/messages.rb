@@ -22,29 +22,29 @@ module DCell
 
     # Query a node for the address of an actor
     class Find < Message
-      attr_reader :caller, :name
+      attr_reader :sender, :name
 
-      def initialize(caller, name)
+      def initialize(sender, name)
         super()
-        @caller, @name = caller, name
+        @sender, @name = sender, name
       end
 
       def dispatch
-        @caller << SuccessResponse.new(@id, Celluloid::Actor[@name])
+        @sender << SuccessResponse.new(@id, Celluloid::Actor[@name])
       end
     end
 
     # List all registered actors
     class List < Message
-      attr_reader :caller
+      attr_reader :sender
 
-      def initialize(caller)
+      def initialize(sender)
         super()
-        @caller = caller
+        @sender = sender
       end
 
       def dispatch
-        @caller << SuccessResponse.new(@id, Celluloid::Actor.registered)
+        @sender << SuccessResponse.new(@id, Celluloid::Actor.registered)
       end
     end
 

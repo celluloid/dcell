@@ -1,15 +1,39 @@
 require 'weakref'
 
 module DCell
-  class RPC < Celluloid::SyncCall
-    def initialize(id, caller, method, arguments, block)
-      @id, @caller, @method, @arguments, @block = id, caller, method, arguments, block
+  class RPB < Celluloid::BlockProxy
+    def initialize(id, mailbox, execution, arguments)
+      @id, @mailbox, @execution, @arguments = id, mailbox, execution, arguments
     end
 
     # Custom marshaller for compatibility with Celluloid::Mailbox marshalling
     def _dump(level)
-      payload = Marshal.dump [@caller, @method, @arguments, @block]
-      "#{@id}:#{payload}"
+      payload = Marshal.dump [@mailbox, @execution, @arguments]
+      "#{@id}:rpb:#{payload}"
+    end
+  end
+
+  class RPBC < Celluloid::BlockCall
+    def initialize(id, block_proxy, sender, arguments)
+      @id, @block_proxy, @sender, @arguments = id, block_proxy, sender, arguments
+    end
+
+    # Custom marshaller for compatibility with Celluloid::Mailbox marshalling
+    def _dump(level)
+      payload = Marshal.dump [@block_proxy, @sender, @arguments]
+      "#{@id}:rpbc:#{payload}"
+    end
+  end
+
+  class RPC < Celluloid::SyncCall
+    def initialize(id, sender, method, arguments, block)
+      @id, @sender, @method, @arguments, @block = id, sender, method, arguments, block
+    end
+
+    # Custom marshaller for compatibility with Celluloid::Mailbox marshalling
+    def _dump(level)
+      payload = Marshal.dump [@sender, @method, @arguments, @block]
+      "#{@id}:rpc:#{payload}"
     end
 
     # Loader for custom marshal format
@@ -23,8 +47,13 @@ module DCell
       if DCell.id == node_id
         Manager.claim uuid
       else
-        caller, method, arguments, block = Marshal.load(string)
-        RPC.new("#{uuid}@#{node_id}", caller, method, arguments, block)
+        type = string.slice!(0, string.index(":") + 1)
+        types = {
+          "rpc" => RPC,
+          "rpb" => RPB,
+          "rpbc" => RPBC,
+        }
+        types.fetch(type[0..-2]).new("#{uuid}@#{node_id}", *Marshal.load(string))
       end
     end
 
