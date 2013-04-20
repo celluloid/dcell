@@ -45,7 +45,7 @@ module DCell
 
         cores = cpu_info.scan(/core id\s+: \d+/).uniq.size
         @cpu_count = cores > 0 ? cores : 1
-        @distribution = `lsb_release -d`[/Description:\s+(.*)\s*$/, 1]
+        @distribution = discover_distribution
       else
         @cpu_type = @cpu_vendor = @cpu_speed = @cpu_count = nil
       end
@@ -88,6 +88,11 @@ module DCell
       uptime = matches[1]
       days_string = uptime[/^(\d+) days/, 1]
       days_string ? Integer(days_string) : 0
+    end
+
+    def discover_distribution
+      `lsb_release -d`[/Description:\s+(.*)\s*$/, 1]
+    rescue Errno::ENOENT
     end
 
     def to_hash
