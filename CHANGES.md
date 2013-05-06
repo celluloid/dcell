@@ -1,3 +1,10 @@
+0.14.0
+------
+* Allow InfoService to run on linux when lsb-release is missing
+* Remove broken moneta adapter
+* Use ephemeral mode for ZK adapter
+* Add support for executing blocks over DCell
+
 0.13.0
 ------
 * First semi-stable release in nearly forever! Yay!
