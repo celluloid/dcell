@@ -1,5 +1,5 @@
-0.14.0
-------
+0.14.0 (2013-05-07)
+-------------------
 * Allow InfoService to run on linux when lsb-release is missing
 * Remove broken moneta adapter
 * Use ephemeral mode for ZK adapter
