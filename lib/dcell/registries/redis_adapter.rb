@@ -1,4 +1,5 @@
-require 'redis'
+require 'celluloid/redis'
+require 'redis/connection/celluloid'
 require 'redis-namespace'
 
 module DCell
