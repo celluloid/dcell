@@ -6,6 +6,10 @@ module TestNode
 
   def self.start
     @pid = Process.spawn Gem.ruby, File.expand_path("../../test_node.rb", __FILE__)
+    unless @pid
+      STDERR.print "ERROR: Couldn't start test node. Do you have Redis installed?"
+      exit 1
+    end
   end
 
   def self.wait_until_ready
@@ -32,6 +36,10 @@ module TestNode
   end
 
   def self.stop
+    unless @pid
+      STDERR.print "ERROR: Test node was never started!"
+      exit 1
+    end
     Process.kill 9, @pid
   rescue Errno::ESRCH
   ensure
