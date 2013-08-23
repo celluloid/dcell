@@ -5,6 +5,7 @@ require "dcell/version"
 Gem::Specification.new do |gem|
   gem.name        = "dcell"
   gem.version     = DCell::VERSION
+  gem.license     = 'MIT'
   gem.authors     = ["Tony Arcieri"]
   gem.email       = ["tony.arcieri@gmail.com"]
   gem.homepage    = "http://github.com/celluloid/dcell"
