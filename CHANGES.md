@@ -1,4 +1,4 @@
-0.15.0.pre (2013-08-21)
+0.15.0 (2013-09-04)
 -----------------------
 * Tracking release for Celluloid 0.15
 * Use the celluloid-redis gem with the Redis adapter
