@@ -7,6 +7,8 @@ module DCell
 
     finalizer :shutdown
 
+    NODE_DISCOVERY_TIMEOUT = 5
+
     # FSM
     default_state :disconnected
     state :shutdown
@@ -70,10 +72,11 @@ module DCell
       request = Message::Find.new(Thread.mailbox, name)
       send_message request
 
-      response = receive do |msg|
+      response = receive(NODE_DISCOVERY_TIMEOUT) do |msg|
         msg.respond_to?(:request_id) && msg.request_id == request.id
       end
 
+      return nil if response.nil?
       abort response.value if response.is_a? ErrorResponse
       response.value
     end
