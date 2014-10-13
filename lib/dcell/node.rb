@@ -16,6 +16,7 @@ module DCell
       Celluloid::Logger.info "Connected to #{id}"
     end
     state :partitioned do
+      @heartbeat.cancel
       Celluloid::Logger.warn "Communication with #{id} interrupted"
     end
     
