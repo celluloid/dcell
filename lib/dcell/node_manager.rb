@@ -4,6 +4,8 @@ module DCell
     include Celluloid::ZMQ
     include Enumerable
 
+    finalizer :clear_nodes
+
     attr_reader :heartbeat_rate, :heartbeat_timeout
 
     def initialize
@@ -45,5 +47,28 @@ module DCell
       @nodes[id]
     end
     alias_method :[], :find
+
+    def update(id)
+      addr = Directory[id]
+      return unless addr
+      if ( node = @nodes[id] ) and node.alive?
+        node.update_address( addr )
+      else
+        @nodes[id] = Node.new( id, addr )
+      end
+    end
+
+    def remove(id)
+      if @nodes[id]
+        @nodes[id].terminate if @nodes[id].alive?
+        @nodes.delete(id)  
+      end
+    end
+
+
+    def clear_nodes
+      Directory.clear
+    end
+
   end
 end

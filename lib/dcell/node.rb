@@ -30,7 +30,7 @@ module DCell
       include Enumerable
       extend Forwardable
 
-      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[]
+      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[], :remove, :update
       def_delegators "Celluloid::Actor[:node_manager]", :heartbeat_rate, :heartbeat_timeout
     end
 
@@ -41,6 +41,11 @@ module DCell
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self
+    end
+
+    def update_address( addr )
+      @addr = addr
+      send_heartbeat
     end
 
     def shutdown
