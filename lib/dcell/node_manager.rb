@@ -4,6 +4,10 @@ module DCell
     include Celluloid::ZMQ
     include Enumerable
 
+    trap_exit :node_died
+
+    finalizer :clear_nodes
+
     attr_reader :heartbeat_rate, :heartbeat_timeout
 
     def initialize
@@ -39,11 +43,45 @@ module DCell
         node = DCell.me
       else
         node = Node.new(id, addr)
+        self.link node
       end
 
       @nodes[id] ||= node
       @nodes[id]
     end
     alias_method :[], :find
+
+    def node_died(node, reason)
+      if reason.nil? # wtf?
+        # this wtf error seems to come from node socket writes
+        # when the socket is not reachable anymore
+        Celluloid::logger.debug "wtf?"
+        return
+      end
+      # Handle dead node???
+    end
+
+    def update(id)
+      addr = Directory[id]
+      return unless addr
+      if ( node = @nodes[id] ) and node.alive?
+        node.update_address( addr )
+      else
+        @nodes[id] = Node.new( id, addr )
+      end
+    end
+
+    def remove(id)
+      if @nodes[id]
+        @nodes[id].terminate if @nodes[id].alive?
+        @nodes.delete(id)  
+      end
+    end
+
+
+    def clear_nodes
+      Directory.clear
+    end
+
   end
 end

@@ -19,5 +19,9 @@ module DCell
     def all
       DCell.registry.nodes
     end
+
+    def clear
+      DCell.registry.clear_nodes
+    end
   end
 end
