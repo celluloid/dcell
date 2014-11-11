@@ -1,10 +1,10 @@
 source "http://rubygems.org"
 
-gem 'celluloid',        github: 'celluloid/celluloid',        branch: 'master'
-gem 'celluloid-io',     github: 'celluloid/celluloid-io',     branch: 'master'
-gem 'celluloid-zmq',    github: 'celluloid/celluloid-zmq',    branch: 'master'
+gem 'celluloid',        github: 'celluloid/celluloid',        tag: 'v0.15.2'
+gem 'celluloid-io',     github: 'celluloid/celluloid-io',     tag: 'v0.15.0'
+gem 'celluloid-zmq',    github: 'celluloid/celluloid-zmq',    tag: 'v0.15.0'
 gem 'celluloid-redis',  github: 'celluloid/celluloid-redis',  branch: 'master'
-gem 'reel',             github: 'celluloid/reel',             branch: 'master'
+gem 'reel',             github: 'celluloid/reel',             tag: 'v0.4.0'
 
 #gem 'ffi-rzmq', github: 'chuckremes/ffi-rzmq'
 
