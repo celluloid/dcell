@@ -1,5 +1,9 @@
 before_install: sudo apt-get install libzmq3-dev
 
+services:
+  - mongodb
+  - redis-server
+
 rvm:
   - 1.9.3
   - 2.0.0
