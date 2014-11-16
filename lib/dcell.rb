@@ -1,6 +1,8 @@
 require 'celluloid'
 require 'reel'
 require 'celluloid/zmq'
+require 'socket'
+require 'securerandom'
 
 Celluloid::ZMQ.init
 
@@ -84,7 +86,14 @@ module DCell
 
     # Attempt to generate a unique node ID for this machine
     def generate_node_id
-      `hostname`.strip # Super creative I know
+      # a little bit more creative
+      if @registry.respond_to? :unique
+        @registry.unique
+      else
+        digest = Digest::SHA512.new
+        seed = Socket.gethostname + rand.to_s + Time.now.to_s + SecureRandom.hex
+        digest.update(seed).to_s
+      end
     end
 
     # Run the DCell application

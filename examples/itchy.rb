@@ -12,12 +12,13 @@ class Itchy
   end
 
   def fight
-    @n = (@n % 6) + 1
-    if @n <= 3
+    @n += 1
+    if @n % 6 == 0
       puts "Bite!"
     else
       puts "Fight!"
     end
+    @n
   end
 end
 
