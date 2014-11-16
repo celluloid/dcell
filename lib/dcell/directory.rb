@@ -19,5 +19,13 @@ module DCell
     def all
       DCell.registry.nodes
     end
+
+    def clear_all
+      DCell.registry.clear_all_nodes
+    end
+
+    def remove(node)
+      DCell.registry.remove_node node
+    end
   end
 end

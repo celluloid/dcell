@@ -1,7 +1,7 @@
 shared_context "a DCell registry" do
   context "node registry" do
     before :each do
-      subject.clear_nodes
+      subject.clear_all_nodes
     end
 
     it "stores node addresses" do

@@ -48,12 +48,16 @@ module DCell
         @global_registry = GlobalRegistry.new(cass, columnfamily)
       end
 
-      def clear_nodes
-        @node_registry.clear
+      def remove_node(node)
+        @node_registry.remove node
+      end
+
+      def clear_all_nodes
+        @node_registry.clear_all
       end
 
       def clear_globals
-        @global_registry.clear
+        @global_registry.clear_all
       end
 
       class NodeRegistry
@@ -74,7 +78,11 @@ module DCell
           @cass.get(@cf, "nodes").keys
         end
 
-        def clear
+        def remove(node)
+          @cass.remove @cf, "nodes", { node_id => node }
+        end
+
+        def clear_all
           @cass.del @cf, "nodes"
         end
       end
@@ -105,7 +113,7 @@ module DCell
           @cass.get(@cf, "globals").keys
         end
 
-        def clear
+        def clear_all
           @cass.del @cf, "globals"
         end
       end

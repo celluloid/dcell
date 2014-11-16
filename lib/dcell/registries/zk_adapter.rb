@@ -46,15 +46,36 @@ module DCell
           @base_path = File.join(base_path, name.to_s)
           @ephemeral = ephemeral
           @zk.mkdir_p @base_path
+          @events = {}
+        end
+
+        def register(key)
+          path = "#{@base_path}/#{key}"
+          @events[path] ||= @zk.register(path) do |event|
+            key = event.path.match(/#{@base_path}\/(\w+)/)[1]
+            @events[event.path].unsubscribe
+            @events[event.path] = nil
+            if event.node_changed?
+              Celluloid::logger.debug "zk callback: node changed!"
+              Node.update(key)
+            end
+            if event.node_deleted?
+              Celluloid::logger.debug "zk callback: node deleted!"
+              Node.remove(key)
+            end
+
+          end
         end
 
         def get(key)
-          result, _ = @zk.get("#{@base_path}/#{key}")
+          register(key)
+          result, _ = @zk.get("#{@base_path}/#{key}", watch: true)
           Marshal.load result
         rescue ZK::Exceptions::NoNode
         end
 
         def set(key, value)
+          register(key)
           path = "#{@base_path}/#{key}"
           string = Marshal.dump value
           @zk.set path, string
@@ -66,7 +87,21 @@ module DCell
           @zk.children @base_path
         end
 
-        def clear
+        def remove(key)
+          keys.each do |key|
+            path = "#{@base_path}/#{key}"
+            @zk.delete path
+          end
+        end
+
+        def clear_all
+          # delete znodes so any registered
+          # callback is triggered
+          all.each do |key|
+            remove key
+          end
+          @events.values.compact.each(&:unsubscribe)
+          @events.clear
           @zk.rm_rf @base_path
           @zk.mkdir_p @base_path
         end
@@ -75,12 +110,13 @@ module DCell
       def get_node(node_id);       @node_registry.get(node_id) end
       def set_node(node_id, addr); @node_registry.set(node_id, addr) end
       def nodes;                   @node_registry.all end
-      def clear_nodes;             @node_registry.clear end
+      def remove_node(node_id);    @node_registry.clear(node_id) end
+      def clear_all_nodes;         @node_registry.clear_all end
 
       def get_global(key);        @global_registry.get(key) end
       def set_global(key, value); @global_registry.set(key, value) end
       def global_keys;            @global_registry.all end
-      def clear_globals;          @global_registry.clear end
+      def clear_globals;          @global_registry.clear_all end
 
     end
   end

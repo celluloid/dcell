@@ -19,12 +19,16 @@ module DCell
         @global_registry = GlobalRegistry.new(@redis)
       end
 
-      def clear_nodes
-        @node_registry.clear
+      def remove_node(node)
+        @node_registry.remove node
+      end
+
+      def clear_all_nodes
+        @node_registry.clear_all
       end
 
       def clear_globals
-        @global_registry.clear
+        @global_registry.clear_all
       end
 
       class NodeRegistry
@@ -44,7 +48,11 @@ module DCell
           @redis.hkeys 'nodes'
         end
 
-        def clear
+        def remove(node)
+          @redis.hdel 'nodes', node
+        end
+
+        def clear_all
           @redis.del 'nodes'
         end
       end
@@ -74,7 +82,7 @@ module DCell
           @redis.hkeys 'globals'
         end
 
-        def clear
+        def clear_all
           @redis.del 'globals'
         end
       end
