@@ -20,7 +20,7 @@ describe DCell::Registry::ZkAdapter, :pending => ENV["CI"] && "no zookeeper" do
         subject.set_node("foo", "tcp://fooaddress")
         # WARNING: only by calling get_node we renew the watcher
         subject.get_node("foo").should eq("tcp://fooaddress")
-        subject.clear_nodes
+        subject.remove_node "foo"
         sleep 0.8 # takes some time to zookeeper watchers to take full effect
       end
     end

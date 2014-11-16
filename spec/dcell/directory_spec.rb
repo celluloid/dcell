@@ -14,7 +14,9 @@ describe DCell::Directory do
   it "clears node addresses" do
     DCell::Directory["foo"] = "tcp://fooaddress"
     DCell::Directory["foobar"].should == "tcp://localhost:1870"
-    DCell::Directory.clear
+    ["foo", "foobar"].each do |node|
+      DCell::Directory.remove node
+    end
     DCell::Directory["foobar"].should_not == "tcp://localhost:1870"
   end
 end

@@ -66,6 +66,7 @@ module DCell
 
         addr = @configuration['public'] || @configuration['addr']
         DCell::Directory.set @configuration['id'], addr
+        ObjectSpace.define_finalizer(me, proc {Directory.remove @configuration['id']})
       end
 
       me

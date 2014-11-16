@@ -6,8 +6,6 @@ module DCell
 
     trap_exit :node_died
 
-    finalizer :clear_nodes
-
     attr_reader :heartbeat_rate, :heartbeat_timeout
 
     def initialize
@@ -74,14 +72,8 @@ module DCell
     def remove(id)
       if @nodes[id]
         @nodes[id].terminate if @nodes[id].alive?
-        @nodes.delete(id)  
+        @nodes.delete(id)
       end
     end
-
-
-    def clear_nodes
-      Directory.clear
-    end
-
   end
 end
