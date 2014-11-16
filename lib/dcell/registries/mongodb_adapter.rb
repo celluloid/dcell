@@ -41,7 +41,11 @@ module DCell
           end
 
           def get(storage, key)
-            storage.where(key: key).first.value['v']
+            first = storage.where(key: key).first
+            if first and first.value
+              return first.value['v']
+            end
+            nil
           end
 
           def all(storage)
@@ -52,7 +56,14 @@ module DCell
             keys
           end
 
-          def clear(storage)
+          def remove(storage, key)
+            begin
+              storage.where(key: key).delete
+            rescue
+            end
+          end
+
+          def clear_all(storage)
             storage.delete_all
           end
         end
@@ -61,12 +72,13 @@ module DCell
       def get_node(node_id);       Proxy.get(DCellNode, node_id) end
       def set_node(node_id, addr); Proxy.set(DCellNode, node_id, addr) end
       def nodes;                   Proxy.all(DCellNode) end
-      def clear_nodes;             Proxy.clear(DCellNode) end
+      def remove_node(node_id);    Proxy.remove(DCellNode, node_id) end
+      def clear_all_nodes;         Proxy.clear_all(DCellNode) end
 
       def get_global(key);         Proxy.get(DCellGlobal, key) end
       def set_global(key, value);  Proxy.set(DCellGlobal, key, value) end
       def global_keys;             Proxy.all(DCellGlobal) end
-      def clear_globals;           Proxy.clear(DCellGlobal) end
+      def clear_globals;           Proxy.clear_all(DCellGlobal) end
 
     end
   end
