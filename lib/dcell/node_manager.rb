@@ -63,7 +63,7 @@ module DCell
       addr = Directory[id]
       return unless addr
       if ( node = @nodes[id] ) and node.alive?
-        node.update_address( addr )
+        node.update_client_address( addr )
       else
         @nodes[id] = Node.new( id, addr )
       end

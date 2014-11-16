@@ -44,9 +44,13 @@ module DCell
       attach self
     end
 
-    def update_address( addr )
+    def update_client_address( addr )
       @addr = addr
       send_heartbeat
+    end
+
+    def update_server_address(addr)
+      @addr = addr
     end
 
     def shutdown

@@ -81,7 +81,10 @@ module DCell
     def addr; @configuration['addr']; end
     alias_method :address, :addr
 
-    def addr=(addr); @configuration['addr'] = addr; end
+    def addr=(addr)
+      @configuration['addr'] = addr
+      @me.update_server_address addr
+    end
     alias_method :address=, :addr=
 
     # Attempt to generate a unique node ID for this machine
