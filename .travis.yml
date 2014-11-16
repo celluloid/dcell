@@ -20,5 +20,5 @@ branches:
     - master
 
 env:
-    DCELL_TEST_ADAPTER=redis
-    DCELL_TEST_ADAPTER=mongodb
+    - DCELL_TEST_ADAPTER=redis
+    - DCELL_TEST_ADAPTER=mongodb
