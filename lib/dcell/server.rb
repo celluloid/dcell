@@ -10,11 +10,13 @@ module DCell
       # The gossip protocol is dependent on the node manager
       link Celluloid::Actor[:node_manager]
 
-      @addr   = DCell.addr
       @socket = PullSocket.new
 
       begin
-        @socket.bind(@addr)
+        @socket.bind(DCell.addr)
+        real_addr = @socket.get(::ZMQ::LAST_ENDPOINT).strip
+        DCell::Directory.set DCell.id, real_addr
+        DCell.addr = real_addr
       rescue IOError
         @socket.close
         raise

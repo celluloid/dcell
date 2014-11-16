@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'dcell'
 
-DCell.start :id => "itchy", :addr => "tcp://127.0.0.1:9001"
+DCell.start :id => "itchy"
 
 class Itchy
   include Celluloid

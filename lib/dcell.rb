@@ -27,7 +27,6 @@ require 'dcell/celluloid_ext'
 module DCell
   class NotConfiguredError < RuntimeError; end # Not configured yet
 
-  DEFAULT_PORT  = 7777 # Default DCell port
   @config_lock  = Mutex.new
 
   class << self
@@ -45,11 +44,11 @@ module DCell
       @config_lock.synchronize do
         @configuration = {
           'id'   => generate_node_id,
-          'addr' => "tcp://127.0.0.1:#{DEFAULT_PORT}",
+          'addr' => "tcp://127.0.0.1:*",
           'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
         }.merge(options)
 
-        @me = Node.new @configuration['id'], @configuration['addr']
+        @me = Node.new @configuration['id'], nil
 
         registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
         raise ArgumentError, "no registry adapter given in config" unless registry_adapter
@@ -64,8 +63,6 @@ module DCell
 
         @registry = registry_class.new(@configuration['registry'])
 
-        addr = @configuration['public'] || @configuration['addr']
-        DCell::Directory.set @configuration['id'], addr
         ObjectSpace.define_finalizer(me, proc {Directory.remove @configuration['id']})
       end
 
@@ -81,6 +78,9 @@ module DCell
     # Obtain the 0MQ address to the local mailbox
     def addr; @configuration['addr']; end
     alias_method :address, :addr
+
+    def addr=(addr); @configuration['addr'] = addr; end
+    alias_method :address=, :addr=
 
     # Attempt to generate a unique node ID for this machine
     def generate_node_id
