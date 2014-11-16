@@ -6,7 +6,11 @@ require 'bundler'
 Bundler.setup
 
 require 'dcell'
-DCell.start :id => 'test_node', :addr => 'tcp://127.0.0.1:21264'
+Dir['./spec/options/*.rb'].map { |f| require f }
+
+options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
+options.merge! test_db_options
+DCell.start options
 
 class TestActor
   include Celluloid

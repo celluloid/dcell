@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe DCell::Node do
   before do
-    @node = DCell::Node['test_node']
-    @node.id.should == 'test_node'
+    @node = DCell::Node[TEST_NODE[:id]]
+    @node.id.should == TEST_NODE[:id]
   end
 
   it "finds all available nodes" do

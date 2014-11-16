@@ -2,8 +2,6 @@
 require 'rubygems'
 
 module TestNode
-  PORT = 21264
-
   def self.start
     @pid = Process.spawn Gem.ruby, File.expand_path("../../test_node.rb", __FILE__)
     unless @pid
@@ -18,7 +16,7 @@ module TestNode
     socket = nil
     30.times do
       begin
-        socket = TCPSocket.open("127.0.0.1", PORT)
+        socket = TCPSocket.open(TEST_NODE[:addr], TEST_NODE[:port])
         break if socket
       rescue Errno::ECONNREFUSED
         STDERR.print "."

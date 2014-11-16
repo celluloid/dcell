@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe DCell::ActorProxy do
   before :all do
-    @node = DCell::Node['test_node']
-    @node.id.should == 'test_node'
+    @node = DCell::Node[TEST_NODE[:id]]
+    @node.id.should == TEST_NODE[:id]
     @remote_actor = @node[:test_actor]
 
     class LocalActor

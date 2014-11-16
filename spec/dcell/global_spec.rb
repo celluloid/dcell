@@ -10,7 +10,7 @@ describe DCell::Global do
     DCell::Global[:the_answer].should == 42
 
     # Double check the global value is available on all nodes
-    node = DCell::Node['test_node']
+    node = DCell::Node[TEST_NODE[:id]]
     node[:test_actor].the_answer.should == 42
   end
 

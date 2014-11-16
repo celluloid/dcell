@@ -1,8 +1,8 @@
 require 'spec_helper'
 require 'dcell/registries/zk_adapter'
 
-describe DCell::Registry::ZkAdapter, :pending => ENV["CI"] && "no zookeeper" do
-  subject { DCell::Registry::ZkAdapter.new :server => 'localhost', :env => 'test' }
+describe DCell::Registry::ZkAdapter, :pending => TEST_ADEPTER != 'zk' && "no zookeeper" do
+  subject { DCell::Registry::ZkAdapter.new TEST_DB[:zk] }
   it_behaves_like "a DCell registry" do
     context "when one znode changes" do
       it "updates a node" do
