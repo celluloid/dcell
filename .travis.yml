@@ -15,5 +15,10 @@ matrix:
     - rvm: jruby-19mode
     - rvm: rbx-19mode # rbx seems to be losing exception messages o_O
 
-notifications:
-  irc: "irc.freenode.org#celluloid"
+branches:
+  only:
+    - master
+
+env:
+    DCELL_TEST_ADAPTER=redis
+    DCELL_TEST_ADAPTER=mongodb
