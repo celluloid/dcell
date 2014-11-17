@@ -26,3 +26,10 @@ branches:
 env:
     - DCELL_TEST_ADAPTER=redis
     - DCELL_TEST_ADAPTER=mongodb
+
+matrix:
+  exclude:
+    - service: mongodb
+      env: DCELL_TEST_ADAPTER=redis
+    - service: redis
+      env: DCELL_TEST_ADAPTER=mongodb
