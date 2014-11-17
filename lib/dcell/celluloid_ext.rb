@@ -33,7 +33,7 @@ module Celluloid
       case mailbox
       when ::DCell::MailboxProxy
         actor = ::DCell::Actor.new(mailbox)
-        ::DCell::ActorProxy.new actor
+        ::DCell::ActorProxy.new actor, mailbox
       when ::Celluloid::Mailbox
         actor = find_actor(mailbox)
         ::Celluloid::ActorProxy.new(actor)
