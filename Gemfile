@@ -1,7 +1,7 @@
 source "http://rubygems.org"
 
-gem 'celluloid',        github: 'celluloid/celluloid',        tag: 'v0.15.2'
-gem 'celluloid-io',     github: 'celluloid/celluloid-io',     tag: 'v0.15.0'
+gem 'celluloid',        github: 'celluloid/celluloid',        tag: 'v0.16.0'
+gem 'celluloid-io',     github: 'celluloid/celluloid-io',     tag: 'v0.16.1'
 gem 'celluloid-zmq',    github: 'celluloid/celluloid-zmq',    tag: 'v0.16.0'
 gem 'celluloid-redis',  github: 'celluloid/celluloid-redis',  branch: 'master'
 gem 'reel',             github: 'celluloid/reel',             tag: 'v0.4.0'

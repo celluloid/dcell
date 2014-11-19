@@ -12,7 +12,7 @@ describe Celluloid, "extensions" do
     @marshal = WillKane.new
   end
 
-  it "marshals Celluloid::ActorProxy objects" do
+  it "marshals Celluloid::CellProxy objects" do
     string = Marshal.dump(@marshal)
     Marshal.load(string).should be_alive
   end

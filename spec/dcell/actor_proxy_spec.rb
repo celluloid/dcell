@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe DCell::ActorProxy do
+describe DCell::CellProxy do
   before :all do
     @node = DCell::Node[TEST_NODE[:id]]
     @node.id.should == TEST_NODE[:id]

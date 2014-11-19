@@ -1,6 +1,6 @@
 module DCell
   # Proxy object for actors that live on remote nodes
-  class ActorProxy < Celluloid::ActorProxy; end
+  class CellProxy < Celluloid::CellProxy; end
 
   class ThreadHandleProxy
     def kill
@@ -23,7 +23,8 @@ module DCell
       @mailbox = mailbox
       @thread  = ThreadHandleProxy.new
       @subject = SubjectProxy.new
+      @proxy = Celluloid::ActorProxy.new(@thread, @mailbox)
     end
-    attr_reader :mailbox, :thread, :subject
+    attr_reader :mailbox, :thread, :subject, :proxy
   end
 end
