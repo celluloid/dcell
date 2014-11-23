@@ -1,16 +1,10 @@
 module DCell
   # Servers handle incoming 0MQ traffic
-  class Server
-    include Celluloid::ZMQ
-
-    finalizer :close
-
+  class PullServer
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
-    def initialize(cell)
-      # The gossip protocol is dependent on the node manager
-      link Celluloid::Actor[:node_manager]
-
-      @socket = PullSocket.new
+    def initialize(cell, logger=Logger)
+      @logger = logger
+      @socket = Celluloid::ZMQ::PullSocket.new
 
       begin
         @socket.bind(cell.addr)
@@ -20,13 +14,6 @@ module DCell
         @socket.close
         raise
       end
-
-      async.run
-    end
-
-    # Wait for incoming 0MQ messages
-    def run
-      while true; async.handle_message @socket.read; end
     end
 
     def close
@@ -38,14 +25,14 @@ module DCell
       begin
         message = decode_message message
       rescue InvalidMessageError => ex
-        Logger.crash("couldn't decode message", ex)
+        @logger.crash("couldn't decode message", ex)
         return
       end
 
       begin
         message.dispatch
       rescue => ex
-        Logger.crash("DCell::Server: message dispatch failed", ex)
+        @logger.crash("message dispatch failed", ex)
       end
     end
 
@@ -59,13 +46,35 @@ module DCell
         rescue => ex
           raise InvalidMessageError, "invalid message: #{ex}"
         end
-      else raise InvalidMessageError, "couldn't determine message format: #{message}"
+      else
+        raise InvalidMessageError, "couldn't determine message format: #{message}"
+      end
+    end
+  end
+
+  class Server < PullServer
+    include Celluloid::ZMQ
+
+    finalizer :close
+
+    # Bind to the given 0MQ address (in URL form ala tcp://host:port)
+    def initialize(cell)
+      super(cell)
+      # The gossip protocol is dependent on the node manager
+      link Celluloid::Actor[:node_manager]
+      async.run
+    end
+
+    # Wait for incoming 0MQ messages
+    def run
+      while true
+        async.handle_message @socket.read
       end
     end
 
     # Terminate this server
     def terminate
-      @socket.close
+      close
       super
     end
   end
