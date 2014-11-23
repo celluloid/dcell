@@ -31,7 +31,11 @@ module DCell
 
   @config_lock  = Mutex.new
 
-  class << self
+  def self.included(base)
+    base.extend(ClassMethods)
+  end
+
+  module ClassMethods
     attr_reader :me, :registry
 
     # Configure DCell with the following options:
@@ -57,7 +61,7 @@ module DCell
         begin
           registry_class = DCell::Registry.const_get registry_class_name
         rescue NameError
-          raise ArgumentError, "invalid registry adapter: #{@configuration['registry']['adapter']}"
+          raise ArgumentError, "invalid registry adapter: #{registry_adapter}"
         end
 
         @registry = registry_class.new(@configuration['registry'])
@@ -108,6 +112,7 @@ module DCell
       run!
     end
   end
+  extend ClassMethods
 
   # DCell's actor dependencies
   class SupervisionGroup < Celluloid::SupervisionGroup
