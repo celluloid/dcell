@@ -97,11 +97,6 @@ module DCell
       end
     end
 
-    # Run the DCell application
-    def run
-      DCell::SupervisionGroup.run
-    end
-
     # Run the DCell application in the background
     def run!
       DCell::SupervisionGroup.run!
