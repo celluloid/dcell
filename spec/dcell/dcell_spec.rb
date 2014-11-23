@@ -1,10 +1,5 @@
 require 'spec_helper'
 
-module DCellMock
-  @config_lock  = Mutex.new
-  include DCell
-end
-
 module DCell::Registry
   class DummyAdapter
     def initialize(options)
