@@ -71,11 +71,5 @@ module DCell
         async.handle_message @socket.read
       end
     end
-
-    # Terminate this server
-    def terminate
-      close
-      super
-    end
   end
 end
