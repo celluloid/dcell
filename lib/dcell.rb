@@ -45,12 +45,9 @@ module DCell
 
       @config_lock.synchronize do
         @configuration = {
-          'id'   => generate_node_id,
           'addr' => "tcp://127.0.0.1:*",
           'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
         }.merge(options)
-
-        @me = Node.new @configuration['id'], nil
 
         registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
         raise ArgumentError, "no registry adapter given in config" unless registry_adapter
@@ -64,7 +61,8 @@ module DCell
         end
 
         @registry = registry_class.new(@configuration['registry'])
-
+        @configuration['id'] ||= generate_node_id
+        @me = Node.new @configuration['id'], nil
         ObjectSpace.define_finalizer(me, proc {Directory.remove @configuration['id']})
       end
 
