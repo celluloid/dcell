@@ -6,17 +6,16 @@ module DCell
     finalizer :close
 
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
-    def initialize
+    def initialize(cell)
       # The gossip protocol is dependent on the node manager
       link Celluloid::Actor[:node_manager]
 
       @socket = PullSocket.new
 
       begin
-        @socket.bind(DCell.addr)
+        @socket.bind(cell.addr)
         real_addr = @socket.get(::ZMQ::LAST_ENDPOINT).strip
-        DCell::Directory.set DCell.id, real_addr
-        DCell.addr = real_addr
+        cell.addr = real_addr
       rescue IOError
         @socket.close
         raise

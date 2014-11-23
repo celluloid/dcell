@@ -85,6 +85,7 @@ module DCell
 
     def addr=(addr)
       @configuration['addr'] = addr
+      Directory.set @configuration['id'], addr
       @me.update_server_address addr
     end
     alias_method :address=, :addr=
@@ -117,7 +118,7 @@ module DCell
   # DCell's actor dependencies
   class SupervisionGroup < Celluloid::SupervisionGroup
     supervise NodeManager, :as => :node_manager
-    supervise Server,      :as => :dcell_server
+    supervise Server,      :as => :dcell_server, :args => [DCell]
     supervise InfoService, :as => :info
   end
 
