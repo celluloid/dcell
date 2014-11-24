@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe DCell::PullServer do
   it "raises exception on invalid address configuration" do
     DCellMock.setup :addr => 'tcp://127.0.1.0', :registry => {:adapter => 'dummy'}

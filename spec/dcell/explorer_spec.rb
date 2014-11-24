@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'dcell/explorer'
 
 describe DCell::Explorer do

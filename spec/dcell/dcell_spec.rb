@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe DCell do
   it "raises exception on unknown registry provider" do
     expect {DCellMock.setup :registry => {:adapter => nil}}.to raise_error(ArgumentError, "no registry adapter given in config")

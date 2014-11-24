@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe DCell::CellProxy do
   before :all do
     @node = DCell::Node[TEST_NODE[:id]]

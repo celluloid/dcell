@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'dcell/registries/zk_adapter'
 
 describe DCell::Registry::ZkAdapter, :pending => TEST_ADEPTER != 'zk' && "no zookeeper" do

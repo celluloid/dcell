@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe DCell::Node do
   before do
     @node = DCell::Node[TEST_NODE[:id]]
