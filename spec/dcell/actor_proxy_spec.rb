@@ -36,6 +36,14 @@ describe DCell::CellProxy do
     @remote_actor.future(:value).value.should == 42
   end
 
+  it "does not support remote kill" do
+    expect {Celluloid::Actor.kill @remote_actor}.to raise_error NotImplementedError, "remote kill not supported"
+  end
+
+  it "does not support remote join" do
+    expect {Celluloid::Actor.join @remote_actor}.to raise_error NotImplementedError, "remote join not supported"
+  end
+
   context :linking do
     before :each do
       @local_actor = LocalActor.new
