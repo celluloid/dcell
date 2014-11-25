@@ -1,9 +1,8 @@
-# For Gem.ruby, and almost certainly already loaded
-require 'rubygems'
+Dir['./spec/options/*.rb'].map { |f| require f }
 
 module TestNode
   def self.start
-    @pid = Process.spawn Gem.ruby, File.expand_path("../../test_node.rb", __FILE__)
+    @pid = Process.spawn Gem.ruby, File.expand_path("./spec/test_node.rb")
     unless @pid
       STDERR.print "ERROR: Couldn't start test node. Do you have Redis installed?"
       exit 1
@@ -38,9 +37,20 @@ module TestNode
       STDERR.print "ERROR: Test node was never started!"
       exit 1
     end
-    Process.kill 9, @pid
+    Process.kill "TERM", @pid
   rescue Errno::ESRCH
   ensure
     Process.wait @pid rescue nil
+  end
+end
+
+namespace :testnode do
+  task :bg do
+    TestNode.start
+    TestNode.wait_until_ready
+  end
+
+  task :finish do
+    TestNode.stop
   end
 end

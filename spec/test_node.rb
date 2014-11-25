@@ -1,9 +1,14 @@
+#!/usr/bin/env ruby
+
 # The DCell specs start a completely separate Ruby VM running this code
 # for complete integration testing using 0MQ over TCP
-
 require 'rubygems'
 require 'bundler'
 Bundler.setup
+require 'simplecov'
+::SimpleCov.command_name 'test:node'
+require 'coveralls'
+Coveralls.wear_merged!
 
 require 'dcell'
 Dir['./spec/options/*.rb'].map { |f| require f }
@@ -11,6 +16,10 @@ Dir['./spec/options/*.rb'].map { |f| require f }
 options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
 options.merge! test_db_options
 DCell.start options
+
+Signal.trap("TERM") do
+  shutdown
+end
 
 class TestActor
   include Celluloid

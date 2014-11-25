@@ -1,7 +1,9 @@
 require 'rubygems'
 require 'bundler/setup'
+require 'simplecov'
+::SimpleCov.command_name 'spec'
 require 'coveralls'
-Coveralls.wear!
+Coveralls.wear_merged!
 
 require 'dcell'
 Dir['./spec/options/*.rb'].map { |f| require f }
@@ -17,12 +19,5 @@ RSpec.configure do |config|
       puts e
       raise
     end
-
-    TestNode.start
-    TestNode.wait_until_ready
-  end
-
-  config.after(:suite) do
-    TestNode.stop
   end
 end
