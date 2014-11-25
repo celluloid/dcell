@@ -18,7 +18,7 @@ options.merge! test_db_options
 DCell.start options
 
 Signal.trap("TERM") do
-  shutdown
+  Process.exit 0
 end
 
 class TestActor
