@@ -10,6 +10,8 @@ Coveralls.wear_merged!
 SimpleCov.merge_timeout 3600
 SimpleCov.command_name 'test:node'
 
+SimpleCov.formatter = SimpleCov::Formatter::HTMLFormatter
+
 require 'dcell'
 Dir['./spec/options/*.rb'].map { |f| require f }
 
