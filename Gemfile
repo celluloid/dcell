@@ -16,3 +16,4 @@ gemspec
 
 gem 'zk'
 gem 'mongoid'
+gem 'cassandra'
