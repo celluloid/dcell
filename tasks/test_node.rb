@@ -2,7 +2,7 @@ require 'dcell'
 
 Dir['./spec/options/*.rb'].map { |f| require f }
 
-DCell.start test_db_options
+DCell.start test_options
 
 module TestNode
   def self.start

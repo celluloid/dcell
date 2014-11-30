@@ -15,6 +15,6 @@ Celluloid.shutdown_timeout = 1
 
 RSpec.configure do |config|
   config.before(:suite) do
-    DCell.start test_db_options
+    DCell.start test_options
   end
 end
