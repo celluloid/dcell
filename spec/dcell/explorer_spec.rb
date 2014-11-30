@@ -12,6 +12,6 @@ describe DCell::Explorer do
 
   it "reports the current node's status" do
     response = Net::HTTP.get URI(EXPLORER_BASE)
-    response[%r{<h1><.*?> ([\w\.\-]+)<\/h1>}, 1].should == DCell.id
+    response[%r{<a href="/nodes/(.*?)">}, 1].should == DCell.id
   end
 end

@@ -9,7 +9,7 @@
 # DCell overlay network back to the node where the actor actually exists
 
 module Celluloid
-  class ActorProxy
+  class CellProxy
     # Marshal uses respond_to? to determine if this object supports _dump so
     # unfortunately we have to monkeypatch in _dump support as the proxy
     # itself normally jacks respond_to? and proxies to the actor
@@ -33,11 +33,12 @@ module Celluloid
       case mailbox
       when ::DCell::MailboxProxy
         actor = ::DCell::Actor.new(mailbox)
-        ::DCell::ActorProxy.new actor, mailbox
+        ::DCell::CellProxy.new actor.proxy, mailbox, actor.subject.class.to_s
       when ::Celluloid::Mailbox
         actor = find_actor(mailbox)
-        ::Celluloid::ActorProxy.new(actor)
-      else ::Kernel.raise "funny, I did not expect to see a #{mailbox.class} here"
+        ::Celluloid::CellProxy.new actor.proxy, mailbox, actor.behavior.subject.class.to_s
+      else
+        ::Kernel.raise "funny, I did not expect to see a #{mailbox.class} here"
       end
     end
 
