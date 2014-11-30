@@ -8,7 +8,7 @@ Bundler.setup
 require 'coveralls'
 Coveralls.wear_merged!
 SimpleCov.merge_timeout 3600
-SimpleCov.command_name 'test:node'
+SimpleCov.command_name "test:node-#{Process.pid}"
 
 SimpleCov.formatter = SimpleCov::Formatter::HTMLFormatter
 
@@ -37,6 +37,7 @@ class TestActor
   end
 
   def suicide
+    SimpleCov.result.format!
     after (1) {Process.kill :KILL, Process.pid}
     nil
   end
@@ -48,7 +49,7 @@ turn = true
 Signal.trap(:TERM) do
   turn = false
   begin
-    Process.kill :KILL, pid if pid
+    Process.kill :TERM, pid if pid
   rescue Errno::ESRCH
   ensure
     Process.wait pid rescue nil if pid
@@ -59,6 +60,9 @@ end
 
 while turn do
   pid = fork do
+    Coveralls.wear_merged!
+    SimpleCov.merge_timeout 3600
+    SimpleCov.command_name "test:node-#{Process.pid}"
     options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
     options.merge! test_options
     DCell.start options
