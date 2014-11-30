@@ -2,10 +2,11 @@ module DCell::Registry
   class DummyAdapter
     def initialize(options)
       @options = options
+      @unique = @options[:seed] || '67'
     end
 
     def unique
-      @options[:seed]
+      @unique
     end
   end
 

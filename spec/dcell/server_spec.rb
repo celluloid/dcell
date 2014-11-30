@@ -11,7 +11,7 @@ describe DCell::PullServer do
   end
 
   it "properly handles incorrectly encoded incoming message" do
-    DCellMock.setup :addr => 'tcp://127.0.0.1:*', :registry => {:adapter => 'dummy', :seed => ''}
+    DCellMock.setup :addr => 'tcp://127.0.0.1:*', :registry => {:adapter => 'dummy'}
     server = DCell::PullServer.new DCellMock, NullLogger
 
     expect {server.decode_message ''}.to raise_error(DCell::PullServer::InvalidMessageError, "couldn't determine message format: ")
