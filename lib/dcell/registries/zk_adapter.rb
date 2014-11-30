@@ -67,10 +67,8 @@ module DCell
         end
 
         def remove(key)
-          keys.each do |key|
-            path = "#{@base_path}/#{key}"
-            @zk.delete path
-          end
+          path = "#{@base_path}/#{key}"
+          @zk.delete path
         end
 
         def clear_all
@@ -85,7 +83,7 @@ module DCell
       def get_node(node_id);       @node_registry.get(node_id) end
       def set_node(node_id, addr); @node_registry.set(node_id, addr) end
       def nodes;                   @node_registry.all end
-      def remove_node(node_id);    @node_registry.clear(node_id) end
+      def remove_node(node_id);    @node_registry.remove(node_id) end
       def clear_all_nodes;         @node_registry.clear_all end
 
       def get_global(key);        @global_registry.get(key) end
