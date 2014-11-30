@@ -27,9 +27,7 @@ module DCell
     # Find a node by its node ID
     def find(id)
       node = @nodes[id]
-      if node
-        return update id
-      end
+      return node if node
 
       addr = Directory[id]
       return unless addr
@@ -58,31 +56,6 @@ module DCell
         return
       end
       # Handle dead node???
-    end
-
-    def update(id)
-      addr = Directory[id]
-      return nil unless addr
-      if (node = @nodes[id]) and node.alive?
-        if node.addr != addr
-          node.update_client_address(addr)
-        end
-      else
-        node = Node.new(id, addr)
-      end
-      @nodes[id] ||= node
-      # This code is racy, kind of w/a
-      if node != @nodes[id]
-        node.terminate
-      end
-      @nodes[id]
-    end
-
-    def remove(id)
-      if @nodes[id]
-        @nodes[id].terminate if @nodes[id].alive?
-        @nodes.delete(id)
-      end
     end
   end
 end

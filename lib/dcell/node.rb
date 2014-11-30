@@ -28,7 +28,7 @@ module DCell
       include Enumerable
       extend Forwardable
 
-      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[], :remove, :update
+      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[]
     end
 
     def initialize(id, addr)

@@ -46,36 +46,15 @@ module DCell
           @base_path = File.join(base_path, name.to_s)
           @ephemeral = ephemeral
           @zk.mkdir_p @base_path
-          @events = {}
-        end
-
-        def register(key)
-          path = "#{@base_path}/#{key}"
-          @events[path] ||= @zk.register(path) do |event|
-            key = event.path.match(/#{@base_path}\/(\w+)/)[1]
-            @events[event.path].unsubscribe
-            @events[event.path] = nil
-            if event.node_changed?
-              Celluloid::logger.debug "zk callback: node changed!"
-              Node.update(key)
-            end
-            if event.node_deleted?
-              Celluloid::logger.debug "zk callback: node deleted!"
-              Node.remove(key)
-            end
-
-          end
         end
 
         def get(key)
-          register(key)
           result, _ = @zk.get("#{@base_path}/#{key}", watch: true)
           Marshal.load result
         rescue ZK::Exceptions::NoNode
         end
 
         def set(key, value)
-          register(key)
           path = "#{@base_path}/#{key}"
           string = Marshal.dump value
           @zk.set path, string
@@ -95,13 +74,9 @@ module DCell
         end
 
         def clear_all
-          # delete znodes so any registered
-          # callback is triggered
           all.each do |key|
             remove key
           end
-          @events.values.compact.each(&:unsubscribe)
-          @events.clear
           @zk.rm_rf @base_path
           @zk.mkdir_p @base_path
         end
