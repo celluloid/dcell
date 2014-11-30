@@ -40,8 +40,8 @@ module DCell
       @requests = Set.new
       @lock = Mutex.new
 
-      @heartbeat_rate    = 5  # How often to send heartbeats in seconds
-      @heartbeat_timeout = 10 # How soon until a lost heartbeat triggers a node partition
+      @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
+      @heartbeat_timeout = DCell.heartbeat_timeout # How soon until a lost heartbeat triggers a node partition
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self

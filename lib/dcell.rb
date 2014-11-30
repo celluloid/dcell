@@ -50,7 +50,9 @@ module DCell
       @config_lock.synchronize do
         @configuration = {
           'addr' => "tcp://127.0.0.1:*",
-          'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
+          'registry' => {'adapter' => 'redis', 'server' => 'localhost'},
+          'heartbeat_rate' => 5,
+          'heartbeat_timeout' => 10,
         }.merge(options)
 
         registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
@@ -73,25 +75,42 @@ module DCell
       me
     end
 
-    # Obtain the local node ID
-    def id
+    def config(option)
       unless @configuration
-        Logger.warn "DCell unconfigured"
+        Logger.warn "DCell unconfigured, can't get #{option}"
         return nil
       end
-      @configuration['id']
+      @configuration[option]
+    end
+
+    # Obtain the local node ID
+    def id
+      config 'id'
     end
 
     # Obtain the 0MQ address to the local mailbox
-    def addr; @configuration['addr']; end
+    def addr
+      config 'addr'
+    end
     alias_method :address, :addr
 
+    # Updates server address of the node
     def addr=(addr)
       @configuration['addr'] = addr
       Directory.set @configuration['id'], addr
       @me.update_server_address addr
     end
     alias_method :address=, :addr=
+
+    # Default heartbeat rate for the nodes
+    def heartbeat_rate
+      config 'heartbeat_rate'
+    end
+
+    # Default heartbeat timeout for the nodes
+    def heartbeat_timeout
+      config 'heartbeat_timeout'
+    end
 
     # Attempt to generate a unique node ID for this machine
     def generate_node_id
