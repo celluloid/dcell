@@ -13,4 +13,7 @@ module DCell
 
   # Request failed
   class ErrorResponse < Response; end
+
+  # Retry response (request to retry action)
+  class RetryResponse < Response; end
 end

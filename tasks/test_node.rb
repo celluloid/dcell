@@ -1,4 +1,8 @@
+require 'dcell'
+
 Dir['./spec/options/*.rb'].map { |f| require f }
+
+DCell.start test_db_options
 
 module TestNode
   def self.start
@@ -12,20 +16,18 @@ module TestNode
   def self.wait_until_ready
     STDERR.print "Waiting for test node to start up..."
 
-    socket = nil
+    node = nil
     30.times do
       begin
-        socket = TCPSocket.open(TEST_NODE[:addr], TEST_NODE[:port])
-        break if socket
-      rescue Errno::ECONNREFUSED
+        node = DCell::Node[TEST_NODE[:id]]
+        break if node
         STDERR.print "."
         sleep 1
       end
     end
 
-    if socket
+    if node
       STDERR.puts " done!"
-      socket.close
     else
       STDERR.puts " FAILED!"
       raise "couldn't connect to test node!"
@@ -35,9 +37,9 @@ module TestNode
   def self.stop
     unless @pid
       STDERR.print "ERROR: Test node was never started!"
-      exit 1
+      raise "no test node process found"
     end
-    Process.kill "TERM", @pid
+    Process.kill :TERM, @pid
   rescue Errno::ESRCH
   ensure
     Process.wait @pid rescue nil

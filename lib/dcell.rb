@@ -75,7 +75,10 @@ module DCell
 
     # Obtain the local node ID
     def id
-      raise NotConfiguredError, "please configure DCell with DCell.setup" unless @configuration
+      unless @configuration
+        Logger.warn "DCell unconfigured"
+        return nil
+      end
       @configuration['id']
     end
 

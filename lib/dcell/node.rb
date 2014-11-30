@@ -1,3 +1,5 @@
+require 'weakref'
+
 module DCell
   # A node in a DCell cluster
   class Node
@@ -7,26 +9,19 @@ module DCell
 
     finalizer :shutdown
 
-    NODE_DISCOVERY_TIMEOUT = 5
-
     # FSM
     default_state :disconnected
     state :shutdown
     state :disconnected, :to => [:connected, :shutdown]
     state :connected do
       send_heartbeat
-      Celluloid::Logger.info "Connected to #{id}"
+      Logger.info "Connected to #{id}"
     end
     state :partitioned do
-      @heartbeat.cancel
-      Celluloid::Logger.warn "Communication with #{id} interrupted"
+      @heartbeat.cancel if @heartbeat
+      Logger.warn "Communication with #{id} interrupted"
+      move_node
     end
-    
-    @nodes = {}
-    @lock  = Mutex.new
-
-    @heartbeat_rate    = 5  # How often to send heartbeats in seconds
-    @heartbeat_timeout = 10 # How soon until a lost heartbeat triggers a node partition
 
     # Singleton methods
     class << self
@@ -34,21 +29,63 @@ module DCell
       extend Forwardable
 
       def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[], :remove, :update
-      def_delegators "Celluloid::Actor[:node_manager]", :heartbeat_rate, :heartbeat_timeout
     end
 
     def initialize(id, addr)
       @id, @addr = id, addr
       @socket = nil
       @heartbeat = nil
+      @calls = Set.new
+      @actors = Set.new
+      @requests = Set.new
+      @lock = Mutex.new
+
+      @heartbeat_rate    = 5  # How often to send heartbeats in seconds
+      @heartbeat_timeout = 10 # How soon until a lost heartbeat triggers a node partition
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self
     end
 
-    def update_client_address( addr )
+    def move_node
+      @lock.synchronize do
+        @calls.each do |call|
+          begin
+            call.__getobj__.cleanup if call.weakref_alive?
+          rescue WeakRef::RefError
+          end
+        end
+        @calls = Set.new
+        @actors.each do |actor|
+          begin
+            actor.__getobj__.mailbox.kill if actor.weakref_alive?
+          rescue WeakRef::RefError
+          end
+        end
+        @actors = Set.new
+      end
+      addr = Directory[id]
+      if addr
+        update_client_address addr
+        @lock.synchronize do
+          @requests.each do |request|
+            current_actor.mailbox << RetryResponse.new(request, nil)
+          end
+        end
+      else
+        terminate
+      end
+    end
+
+    def update_client_address(addr)
+      return @socket if addr == @addr
+      @heartbeat.cancel if @heartbeat
       @addr = addr
-      send_heartbeat
+      if @socket
+        @socket.close
+        @socket = nil
+      end
+      socket
     end
 
     def update_server_address(addr)
@@ -66,48 +103,68 @@ module DCell
 
       @socket = Celluloid::ZMQ::PushSocket.new
       begin
-        @socket.connect addr
+        @socket.connect @addr
+        @socket.linger = @heartbeat_timeout * 1000
       rescue IOError
         @socket.close
         @socket = nil
         raise
       end
+      @addr = @socket.get(::ZMQ::LAST_ENDPOINT).strip
 
       transition :connected
       @socket
     end
 
-    # Find an actor registered with a given name on this node
+    def send_request(request)
+      loop do
+        send_message request
+
+        @lock.synchronize do
+          @requests << request.id
+        end
+        response = receive do |msg|
+          msg.respond_to?(:request_id) && msg.request_id == request.id
+        end
+        @lock.synchronize do
+          @requests.delete request.id
+        end
+
+        next if response.is_a? RetryResponse
+        abort response.value if response.is_a? ErrorResponse
+        return response.value
+      end
+    end
+
+    # Find an call registered with a given name on this node
     def find(name)
       request = Message::Find.new(Thread.mailbox, name)
-      send_message request
-
-      response = receive(NODE_DISCOVERY_TIMEOUT) do |msg|
-        msg.respond_to?(:request_id) && msg.request_id == request.id
+      actor = send_request request
+      @lock.synchronize do
+        @actors << WeakRef.new(actor)
       end
-
-      return nil if response.nil?
-      abort response.value if response.is_a? ErrorResponse
-      response.value
+      actor
     end
     alias_method :[], :find
 
     # List all registered actors on this node
     def actors
       request = Message::List.new(Thread.mailbox)
-      send_message request
-
-      response = receive do |msg|
-        msg.respond_to?(:request_id) && msg.request_id == request.id
-      end
-
-      abort response.value if response.is_a? ErrorResponse
-      response.value
+      send_request request
     end
     alias_method :all, :actors
 
     # Send a message to another DCell node
     def send_message(message)
+      if message.kind_of? Message::Relay
+        call = message.message
+        if call.kind_of? Celluloid::SyncCall
+          @lock.synchronize do
+            @calls << WeakRef.new(call)
+          end
+        end
+      end
+
       begin
         message = Marshal.dump(message)
       rescue => ex
@@ -121,13 +178,13 @@ module DCell
     # Send a heartbeat message after the given interval
     def send_heartbeat
       send_message DCell::Message::Heartbeat.new
-      @heartbeat = after(self.class.heartbeat_rate) { send_heartbeat }
+      @heartbeat = after(@heartbeat_rate) { send_heartbeat }
     end
 
     # Handle an incoming heartbeat for this node
     def handle_heartbeat
       transition :connected
-      transition :partitioned, :delay => self.class.heartbeat_timeout
+      transition :partitioned, :delay => @heartbeat_timeout
     end
 
     # Friendlier inspection

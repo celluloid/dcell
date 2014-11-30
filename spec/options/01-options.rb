@@ -6,5 +6,5 @@ TEST_DB = {
 TEST_NODE = {
   :id => 'test_node',
   :addr => "127.0.0.1",
-  :port => 21264,
+  :port => '*',
 }

@@ -10,6 +10,7 @@ module DCell
         @socket.bind(cell.addr)
         real_addr = @socket.get(::ZMQ::LAST_ENDPOINT).strip
         cell.addr = real_addr
+        @socket.linger = 1000
       rescue IOError
         @socket.close
         raise
