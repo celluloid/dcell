@@ -19,7 +19,7 @@ describe DCell::Node do
     @node.all.should include :test_actor
   end
 
-  it "should survive remote server crash" do
+  it "should survive remote server crash", :pending => RUBY_ENGINE=="jruby" do
     actor = @node[:test_actor]
     actor.suicide
     sleep 2
