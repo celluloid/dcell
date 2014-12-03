@@ -43,34 +43,9 @@ class TestActor
   end
 end
 
-pid = nil
-turn = true
-
-Signal.trap(:TERM) do
-  turn = false
-  begin
-    Process.kill :TERM, pid if pid
-  rescue Errno::ESRCH
-  ensure
-    Process.wait pid rescue nil if pid
-  end
-  Process.waitall
-  Process.exit 0
-end
-
-while turn do
-  pid = fork do
-    Coveralls.wear_merged!
-    SimpleCov.merge_timeout 3600
-    SimpleCov.command_name "test:node-#{Process.pid}"
-    options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
-    options.merge! test_options
-    DCell.start options
-
-    TestActor.supervise_as :test_actor
-    sleep
-  end
-  Process.wait pid
-end
-
+options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
+options.merge! test_options
+DCell.setup options
+TestActor.supervise_as :test_actor
+DCell.run!
 sleep
