@@ -6,9 +6,9 @@ DCell.start test_options
 
 module TestNode
   def self.start
-    @pid = Process.spawn Gem.ruby, File.expand_path("./spec/test_node.rb")
+    @pid = Process.spawn Gem.ruby, File.expand_path("./spec/test_node_wrap.rb")
     unless @pid
-      STDERR.print "ERROR: Couldn't start test node. Do you have Redis installed?"
+      STDERR.print "ERROR: Couldn't start test node."
       exit 1
     end
   end
@@ -17,7 +17,7 @@ module TestNode
     STDERR.print "Waiting for test node to start up..."
 
     node = nil
-    30.times do
+    60.times do
       begin
         node = DCell::Node[TEST_NODE[:id]]
         break if node
