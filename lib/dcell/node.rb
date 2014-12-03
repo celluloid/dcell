@@ -54,6 +54,8 @@ module DCell
           begin
             call.__getobj__.cleanup if call.weakref_alive?
           rescue WeakRef::RefError
+          rescue => e
+            Logger.warn "Unexpected exception #{e}"
           end
         end
         @calls = Set.new
@@ -61,6 +63,8 @@ module DCell
           begin
             actor.__getobj__.mailbox.kill if actor.weakref_alive?
           rescue WeakRef::RefError
+          rescue => e
+            Logger.warn "Unexpected exception #{e}"
           end
         end
         @actors = Set.new
