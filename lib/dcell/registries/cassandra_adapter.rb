@@ -40,7 +40,7 @@ module DCell
 
         options[:servers] ||= []
         options[:servers] << options[:server] if options[:server]
-        options[:servers] << "localhost:9160" unless options[:servers].any?
+        options[:servers] << "127.0.0.1:9160" unless options[:servers].any?
 
         cass = Cassandra.new(keyspace, options[:servers])
 
