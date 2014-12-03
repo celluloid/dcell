@@ -78,12 +78,12 @@ module DCell
           @cass.get(@cf, "nodes").keys
         end
 
-        def remove(node)
-          @cass.remove @cf, "nodes", { node_id => node }
+        def remove(node_id)
+          @cass.remove @cf, "nodes", node_id
         end
 
         def clear_all
-          @cass.del @cf, "nodes"
+          @cass.remove @cf, "nodes"
         end
       end
 
@@ -114,7 +114,7 @@ module DCell
         end
 
         def clear_all
-          @cass.del @cf, "globals"
+          @cass.remove @cf, "globals"
         end
       end
 
