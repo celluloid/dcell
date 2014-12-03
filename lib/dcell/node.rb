@@ -78,7 +78,6 @@ module DCell
     end
 
     def update_client_address(addr)
-      return @socket if addr == @addr
       @heartbeat.cancel if @heartbeat
       @addr = addr
       if @socket
@@ -177,12 +176,14 @@ module DCell
     
     # Send a heartbeat message after the given interval
     def send_heartbeat
-      send_message DCell::Message::Heartbeat.new
+      return if DCell.id == id
+      send_message DCell::Message::Heartbeat.new id
       @heartbeat = after(@heartbeat_rate) { send_heartbeat }
     end
 
     # Handle an incoming heartbeat for this node
-    def handle_heartbeat
+    def handle_heartbeat(from)
+      return if from == id
       transition :connected
       transition :partitioned, :delay => @heartbeat_timeout
     end
