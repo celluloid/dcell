@@ -41,14 +41,20 @@ module DCell
 
     # Decode incoming messages
     def decode_message(message)
-      if message[0..1].unpack("CC") == [Marshal::MAJOR_VERSION, Marshal::MINOR_VERSION]
-        begin
-          Marshal.load message
-        rescue => ex
-          raise InvalidMessageError, "invalid message: #{ex}"
+      begin
+        msg = MessagePack.unpack(message, options={:symbolize_keys => true})
+      rescue => ex
+        raise InvalidMessageError, "couldn't unpack message: #{ex}"
+      end
+      begin
+        klass = Utils::full_const_get msg[:type]
+        o = klass.new *msg[:args]
+        if o.respond_to? :id and msg[:id]
+          o.id = msg[:id]
         end
-      else
-        raise InvalidMessageError, "couldn't determine message format: #{message}"
+        o
+      rescue => ex
+        raise InvalidMessageError, "invalid message: #{ex}"
       end
     end
   end

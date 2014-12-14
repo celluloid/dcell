@@ -3,21 +3,20 @@ require 'reel'
 require 'celluloid/zmq'
 require 'socket'
 require 'securerandom'
+require 'msgpack'
 
 Celluloid::ZMQ.init
 
 require 'dcell/version'
+require 'dcell/utils'
 require 'dcell/actor_proxy'
 require 'dcell/directory'
-require 'dcell/mailbox_proxy'
 require 'dcell/messages'
 require 'dcell/node'
 require 'dcell/node_manager'
 require 'dcell/global'
 require 'dcell/responses'
 require 'dcell/router'
-require 'dcell/rpc'
-require 'dcell/future_proxy'
 require 'dcell/server'
 require 'dcell/info_service'
 

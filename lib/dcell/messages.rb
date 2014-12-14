@@ -1,6 +1,6 @@
 module DCell
   class Message
-    attr_reader :id
+    attr_accessor :id
 
     def initialize
       # Memoize the original object ID so it will get marshalled
@@ -19,6 +19,14 @@ module DCell
         node = DCell::Node[@id]
         node.handle_heartbeat @from if node
       end
+
+      def to_msgpack(pk=nil)
+        {
+          :type => self.class.name,
+          :id   => @id,
+          :args => [@from]
+        }.to_msgpack(pk)
+      end
     end
 
     # Query a node for the address of an actor
@@ -31,7 +39,21 @@ module DCell
       end
 
       def dispatch
-        @sender << SuccessResponse.new(@id, Celluloid::Actor[@name])
+        actor = Celluloid::Actor[@name]
+        if actor
+          mailbox = actor.mailbox
+        else
+          mailbox = nil
+        end
+        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], mailbox)
+      end
+
+      def to_msgpack(pk=nil)
+        {
+          :type => self.class.name,
+          :id   => @id,
+          :args => [@sender, @name]
+        }.to_msgpack(pk)
       end
     end
 
@@ -45,21 +67,58 @@ module DCell
       end
 
       def dispatch
-        @sender << SuccessResponse.new(@id, Celluloid::Actor.registered)
+        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], Celluloid::Actor.registered)
+      end
+
+      def to_msgpack(pk=nil)
+        {
+          :type => self.class.name,
+          :id   => @id,
+          :args => [@sender]
+        }.to_msgpack(pk)
       end
     end
 
     # Relay a message to the given recipient
     class Relay < Message
-      attr_reader :recipient, :message
+      attr_reader :sender, :message
 
-      def initialize(recipient, message)
+      def initialize(sender, message)
         super()
-        @recipient, @message = recipient, message
+        @sender, @message = sender, message
+      end
+
+      def find_actor(mailbox)
+        ::Thread.list.each do |t|
+          if actor = t[:celluloid_actor]
+            return actor if actor.mailbox.address == mailbox[:address]
+          end
+        end
+        nil
       end
 
       def dispatch
-        @recipient << @message
+        actor = find_actor(message[:mailbox])
+        if actor
+          value = nil
+          if message[:block]
+            Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args] {|v| value = v}
+          else
+            value = Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args]
+          end
+          rsp = SuccessResponse.new(@id, @sender[:address], value)
+        else
+          rsp = ErrorResponse.new(@id, @sender[:address], {:class => ::Celluloid::DeadActorError.name, :msg => nil})
+        end
+        Node[@sender[:id]].async.send_message rsp
+      end
+
+      def to_msgpack(pk=nil)
+        {
+          :type => self.class.name,
+          :id   => @id,
+          :args => [@sender, @message]
+        }.to_msgpack(pk)
       end
     end
   end

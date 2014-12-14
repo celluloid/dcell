@@ -36,8 +36,6 @@ module DCell
       @id, @addr = id, addr
       @socket = nil
       @heartbeat = nil
-      @calls = Set.new
-      @actors = Set.new
       @requests = Set.new
       @lock = Mutex.new
 
@@ -49,32 +47,12 @@ module DCell
     end
 
     def move_node
-      @lock.synchronize do
-        @calls.each do |call|
-          begin
-            call.__getobj__.cleanup if call.weakref_alive?
-          rescue WeakRef::RefError
-          rescue => e
-            Logger.warn "Unexpected exception #{e}"
-          end
-        end
-        @calls = Set.new
-        @actors.each do |actor|
-          begin
-            actor.__getobj__.mailbox.kill if actor.weakref_alive?
-          rescue WeakRef::RefError
-          rescue => e
-            Logger.warn "Unexpected exception #{e}"
-          end
-        end
-        @actors = Set.new
-      end
       addr = Directory[id]
       if addr
         update_client_address addr
         @lock.synchronize do
           @requests.each do |request|
-            current_actor.mailbox << RetryResponse.new(request, nil)
+            current_actor.mailbox << RetryResponse.new(request, nil, nil)
           end
         end
       else
@@ -135,7 +113,11 @@ module DCell
         end
 
         next if response.is_a? RetryResponse
-        abort response.value if response.is_a? ErrorResponse
+        if response.is_a? ErrorResponse
+          klass = Utils::full_const_get response.value[:class]
+          msg = response.value[:msg]
+          raise klass.new msg
+        end
         return response.value
       end
     end
@@ -143,38 +125,25 @@ module DCell
     # Find an call registered with a given name on this node
     def find(name)
       request = Message::Find.new(Thread.mailbox, name)
-      actor = send_request request
-      @lock.synchronize do
-        @actors << WeakRef.new(actor)
-      end
-      actor
+      mailbox = send_request request
+      return nil if mailbox.kind_of? NilClass
+      DCell::ActorProxy.new self, mailbox
     end
     alias_method :[], :find
 
     # List all registered actors on this node
     def actors
       request = Message::List.new(Thread.mailbox)
-      send_request request
+      list = send_request request
+      list.map! do |entry|
+        entry.to_sym
+      end
     end
     alias_method :all, :actors
 
     # Send a message to another DCell node
     def send_message(message)
-      if message.kind_of? Message::Relay
-        call = message.message
-        if call.kind_of? Celluloid::SyncCall
-          @lock.synchronize do
-            @calls << WeakRef.new(call)
-          end
-        end
-      end
-
-      begin
-        message = Marshal.dump(message)
-      rescue => ex
-        abort ex
-      end
-
+      message = message.to_msgpack
       socket << message
     end
     alias_method :<<, :send_message

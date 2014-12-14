@@ -1,10 +1,22 @@
 module DCell
   # Responses to calls
   class Response
-    attr_reader :request_id, :value
+    attr_reader :request_id, :address, :value
 
-    def initialize(request_id, value)
-      @request_id, @value = request_id, value
+    def initialize(request_id, address, value)
+      @request_id, @address, @value = request_id, address, value
+    end
+
+    def to_msgpack(pk=nil)
+      {
+        :type => self.class.name,
+        :args => [@request_id, @address, @value]
+      }.to_msgpack(pk)
+    end
+
+    def dispatch
+      mailbox = DCell::Router.find @address
+      mailbox << self
     end
   end
 

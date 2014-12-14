@@ -19,15 +19,15 @@ module DCell
       end
 
       # Find a mailbox by its address
-      def find(mailbox_address)
+      def find(address)
         @mutex.synchronize do
           begin
-            ref = @mailboxes[mailbox_address]
+            ref = @mailboxes[address]
             return unless ref
             ref.__getobj__
           rescue WeakRef::RefError
             # The referenced actor is dead, so prune the registry
-            @mailboxes.delete mailbox_address
+            @mailboxes.delete address
             nil
           end
         end

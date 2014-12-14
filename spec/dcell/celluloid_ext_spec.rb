@@ -10,21 +10,11 @@ describe Celluloid, "extensions" do
     @marshal = WillKane.new
   end
 
-  it "marshals Celluloid::CellProxy objects" do
-    string = Marshal.dump(@marshal)
-    Marshal.load(string).should be_alive
-  end
-
-  it "marshals Celluloid::Mailbox objects" do
+  it "packs Celluloid::Mailbox objects", :pending => true do
     @marshal.mailbox.should be_a(Celluloid::Mailbox)
-    string = Marshal.dump(@marshal.mailbox)
-    Marshal.load(string).should be_alive
-  end
-
-  it "marshals Celluloid::Future objects" do
-    future = @marshal.future(:speak)
-    future.should be_a(Celluloid::Future)
-    string = Marshal.dump(future)
-    Marshal.load(string).value.should == "Don't shove me Harv."
+    bin = @marshal.mailbox.to_msgpack
+    mailbox = MessagePack.unpack(bin)
+    mailbox['address'].should == @marshal.mailbox.address
+    mailbox['id'].should == DCell.id
   end
 end
