@@ -190,6 +190,7 @@ module DCell
     def handle_heartbeat(from)
       return if from == id
       transition :connected
+      transition :partitioned, :delay => @heartbeat_timeout
     end
 
     # Friendlier inspection
