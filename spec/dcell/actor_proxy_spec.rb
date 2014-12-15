@@ -24,6 +24,12 @@ describe DCell::ActorProxy do
     @remote_actor.value.should == 42
   end
 
+  it "makes asynchronous calls to remote actors" do
+    magic = 'One dream, one soul, one prize, one goal'
+    @remote_actor.async.magic = magic
+    @remote_actor.magic.should == magic
+  end
+
   it "handles blocks" do
     result = nil
     @remote_actor.win do |value|

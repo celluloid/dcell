@@ -18,6 +18,7 @@ Dir['./spec/options/*.rb'].map { |f| require f }
 class TestActor
   include Celluloid
   attr_reader :value
+  attr_accessor :magic
 
   def initialize
     @value = 42
