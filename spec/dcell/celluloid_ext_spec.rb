@@ -10,7 +10,7 @@ describe Celluloid, "extensions" do
     @marshal = WillKane.new
   end
 
-  it "packs Celluloid::Mailbox objects", :pending => true do
+  it "packs Celluloid::Mailbox objects" do
     @marshal.mailbox.should be_a(Celluloid::Mailbox)
     bin = @marshal.mailbox.to_msgpack
     mailbox = MessagePack.unpack(bin)
