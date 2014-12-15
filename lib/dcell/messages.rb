@@ -40,12 +40,11 @@ module DCell
 
       def dispatch
         actor = Celluloid::Actor[@name]
+        mailbox, methods = nil, nil
         if actor
-          mailbox = actor.mailbox
-        else
-          mailbox = nil
+          mailbox, methods = actor.mailbox, actor.class.instance_methods(false)
         end
-        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], mailbox)
+        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], [mailbox, methods])
       end
 
       def to_msgpack(pk=nil)
@@ -100,13 +99,17 @@ module DCell
       def dispatch
         actor = find_actor(message[:mailbox])
         if actor
-          value = nil
-          if message[:block]
-            Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args] {|v| value = v}
-          else
-            value = Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args]
+          begin
+            value = nil
+            if message[:block]
+              Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args] {|v| value = v}
+            else
+              value = Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args]
+            end
+            rsp = SuccessResponse.new(@id, @sender[:address], value)
+          rescue => e
+            rsp = ErrorResponse.new(@id, @sender[:address], {:class => RuntimeError.name, :msg => e.to_s})
           end
-          rsp = SuccessResponse.new(@id, @sender[:address], value)
         else
           rsp = ErrorResponse.new(@id, @sender[:address], {:class => ::Celluloid::DeadActorError.name, :msg => nil})
         end

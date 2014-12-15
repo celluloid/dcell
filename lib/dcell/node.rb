@@ -125,9 +125,9 @@ module DCell
     # Find an call registered with a given name on this node
     def find(name)
       request = Message::Find.new(Thread.mailbox, name)
-      mailbox = send_request request
+      mailbox, methods = send_request request
       return nil if mailbox.kind_of? NilClass
-      DCell::ActorProxy.new self, mailbox
+      DCell::ActorProxy.new self, mailbox, methods
     end
     alias_method :[], :find
 
@@ -143,7 +143,11 @@ module DCell
 
     # Send a message to another DCell node
     def send_message(message)
-      message = message.to_msgpack
+      begin
+        message = message.to_msgpack
+      rescue => e
+        abort e
+      end
       socket << message
     end
     alias_method :<<, :send_message

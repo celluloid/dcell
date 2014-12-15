@@ -32,19 +32,11 @@ describe DCell::ActorProxy do
     result.should == 10000
   end
 
-  it "makes future calls to remote actors", :pending => true do
+  it "makes future calls to remote actors" do
     @remote_actor.future(:value).value.should == 42
   end
 
-  it "does not support remote kill", :pending => true do
-    expect {Celluloid::Actor.kill @remote_actor}.to raise_error NotImplementedError, "remote kill not supported"
-  end
-
-  it "does not support remote join", :pending => true do
-    expect {Celluloid::Actor.join @remote_actor}.to raise_error NotImplementedError, "remote join not supported"
-  end
-
-  context :linking, :pending => true do
+  context :linking do
     before :each do
       @local_actor = LocalActor.new
     end
