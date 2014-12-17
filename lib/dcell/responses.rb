@@ -3,7 +3,7 @@ module DCell
   class Response
     attr_reader :request_id, :address, :value
 
-    def initialize(request_id, address, value)
+    def initialize(request_id, address, value=nil)
       @request_id, @address, @value = request_id, address, value
     end
 
@@ -28,4 +28,7 @@ module DCell
 
   # Retry response (request to retry action)
   class RetryResponse < Response; end
+
+  # Remote actor is dead
+  class DeadActorResponse < Response; end
 end

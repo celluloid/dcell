@@ -12,9 +12,10 @@ module DCell
       end
     end
 
+    private
     def ______method_missing(meth, *args, &block)
       message = {:mailbox => @rmailbox, :meth => meth, :args => args, :block => block_given?}
-      res = @lnode.send_request Message::Relay.new(Thread.mailbox, message)
+      res = @lnode.relay message
       if block_given?
         yield res
       else

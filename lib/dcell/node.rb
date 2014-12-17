@@ -36,7 +36,7 @@ module DCell
       @id, @addr = id, addr
       @socket = nil
       @heartbeat = nil
-      @requests = Set.new
+      @requests = Hash.new
       @lock = Mutex.new
 
       @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
@@ -46,15 +46,41 @@ module DCell
       attach self
     end
 
+    def save_request(request)
+      @lock.synchronize do
+        id = request.id
+        raise RuntimeError, "Request ID collision" if @requests.include? id
+        @requests[id] = request
+      end
+    end
+
+    def delete_request(request)
+      @lock.synchronize do
+        id = request.id
+        raise RuntimeError, "Request not found" unless @requests.include? id
+        @requests.delete id
+      end
+    end
+
+    def retry_requests
+      @lock.synchronize do
+        @requests.each do |id, request|
+          address = request.sender.address
+          if request.kind_of? Message::Relay
+            rsp = DeadActorResponse.new id, address
+          else
+            rsp = RetryResponse.new id, address
+          end
+          rsp.dispatch
+        end
+      end
+    end
+
     def move_node
       addr = Directory[id]
       if addr
         update_client_address addr
-        @lock.synchronize do
-          @requests.each do |request|
-            current_actor.mailbox << RetryResponse.new(request, nil, nil)
-          end
-        end
+        retry_requests
       else
         terminate
       end
@@ -101,18 +127,14 @@ module DCell
     def send_request(request)
       loop do
         send_message request
-
-        @lock.synchronize do
-          @requests << request.id
-        end
+        save_request request
         response = receive do |msg|
           msg.respond_to?(:request_id) && msg.request_id == request.id
         end
-        @lock.synchronize do
-          @requests.delete request.id
-        end
+        delete_request request
 
         next if response.is_a? RetryResponse
+        raise ::Celluloid::DeadActorError.new if response.is_a? DeadActorResponse
         if response.is_a? ErrorResponse
           klass = Utils::full_const_get response.value[:class]
           msg = response.value[:msg]
@@ -140,6 +162,12 @@ module DCell
       end
     end
     alias_method :all, :actors
+
+    # Relay message to remote actor
+    def relay(message)
+      request = Message::Relay.new(Thread.mailbox, message)
+      send_request request
+    end
 
     # Send a message to another DCell node
     def send_message(message)
