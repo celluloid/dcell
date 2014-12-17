@@ -49,13 +49,8 @@ module DCell
     alias_method :[], :find
 
     def node_died(node, reason)
-      if reason.nil? # wtf?
-        # this wtf error seems to come from node socket writes
-        # when the socket is not reachable anymore
-        Celluloid::logger.debug "wtf?"
-        return
-      end
-      # Handle dead node???
+      Router.gc
+      @nodes.reject! {|k, v| v == node}
     end
   end
 end
