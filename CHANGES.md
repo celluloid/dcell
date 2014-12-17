@@ -1,3 +1,7 @@
+0.16.1 (2014-12-17)
+-------------------
+* Bugfixes for Celluloid 0.16 compatibility
+
 0.16.0 (2014-09-04)
 -------------------
 * Timeouts for cell discovery
