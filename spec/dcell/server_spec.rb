@@ -12,7 +12,7 @@ describe DCell::PullServer do
 
   it "properly handles incorrectly encoded incoming message" do
     DCellMock.setup :addr => 'tcp://127.0.0.1:*', :registry => {:adapter => 'dummy'}
-    server = DCell::PullServer.new DCellMock, NullLogger
+    server = DCell::PullServer.new DCellMock
 
     expect {server.decode_message ''}.to raise_error(DCell::PullServer::InvalidMessageError)
     expect {server.handle_message ''}.not_to raise_error

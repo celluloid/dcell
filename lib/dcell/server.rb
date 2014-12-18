@@ -2,8 +2,7 @@ module DCell
   # Servers handle incoming 0MQ traffic
   class PullServer
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
-    def initialize(cell, logger=Logger)
-      @logger = logger
+    def initialize(cell)
       @socket = Celluloid::ZMQ::PullSocket.new
 
       begin
@@ -26,14 +25,14 @@ module DCell
       begin
         message = decode_message message
       rescue InvalidMessageError => ex
-        @logger.crash("couldn't decode message", ex)
+        Logger.crash("couldn't decode message", ex)
         return
       end
 
       begin
         message.dispatch
       rescue => ex
-        @logger.crash("message dispatch failed", ex)
+        Logger.crash("message dispatch failed", ex)
       end
     end
 

@@ -44,6 +44,9 @@ class TestActor
   end
 end
 
+Celluloid.logger = nil
+Celluloid.shutdown_timeout = 1
+
 options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
 options.merge! test_options
 DCell.setup options
