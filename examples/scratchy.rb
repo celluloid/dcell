@@ -18,8 +18,11 @@ puts "Fighting itchy! (check itchy's output)"
   rescue Celluloid::DeadActorError
     puts "Itchy dying?"
     itchy = itchy_node[:itchy]
+  rescue Celluloid::Task::TerminatedError
+    puts "Itchy is dead =/."
+    break
   rescue => e
-    puts "Unknow error #{e}"
+    puts "Unknow error #{e.class} => #{e}"
     break
   end
   sleep 1
