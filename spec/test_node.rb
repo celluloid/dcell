@@ -37,9 +37,9 @@ class TestActor
     raise "the spec purposely crashed me :("
   end
 
-  def suicide
+  def suicide(delay=1)
     SimpleCov.result.format!
-    after (1) {Process.kill :KILL, Process.pid}
+    after (delay) {Process.kill :KILL, Process.pid}
     nil
   end
 end
