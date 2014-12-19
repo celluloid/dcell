@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe DCell::Node do
   before do
     @node = DCell::Node[TEST_NODE[:id]]
@@ -19,5 +17,15 @@ describe DCell::Node do
   it "lists remote actors" do
     @node.actors.should include :test_actor
     @node.all.should include :test_actor
+  end
+
+  it "should survive remote server crash", :pending => RUBY_ENGINE=="jruby" do
+    actor = @node[:test_actor]
+    actor.suicide
+    sleep 2
+    @node[:test_actor].value.should == 42
+    expect {actor.value}.to raise_error Celluloid::DeadActorError
+    actor = @node[:test_actor]
+    actor.value.should == 42
   end
 end

@@ -7,7 +7,7 @@ module DCell
       raise NotImplementedError, "remote kill not supported"
     end
 
-    def join
+    def join(timeout)
       raise NotImplementedError, "remote join not supported"
     end
   end

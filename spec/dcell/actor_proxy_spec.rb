@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe DCell::CellProxy do
   before :all do
     @node = DCell::Node[TEST_NODE[:id]]
@@ -36,6 +34,14 @@ describe DCell::CellProxy do
 
   it "makes future calls to remote actors" do
     @remote_actor.future(:value).value.should == 42
+  end
+
+  it "does not support remote kill" do
+    expect {Celluloid::Actor.kill @remote_actor}.to raise_error NotImplementedError, "remote kill not supported"
+  end
+
+  it "does not support remote join" do
+    expect {Celluloid::Actor.join @remote_actor}.to raise_error NotImplementedError, "remote join not supported"
   end
 
   context :linking do

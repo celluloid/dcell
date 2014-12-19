@@ -31,7 +31,11 @@ module DCell
 
   @config_lock  = Mutex.new
 
-  class << self
+  def self.included(base)
+    base.extend(ClassMethods)
+  end
+
+  module ClassMethods
     attr_reader :me, :registry
 
     # Configure DCell with the following options:
@@ -45,12 +49,11 @@ module DCell
 
       @config_lock.synchronize do
         @configuration = {
-          'id'   => generate_node_id,
           'addr' => "tcp://127.0.0.1:*",
-          'registry' => {'adapter' => 'redis', 'server' => 'localhost'}
+          'registry' => {'adapter' => 'redis', 'server' => 'localhost'},
+          'heartbeat_rate' => 5,
+          'heartbeat_timeout' => 10,
         }.merge(options)
-
-        @me = Node.new @configuration['id'], nil
 
         registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
         raise ArgumentError, "no registry adapter given in config" unless registry_adapter
@@ -60,32 +63,54 @@ module DCell
         begin
           registry_class = DCell::Registry.const_get registry_class_name
         rescue NameError
-          raise ArgumentError, "invalid registry adapter: #{@configuration['registry']['adapter']}"
+          raise ArgumentError, "invalid registry adapter: #{registry_adapter}"
         end
 
         @registry = registry_class.new(@configuration['registry'])
-
+        @configuration['id'] ||= generate_node_id
+        @me = Node.new @configuration['id'], nil
         ObjectSpace.define_finalizer(me, proc {Directory.remove @configuration['id']})
       end
 
       me
     end
 
+    def config(option)
+      unless @configuration
+        Logger.warn "DCell unconfigured, can't get #{option}"
+        return nil
+      end
+      @configuration[option]
+    end
+
     # Obtain the local node ID
     def id
-      raise NotConfiguredError, "please configure DCell with DCell.setup" unless @configuration
-      @configuration['id']
+      config 'id'
     end
 
     # Obtain the 0MQ address to the local mailbox
-    def addr; @configuration['addr']; end
+    def addr
+      config 'addr'
+    end
     alias_method :address, :addr
 
+    # Updates server address of the node
     def addr=(addr)
       @configuration['addr'] = addr
+      Directory.set @configuration['id'], addr
       @me.update_server_address addr
     end
     alias_method :address=, :addr=
+
+    # Default heartbeat rate for the nodes
+    def heartbeat_rate
+      config 'heartbeat_rate'
+    end
+
+    # Default heartbeat timeout for the nodes
+    def heartbeat_timeout
+      config 'heartbeat_timeout'
+    end
 
     # Attempt to generate a unique node ID for this machine
     def generate_node_id
@@ -99,11 +124,6 @@ module DCell
       end
     end
 
-    # Run the DCell application
-    def run
-      DCell::SupervisionGroup.run
-    end
-
     # Run the DCell application in the background
     def run!
       DCell::SupervisionGroup.run!
@@ -115,11 +135,12 @@ module DCell
       run!
     end
   end
+  extend ClassMethods
 
   # DCell's actor dependencies
   class SupervisionGroup < Celluloid::SupervisionGroup
     supervise NodeManager, :as => :node_manager
-    supervise Server,      :as => :dcell_server
+    supervise Server,      :as => :dcell_server, :args => [DCell]
     supervise InfoService, :as => :info
   end
 

@@ -1,28 +1,20 @@
 require 'rubygems'
 require 'bundler/setup'
 require 'coveralls'
-Coveralls.wear!
+Coveralls.wear_merged!
+SimpleCov.merge_timeout 3600
+SimpleCov.command_name 'spec'
+
+SimpleCov.formatter = SimpleCov::Formatter::HTMLFormatter
 
 require 'dcell'
 Dir['./spec/options/*.rb'].map { |f| require f }
 Dir['./spec/support/*.rb'].map { |f| require f }
 
+Celluloid.shutdown_timeout = 1
+
 RSpec.configure do |config|
   config.before(:suite) do
-    options = {}
-    options.merge! test_db_options
-    begin
-      DCell.start options
-    rescue => e
-      puts e
-      raise
-    end
-
-    TestNode.start
-    TestNode.wait_until_ready
-  end
-
-  config.after(:suite) do
-    TestNode.stop
+    DCell.start test_options
   end
 end

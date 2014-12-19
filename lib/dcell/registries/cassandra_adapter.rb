@@ -40,7 +40,7 @@ module DCell
 
         options[:servers] ||= []
         options[:servers] << options[:server] if options[:server]
-        options[:servers] << "localhost:9160" unless options[:servers].any?
+        options[:servers] << "127.0.0.1:9160" unless options[:servers].any?
 
         cass = Cassandra.new(keyspace, options[:servers])
 
@@ -78,12 +78,12 @@ module DCell
           @cass.get(@cf, "nodes").keys
         end
 
-        def remove(node)
-          @cass.remove @cf, "nodes", { node_id => node }
+        def remove(node_id)
+          @cass.remove @cf, "nodes", node_id
         end
 
         def clear_all
-          @cass.del @cf, "nodes"
+          @cass.remove @cf, "nodes"
         end
       end
 
@@ -114,7 +114,7 @@ module DCell
         end
 
         def clear_all
-          @cass.del @cf, "globals"
+          @cass.remove @cf, "globals"
         end
       end
 

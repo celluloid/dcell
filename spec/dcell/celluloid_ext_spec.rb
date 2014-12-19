@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe Celluloid, "extensions" do
   before do
     class WillKane

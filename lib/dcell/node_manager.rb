@@ -1,18 +1,13 @@
 module DCell
   # Manage nodes we're connected to
   class NodeManager
-    include Celluloid::ZMQ
+    include Celluloid
     include Enumerable
 
     trap_exit :node_died
 
-    attr_reader :heartbeat_rate, :heartbeat_timeout
-
     def initialize
       @nodes = {}
-
-      @heartbeat_rate    = 5  # How often to send heartbeats in seconds
-      @heartbeat_timeout = 10 # How soon until a lost heartbeat triggers a node partition
     end
 
     # Return all available nodes in the cluster
@@ -45,6 +40,10 @@ module DCell
       end
 
       @nodes[id] ||= node
+      # This code is racy, kind of w/a
+      if node != @nodes[id]
+        node.terminate
+      end
       @nodes[id]
     end
     alias_method :[], :find
@@ -57,23 +56,6 @@ module DCell
         return
       end
       # Handle dead node???
-    end
-
-    def update(id)
-      addr = Directory[id]
-      return unless addr
-      if ( node = @nodes[id] ) and node.alive?
-        node.update_client_address( addr )
-      else
-        @nodes[id] = Node.new( id, addr )
-      end
-    end
-
-    def remove(id)
-      if @nodes[id]
-        @nodes[id].terminate if @nodes[id].alive?
-        @nodes.delete(id)
-      end
     end
   end
 end

@@ -26,8 +26,13 @@ module DCell
       "#<DCell::MailboxProxy:0x#{object_id.to_s(16)} #{address}>"
     end
 
+    def kill
+      @node = nil
+    end
+
     # Send a message to the mailbox
     def <<(message)
+      raise ::Celluloid::DeadActorError unless @node
       @node.async.send_message Message::Relay.new(self, message)
     end
 

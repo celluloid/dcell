@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'dcell/registries/mongodb_adapter'
 
 describe DCell::Registry::MongodbAdapter, :pending => TEST_ADEPTER != 'mongodb' && "no mongodb" do

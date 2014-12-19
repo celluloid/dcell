@@ -10,13 +10,14 @@ module DCell
 
     # Heartbeat messages inform other nodes this node is healthy
     class Heartbeat < Message
-      def initialize
+      def initialize(from)
         @id = DCell.id
+        @from = from
       end
 
       def dispatch
         node = DCell::Node[@id]
-        node.handle_heartbeat if node
+        node.handle_heartbeat @from if node
       end
     end
 

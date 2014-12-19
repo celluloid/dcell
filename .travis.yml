@@ -1,25 +1,36 @@
 language: ruby
 
-before_install: sudo apt-get install libzmq3-dev
+before_install:
+  - sudo apt-get install libzmq3-dev
+  - sudo apt-get install zookeeperd
+
+before_script:
+  - sleep 15
+  - cassandra-cli --batch < <(echo -e "create keyspace dcell with placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy' and strategy_options = {replication_factor:1};\nuse dcell;\ncreate column family dcell;")
 
 services:
   - mongodb
   - redis-server
+  - cassandra
 
 rvm:
   - 1.9.3
   - 2.0.0
+  - 2.1.0
   - ruby-head
-  - jruby-19mode
+  - jruby
   - jruby-head
-  - rbx-19mode
+  - rbx-2.2.10
 
 matrix:
   allow_failures:
+    - rvm: 1.9.3
     - rvm: ruby-head
+    - rvm: jruby
     - rvm: jruby-head
-    - rvm: jruby-19mode
-    - rvm: rbx-19mode # rbx seems to be losing exception messages o_O
+    - rvm: rbx-2.2.10
+    - env: DCELL_TEST_ADAPTER=cassandra
+    - env: DCELL_TEST_ADAPTER=zk
 
 branches:
   only:
@@ -28,3 +39,5 @@ branches:
 env:
     - DCELL_TEST_ADAPTER=redis
     - DCELL_TEST_ADAPTER=mongodb
+    - DCELL_TEST_ADAPTER=cassandra
+    - DCELL_TEST_ADAPTER=zk
