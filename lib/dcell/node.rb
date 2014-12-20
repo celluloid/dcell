@@ -37,6 +37,7 @@ module DCell
       @socket = nil
       @heartbeat = nil
       @requests = Hash.new
+      @actors = Set.new
       @lock = Mutex.new
 
       @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
@@ -47,6 +48,7 @@ module DCell
     end
 
     def save_request(request)
+      return if request.kind_of? Message::Relay
       @lock.synchronize do
         id = request.id
         raise RuntimeError, "Request ID collision" if @requests.include? id
@@ -55,6 +57,7 @@ module DCell
     end
 
     def delete_request(request)
+      return if request.kind_of? Message::Relay
       @lock.synchronize do
         id = request.id
         raise RuntimeError, "Request not found" unless @requests.include? id
@@ -66,18 +69,34 @@ module DCell
       @lock.synchronize do
         @requests.each do |id, request|
           address = request.sender.address
-          if request.kind_of? Message::Relay
-            rsp = DeadActorResponse.new id, address
-          else
-            rsp = RetryResponse.new id, address
-          end
+          rsp = RetryResponse.new id, address
           rsp.dispatch
         end
       end
     end
 
+    def add_actor(actor)
+      @lock.synchronize do
+        @actors << WeakRef.new(actor)
+      end
+    end
+
+    def kill_actors
+      @lock.synchronize do
+        @actors.each do |actor|
+          begin
+            actor = actor.__getobj__
+            actor.terminate
+          rescue WeakRef::RefError, Celluloid::DeadActorError
+          end
+        end
+        @actors = Set.new
+      end
+    end
+
     def move_node
       addr = Directory[id]
+      kill_actors
       if addr
         update_client_address addr
         retry_requests
@@ -149,7 +168,9 @@ module DCell
       request = Message::Find.new(Thread.mailbox, name)
       mailbox, methods = send_request request
       return nil if mailbox.kind_of? NilClass
-      DCell::ActorProxy.new self, mailbox, methods
+      actor = DCell::ActorProxy.new self, mailbox, methods
+      add_actor actor
+      actor
     end
     alias_method :[], :find
 

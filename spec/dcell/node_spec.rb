@@ -29,10 +29,17 @@ describe DCell::Node do
       @node[:test_actor].value.should == 42
     end
 
+    def wait_for_death(actor)
+      10.times do
+        break unless actor.alive?
+        sleep 1
+      end
+    end
+
     it "raises exception on a sync call to dead actor" do
       actor = @node[:test_actor]
       actor.suicide
-      sleep 2
+      wait_for_death actor
       expect {actor.value}.to raise_error Celluloid::DeadActorError
     end
 
@@ -40,21 +47,21 @@ describe DCell::Node do
       actor = @node[:test_actor]
       actor.async.suicide 0
       future = actor.future.value
-      sleep 2
+      wait_for_death actor
       expect {future.value}.to raise_error Celluloid::DeadActorError
     end
 
     it "raises exception on access to the value of future operation which crashed the actor" do
       actor = @node[:test_actor]
       future = actor.future.suicide 0
-      sleep 2
+      wait_for_death actor
       expect {future.value}.to raise_error Celluloid::DeadActorError
     end
 
-    it "sync operation raises exception if remote actor dies during async operation" do
+    it "raises exception on sync operation if remote actor dies during async operation" do
       actor = @node[:test_actor]
       actor.async.suicide 0
-      sleep 2
+      wait_for_death actor
       expect {actor.value}.to raise_error Celluloid::DeadActorError
     end
   end
