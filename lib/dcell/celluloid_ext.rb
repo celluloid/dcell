@@ -18,4 +18,18 @@ module Celluloid
       }.to_msgpack(pk)
     end
   end
+
+  class CellProxy
+    alias_method :____async, :async
+    def async(meth = nil, *args, &block)
+      raise DeadActorError.new unless alive?
+      ____async meth, *args, &block
+    end
+
+    alias_method :____future, :future
+    def future(meth = nil, *args, &block)
+      raise DeadActorError.new unless alive?
+      ____future meth, *args, &block
+    end
+  end
 end
