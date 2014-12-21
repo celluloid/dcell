@@ -11,7 +11,7 @@
 module Celluloid
   class Mailbox
     def to_msgpack(pk=nil)
-      DCell::Router.register self
+      DCell::MailboxManager.register self
       {
         :address => @address,
         :id      => DCell.id

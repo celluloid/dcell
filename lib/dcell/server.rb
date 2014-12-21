@@ -66,8 +66,6 @@ module DCell
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
     def initialize(cell)
       super(cell)
-      # The gossip protocol is dependent on the node manager
-      link Celluloid::Actor[:node_manager]
       async.run
     end
 

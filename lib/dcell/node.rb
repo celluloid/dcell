@@ -24,12 +24,11 @@ module DCell
       move_node
     end
 
-    # Singleton methods
+    # Access sugar to NodeManager methods
     class << self
       include Enumerable
       extend Forwardable
-
-      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[]
+      include NodeManager
     end
 
     def initialize(id, addr)
@@ -122,6 +121,7 @@ module DCell
     def shutdown
       transition :shutdown
       @socket.close if @socket
+      NodeCache.delete id
     end
 
     # Obtain the node's 0MQ socket

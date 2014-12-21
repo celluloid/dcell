@@ -15,7 +15,7 @@ module DCell
     end
 
     def dispatch
-      mailbox = DCell::Router.find @address
+      mailbox = MailboxManager.find @address
       mailbox << self
     end
   end
