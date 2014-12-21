@@ -1,6 +1,17 @@
 describe DCell::Node do
+  def wait_for_actor(id)
+    30.times do
+      node = DCell::Node[id]
+      begin
+        return node if node and node.all
+      rescue Celluloid::DeadActorError
+      end
+      sleep 1
+    end
+  end
+
   before do
-    @node = DCell::Node[TEST_NODE[:id]]
+    @node = wait_for_actor TEST_NODE[:id]
     @node.id.should == TEST_NODE[:id]
   end
 
