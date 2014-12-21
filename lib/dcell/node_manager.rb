@@ -3,32 +3,23 @@ module DCell
   class NodeCache
     include Enumerable
 
-    @lock = Mutex.new
-    @nodes = {}
+    @nodes = ResourceManager.new
 
     class << self
       # Finds a node by its node ID and adds to the cache
       def find(id)
         return DCell.me if id == DCell.id
 
-        @lock.synchronize do
-          node = @nodes[id]
-          return node if node
-
+        @nodes.register(id) do
           addr = Directory[id]
           return nil unless addr
-
-          node = Node.new(id, addr)
-          @nodes[id] = node
-          node
+          Node.new id, addr
         end
       end
       alias_method :[], :find
 
       def delete(id)
-        @lock.synchronize do
-          @nodes.delete id
-        end
+        @nodes.delete id
       end
     end
   end

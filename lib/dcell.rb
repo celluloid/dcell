@@ -9,6 +9,7 @@ Celluloid::ZMQ.init
 
 require 'dcell/version'
 require 'dcell/utils'
+require 'dcell/resource_manager'
 require 'dcell/actor_proxy'
 require 'dcell/directory'
 require 'dcell/messages'

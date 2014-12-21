@@ -1,5 +1,3 @@
-require 'weakref'
-
 module DCell
   # A node in a DCell cluster
   class Node
@@ -35,9 +33,8 @@ module DCell
       @id, @addr = id, addr
       @socket = nil
       @heartbeat = nil
-      @requests = Hash.new
-      @actors = Set.new
-      @lock = Mutex.new
+      @requests = ResourceManager.new
+      @actors = ResourceManager.new
 
       @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
       @heartbeat_timeout = DCell.heartbeat_timeout # How soon until a lost heartbeat triggers a node partition
@@ -48,48 +45,29 @@ module DCell
 
     def save_request(request)
       return if request.kind_of? Message::Relay
-      @lock.synchronize do
-        id = request.id
-        raise RuntimeError, "Request ID collision" if @requests.include? id
-        @requests[id] = request
-      end
+      @requests.register(request.id) {request}
     end
 
     def delete_request(request)
       return if request.kind_of? Message::Relay
-      @lock.synchronize do
-        id = request.id
-        raise RuntimeError, "Request not found" unless @requests.include? id
-        @requests.delete id
-      end
+      @requests.delete request.id
     end
 
     def retry_requests
-      @lock.synchronize do
-        @requests.each do |id, request|
-          address = request.sender.address
-          rsp = RetryResponse.new id, address
-          rsp.dispatch
-        end
+      @requests.each do |id, request|
+        address = request.sender.address
+        rsp = RetryResponse.new id, address
+        rsp.dispatch
       end
     end
 
     def add_actor(actor)
-      @lock.synchronize do
-        @actors << WeakRef.new(actor)
-      end
+      @actors.register(actor.object_id) {actor}
     end
 
     def kill_actors
-      @lock.synchronize do
-        @actors.each do |actor|
-          begin
-            actor = actor.__getobj__
-            actor.terminate
-          rescue WeakRef::RefError, Celluloid::DeadActorError
-          end
-        end
-        @actors = Set.new
+      @actors.clear do |id, actor|
+        actor.terminate rescue Celluloid::DeadActorError
       end
     end
 
@@ -122,6 +100,7 @@ module DCell
       transition :shutdown
       @socket.close if @socket
       NodeCache.delete id
+      MailboxManager.delete Thread.mailbox
     end
 
     # Obtain the node's 0MQ socket

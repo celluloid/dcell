@@ -1,45 +1,24 @@
-require 'weakref'
-
 module DCell
   # Manage mailbox addresses of local actors
   class MailboxManager
-    @mutex     = Mutex.new
-    @mailboxes = {}
+    @mailboxes = ResourceManager.new
 
     class << self
       # Enter a mailbox into the registry
       def register(mailbox)
-        @mutex.synchronize do
-          address = mailbox.address
-          ref = @mailboxes[address]
-          @mailboxes[address] = WeakRef.new(mailbox) unless ref && ref.weakref_alive?
-
-          address
-        end
+        address = mailbox.address
+        @mailboxes.register(address) {mailbox}
       end
 
       # Find a mailbox by its address
       def find(address)
-        @mutex.synchronize do
-          begin
-            ref = @mailboxes[address]
-            return unless ref
-            ref.__getobj__
-          rescue WeakRef::RefError
-            # The referenced actor is dead, so prune the registry
-            @mailboxes.delete address
-            nil
-          end
-        end
+        @mailboxes.find address
       end
 
-      # Prune all entries that point to dead objects
-      def gc
-        @mutex.synchronize do
-          @mailboxes.each do |id, ref|
-            @mailboxes.delete id unless ref.weakref_alive?
-          end
-        end
+      # Delete unused mailbox
+      def delete(mailbox)
+        address = mailbox.address
+        @mailboxes.delete address
       end
     end
   end
