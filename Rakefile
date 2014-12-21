@@ -6,4 +6,4 @@ Dir["tasks/**/*.rb"].each { |task| load task }
 
 Coveralls::RakeTask.new
 
-task :default => ['testnode:bg', :spec, 'testnode:finish', 'coveralls:push']
+task :default => [:clean, 'testnode:bg', :spec, 'testnode:finish', 'coveralls:push']
