@@ -1,8 +1,8 @@
 require 'weakref'
 
 module DCell
-  # Route incoming messages to their recipient actors
-  class Router
+  # Manage mailbox addresses of local actors
+  class MailboxManager
     @mutex     = Mutex.new
     @mailboxes = {}
 
