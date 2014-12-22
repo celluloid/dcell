@@ -10,7 +10,7 @@ describe DCell::Node do
     end
   end
 
-  before do
+  before :each do
     @node = wait_for_actor TEST_NODE[:id]
     @node.id.should == TEST_NODE[:id]
   end
@@ -31,9 +31,6 @@ describe DCell::Node do
   end
 
   context :crashing, :pending => RUBY_ENGINE=="jruby" do
-    before :each do
-    end
-
     it "retries remote actor lookup" do
       @node[:test_actor].suicide
       sleep 2
