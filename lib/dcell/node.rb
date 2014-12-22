@@ -126,11 +126,12 @@ module DCell
       loop do
         send_message request
         save_request request
-        response = receive do |msg|
+        response = receive(@heartbeat_timeout*2) do |msg|
           msg.respond_to?(:request_id) && msg.request_id == request.id
         end
         delete_request request
 
+        raise ::Celluloid::DeadActorError.new unless response # FIXME: need a robust way to retry the lost requests
         next if response.is_a? RetryResponse
         raise ::Celluloid::DeadActorError.new if response.is_a? DeadActorResponse
         if response.is_a? ErrorResponse
