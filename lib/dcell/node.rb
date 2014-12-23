@@ -122,24 +122,42 @@ module DCell
       @socket
     end
 
-    def send_request(request)
-      loop do
-        send_message request
-        save_request request
-        response = receive(@heartbeat_timeout*2) do |msg|
-          msg.respond_to?(:request_id) && msg.request_id == request.id
-        end
-        delete_request request
+    def push_request(request)
+      send_message request
+      save_request request
+      response = receive(@heartbeat_timeout*2) do |msg|
+        msg.respond_to?(:request_id) && msg.request_id == request.id
+      end
+      delete_request request
+      response
+    end
 
-        raise ::Celluloid::DeadActorError.new unless response # FIXME: need a robust way to retry the lost requests
-        next if response.is_a? RetryResponse
-        raise ::Celluloid::DeadActorError.new if response.is_a? DeadActorResponse
-        if response.is_a? ErrorResponse
-          klass = Utils::full_const_get response.value[:class]
-          msg = response.value[:msg]
-          raise klass.new msg
+    def dead_actor
+      raise ::Celluloid::DeadActorError.new
+    end
+
+    def handle_response(request, response)
+      unless response
+        dead_actor if request.kind_of? Message::Relay
+        return false
+      end
+      return false if response.is_a? RetryResponse
+      dead_actor if response.is_a? DeadActorResponse
+      if response.is_a? ErrorResponse
+        klass = Utils::full_const_get response.value[:class]
+        msg = response.value[:msg]
+        raise klass.new msg
+      end
+      true
+    end
+
+    def send_request(request)
+      # FIXME: need a robust way to retry the lost requests
+      loop do
+        response = push_request request
+        if handle_response request, response
+          return response.value
         end
-        return response.value
       end
     end
 
