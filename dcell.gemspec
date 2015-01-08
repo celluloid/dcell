@@ -21,11 +21,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "celluloid-zmq", "~> 0.16.0"
   gem.add_runtime_dependency "reel",          "~> 0.4.0"
   gem.add_runtime_dependency "http",          "~> 0.5.0"
-  if RUBY_PLATFORM == 'java'
-    gem.add_runtime_dependency "msgpack-jruby"
-  else
-    gem.add_runtime_dependency "msgpack"
-  end
+  gem.add_runtime_dependency "msgpack"
   gem.add_runtime_dependency "celluloid-redis"
   gem.add_runtime_dependency "redis-namespace"
 
