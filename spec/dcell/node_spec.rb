@@ -32,8 +32,8 @@ describe DCell::Node do
 
   context :crashing, :pending => RUBY_ENGINE=="jruby" do
     it "retries remote actor lookup" do
-      @node[:test_actor].suicide
-      sleep 2
+      @node[:test_actor].suicide 3
+      sleep 4
       @node[:test_actor].value.should == 42
     end
 
@@ -46,7 +46,7 @@ describe DCell::Node do
 
     it "raises exception on a sync call to dead actor" do
       actor = @node[:test_actor]
-      actor.suicide
+      actor.suicide 3
       wait_for_death actor
       expect {actor.value}.to raise_error Celluloid::DeadActorError
     end
