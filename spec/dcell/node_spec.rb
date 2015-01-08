@@ -77,14 +77,14 @@ describe DCell::Node do
       actor = @node[:test_actor]
       actor.async.suicide 0
       wait_for_death actor
-      expect {actor.async.value}.to raise_error Celluloid::DeadActorError
+      expect {actor.async}.to raise_error Celluloid::DeadActorError
     end
 
     it "raises exception on future operation if remote actor dies during async operation" do
       actor = @node[:test_actor]
       actor.async.suicide 0
       wait_for_death actor
-      expect {actor.future.value}.to raise_error Celluloid::DeadActorError
+      expect {actor.future}.to raise_error Celluloid::DeadActorError
     end
   end
 end
