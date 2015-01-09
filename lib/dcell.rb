@@ -21,8 +21,6 @@ require 'dcell/mailbox_manager'
 require 'dcell/server'
 require 'dcell/info_service'
 
-require 'dcell/registries/redis_adapter'
-
 require 'dcell/celluloid_ext'
 
 # Distributed Celluloid
@@ -50,23 +48,13 @@ module DCell
       @config_lock.synchronize do
         @configuration = {
           'addr' => "tcp://127.0.0.1:*",
-          'registry' => {'adapter' => 'redis', 'server' => 'localhost'},
           'heartbeat_rate' => 5,
           'heartbeat_timeout' => 10,
         }.merge(options)
 
-        registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
-        raise ArgumentError, "no registry adapter given in config" unless registry_adapter
+        @registry = @configuration['registry']
+        raise ArgumentError, "no registry adapter given in config" unless @registry
 
-        registry_class_name = registry_adapter.split("_").map(&:capitalize).join << "Adapter"
-
-        begin
-          registry_class = DCell::Registry.const_get registry_class_name
-        rescue NameError
-          raise ArgumentError, "invalid registry adapter: #{registry_adapter}"
-        end
-
-        @registry = registry_class.new(@configuration['registry'])
         @configuration['id'] ||= generate_node_id
         @me = Node.new @configuration['id'], nil
         ObjectSpace.define_finalizer(me, proc {Directory.remove @configuration['id']})
