@@ -13,12 +13,6 @@ services:
   - redis-server
   - cassandra
 
-branches:
-  only:
-    - master
-    - master-next
-    - master-exp
-
 rvm:
   - 1.9.3
   - 2.0.0
