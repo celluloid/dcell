@@ -1,4 +1,5 @@
 require 'mongoid'
+require 'bson'
 
 module DCell
   module Registry
@@ -21,21 +22,22 @@ module DCell
         include Mongoid::Document
 
         field :key, type: String
-        field :value, type: Hash
+        field :value, type: BSON::Binary
       end
 
       class DCellGlobal
         include Mongoid::Document
 
         field :key, type: String
-        field :value, type: Hash
+        field :value, type: BSON::Binary
       end
 
       class Proxy
         class << self
           def set(storage, key, value)
             entry = storage.find_or_create_by(key: key)
-            entry.value = {'v' => value}
+            value = BSON::Binary.new(value.to_msgpack)
+            entry.value = value
             entry.save!
             value
           end
@@ -43,7 +45,8 @@ module DCell
           def get(storage, key)
             first = storage.where(key: key).first
             if first and first.value
-              return first.value['v']
+              return MessagePack.unpack(first.value.data,
+                                        options={:symbolize_keys => true})
             end
             nil
           end

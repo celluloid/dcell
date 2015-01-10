@@ -99,13 +99,12 @@ module DCell
 
         def get(key)
           string = @cass.get @cf, "globals", key.to_s
-          Marshal.load string if string
+          MessagePack.unpack(string, options={:symbolize_keys => true}) if string
         end
 
         # Set a global value
         def set(key, value)
-          string = Marshal.dump value
-          @cass.insert @cf, "globals", { key.to_s => string }
+          @cass.insert @cf, "globals", { key.to_s => value.to_msgpack }
         end
 
         # The keys to all globals in the system

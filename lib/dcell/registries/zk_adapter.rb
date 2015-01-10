@@ -50,14 +50,13 @@ module DCell
 
         def get(key)
           result, _ = @zk.get("#{@base_path}/#{key}", watch: true)
-          Marshal.load result
+          MessagePack.unpack(result, options={:symbolize_keys => true}) if result
         rescue ZK::Exceptions::NoNode
         end
 
         def set(key, value)
           path = "#{@base_path}/#{key}"
-          string = Marshal.dump value
-          @zk.set path, string
+          @zk.set path, value.to_msgpack
         rescue ZK::Exceptions::NoNode
           @zk.create path, string, :ephemeral => @ephemeral
         end
