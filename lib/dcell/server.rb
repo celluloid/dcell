@@ -2,8 +2,7 @@ module DCell
   # Servers handle incoming 0MQ traffic
   class PullServer
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
-    def initialize(cell, logger=Logger)
-      @logger = logger
+    def initialize(cell)
       @socket = Celluloid::ZMQ::PullSocket.new
 
       begin
@@ -26,14 +25,14 @@ module DCell
       begin
         message = decode_message message
       rescue InvalidMessageError => ex
-        @logger.crash("couldn't decode message", ex)
+        Logger.crash("couldn't decode message", ex)
         return
       end
 
       begin
         message.dispatch
       rescue => ex
-        @logger.crash("message dispatch failed", ex)
+        Logger.crash("message dispatch failed", ex)
       end
     end
 
@@ -41,14 +40,20 @@ module DCell
 
     # Decode incoming messages
     def decode_message(message)
-      if message[0..1].unpack("CC") == [Marshal::MAJOR_VERSION, Marshal::MINOR_VERSION]
-        begin
-          Marshal.load message
-        rescue => ex
-          raise InvalidMessageError, "invalid message: #{ex}"
+      begin
+        msg = MessagePack.unpack(message, options={:symbolize_keys => true})
+      rescue => ex
+        raise InvalidMessageError, "couldn't unpack message: #{ex}"
+      end
+      begin
+        klass = Utils::full_const_get msg[:type]
+        o = klass.new *msg[:args]
+        if o.respond_to? :id and msg[:id]
+          o.id = msg[:id]
         end
-      else
-        raise InvalidMessageError, "couldn't determine message format: #{message}"
+        o
+      rescue => ex
+        raise InvalidMessageError, "invalid message: #{ex}"
       end
     end
   end
@@ -61,8 +66,6 @@ module DCell
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
     def initialize(cell)
       super(cell)
-      # The gossip protocol is dependent on the node manager
-      link Celluloid::Actor[:node_manager]
       async.run
     end
 

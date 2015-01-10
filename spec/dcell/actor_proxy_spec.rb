@@ -1,4 +1,4 @@
-describe DCell::CellProxy do
+describe DCell::ActorProxy do
   before :all do
     @node = DCell::Node[TEST_NODE[:id]]
     @node.id.should == TEST_NODE[:id]
@@ -24,6 +24,12 @@ describe DCell::CellProxy do
     @remote_actor.value.should == 42
   end
 
+  it "makes asynchronous calls to remote actors" do
+    magic = 'One dream, one soul, one prize, one goal'
+    @remote_actor.async.magic = magic
+    @remote_actor.magic.should == magic
+  end
+
   it "handles blocks" do
     result = nil
     @remote_actor.win do |value|
@@ -34,14 +40,6 @@ describe DCell::CellProxy do
 
   it "makes future calls to remote actors" do
     @remote_actor.future(:value).value.should == 42
-  end
-
-  it "does not support remote kill" do
-    expect {Celluloid::Actor.kill @remote_actor}.to raise_error NotImplementedError, "remote kill not supported"
-  end
-
-  it "does not support remote join" do
-    expect {Celluloid::Actor.join @remote_actor}.to raise_error NotImplementedError, "remote join not supported"
   end
 
   context :linking do

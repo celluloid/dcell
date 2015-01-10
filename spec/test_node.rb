@@ -18,6 +18,7 @@ Dir['./spec/options/*.rb'].map { |f| require f }
 class TestActor
   include Celluloid
   attr_reader :value
+  attr_accessor :magic
 
   def initialize
     @value = 42
@@ -36,12 +37,20 @@ class TestActor
     raise "the spec purposely crashed me :("
   end
 
-  def suicide
+  def suicide(delay)
     SimpleCov.result.format!
-    after (1) {Process.kill :KILL, Process.pid}
-    nil
+    # avoid scheduling if no delay
+    if delay > 0
+      after (delay) {Process.kill :KILL, Process.pid}
+    else
+      Process.kill :KILL, Process.pid
+    end
+    'Bazinga'
   end
 end
+
+Celluloid.logger = nil
+Celluloid.shutdown_timeout = 1
 
 options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
 options.merge! test_options

@@ -1,5 +1,3 @@
-require 'weakref'
-
 module DCell
   # A node in a DCell cluster
   class Node
@@ -24,22 +22,19 @@ module DCell
       move_node
     end
 
-    # Singleton methods
+    # Access sugar to NodeManager methods
     class << self
       include Enumerable
       extend Forwardable
-
-      def_delegators "Celluloid::Actor[:node_manager]", :all, :each, :find, :[]
+      include NodeManager
     end
 
     def initialize(id, addr)
       @id, @addr = id, addr
       @socket = nil
       @heartbeat = nil
-      @calls = Set.new
-      @actors = Set.new
-      @requests = Set.new
-      @lock = Mutex.new
+      @requests = ResourceManager.new
+      @actors = ResourceManager.new
 
       @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
       @heartbeat_timeout = DCell.heartbeat_timeout # How soon until a lost heartbeat triggers a node partition
@@ -48,35 +43,40 @@ module DCell
       attach self
     end
 
-    def move_node
-      @lock.synchronize do
-        @calls.each do |call|
-          begin
-            call.__getobj__.cleanup if call.weakref_alive?
-          rescue WeakRef::RefError
-          rescue => e
-            Logger.warn "Unexpected exception #{e}"
-          end
-        end
-        @calls = Set.new
-        @actors.each do |actor|
-          begin
-            actor.__getobj__.mailbox.kill if actor.weakref_alive?
-          rescue WeakRef::RefError
-          rescue => e
-            Logger.warn "Unexpected exception #{e}"
-          end
-        end
-        @actors = Set.new
+    def save_request(request)
+      return if request.kind_of? Message::Relay
+      @requests.register(request.id) {request}
+    end
+
+    def delete_request(request)
+      return if request.kind_of? Message::Relay
+      @requests.delete request.id
+    end
+
+    def retry_requests
+      @requests.each do |id, request|
+        address = request.sender.address
+        rsp = RetryResponse.new id, address
+        rsp.dispatch
       end
+    end
+
+    def add_actor(actor)
+      @actors.register(actor.object_id) {actor}
+    end
+
+    def kill_actors
+      @actors.clear do |id, actor|
+        actor.terminate rescue Celluloid::DeadActorError
+      end
+    end
+
+    def move_node
       addr = Directory[id]
+      kill_actors
       if addr
         update_client_address addr
-        @lock.synchronize do
-          @requests.each do |request|
-            current_actor.mailbox << RetryResponse.new(request, nil)
-          end
-        end
+        retry_requests
       else
         terminate
       end
@@ -99,6 +99,8 @@ module DCell
     def shutdown
       transition :shutdown
       @socket.close if @socket
+      NodeCache.delete id
+      MailboxManager.delete Thread.mailbox
     end
 
     # Obtain the node's 0MQ socket
@@ -120,33 +122,52 @@ module DCell
       @socket
     end
 
+    def push_request(request)
+      send_message request
+      save_request request
+      response = receive(@heartbeat_timeout*2) do |msg|
+        msg.respond_to?(:request_id) && msg.request_id == request.id
+      end
+      delete_request request
+      response
+    end
+
+    def dead_actor
+      raise ::Celluloid::DeadActorError.new
+    end
+
+    def handle_response(request, response)
+      unless response
+        dead_actor if request.kind_of? Message::Relay
+        return false
+      end
+      return false if response.is_a? RetryResponse
+      dead_actor if response.is_a? DeadActorResponse
+      if response.is_a? ErrorResponse
+        klass = Utils::full_const_get response.value[:class]
+        msg = response.value[:msg]
+        raise klass.new msg
+      end
+      true
+    end
+
     def send_request(request)
+      # FIXME: need a robust way to retry the lost requests
       loop do
-        send_message request
-
-        @lock.synchronize do
-          @requests << request.id
+        response = push_request request
+        if handle_response request, response
+          return response.value
         end
-        response = receive do |msg|
-          msg.respond_to?(:request_id) && msg.request_id == request.id
-        end
-        @lock.synchronize do
-          @requests.delete request.id
-        end
-
-        next if response.is_a? RetryResponse
-        abort response.value if response.is_a? ErrorResponse
-        return response.value
       end
     end
 
     # Find an call registered with a given name on this node
     def find(name)
       request = Message::Find.new(Thread.mailbox, name)
-      actor = send_request request
-      @lock.synchronize do
-        @actors << WeakRef.new(actor)
-      end
+      mailbox, methods = send_request request
+      return nil if mailbox.kind_of? NilClass
+      actor = DCell::ActorProxy.new self, mailbox, methods
+      add_actor actor
       actor
     end
     alias_method :[], :find
@@ -154,27 +175,26 @@ module DCell
     # List all registered actors on this node
     def actors
       request = Message::List.new(Thread.mailbox)
-      send_request request
+      list = send_request request
+      list.map! do |entry|
+        entry.to_sym
+      end
     end
     alias_method :all, :actors
 
+    # Relay message to remote actor
+    def relay(message)
+      request = Message::Relay.new(Thread.mailbox, message)
+      send_request request
+    end
+
     # Send a message to another DCell node
     def send_message(message)
-      if message.kind_of? Message::Relay
-        call = message.message
-        if call.kind_of? Celluloid::SyncCall
-          @lock.synchronize do
-            @calls << WeakRef.new(call)
-          end
-        end
-      end
-
       begin
-        message = Marshal.dump(message)
-      rescue => ex
-        abort ex
+        message = message.to_msgpack
+      rescue => e
+        abort e
       end
-
       socket << message
     end
     alias_method :<<, :send_message
