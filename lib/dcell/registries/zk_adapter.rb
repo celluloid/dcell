@@ -3,6 +3,9 @@ require 'zk'
 module DCell
   module Registry
     class ZkAdapter
+      include Node
+      include Global
+
       PREFIX  = "/dcell"
       DEFAULT_PORT = 2181
 
@@ -54,11 +57,16 @@ module DCell
         rescue ZK::Exceptions::NoNode
         end
 
-        def set(key, value)
+        def _set(key, value, unique)
           path = "#{@base_path}/#{key}"
+          @zk.create path, value.to_msgpack, :ephemeral => @ephemeral
+        rescue ZK::Exceptions::NodeExists
+          raise KeyExists if unique
           @zk.set path, value.to_msgpack
-        rescue ZK::Exceptions::NoNode
-          @zk.create path, string, :ephemeral => @ephemeral
+        end
+
+        def set(key, value)
+          _set(key, value, false)
         end
 
         def all
@@ -78,18 +86,6 @@ module DCell
           @zk.mkdir_p @base_path
         end
       end
-
-      def get_node(node_id);       @node_registry.get(node_id) end
-      def set_node(node_id, addr); @node_registry.set(node_id, addr) end
-      def nodes;                   @node_registry.all end
-      def remove_node(node_id);    @node_registry.remove(node_id) end
-      def clear_all_nodes;         @node_registry.clear_all end
-
-      def get_global(key);        @global_registry.get(key) end
-      def set_global(key, value); @global_registry.set(key, value) end
-      def global_keys;            @global_registry.all end
-      def clear_globals;          @global_registry.clear_all end
-
     end
   end
 end

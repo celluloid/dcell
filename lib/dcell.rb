@@ -20,6 +20,8 @@ require 'dcell/responses'
 require 'dcell/mailbox_manager'
 require 'dcell/server'
 require 'dcell/info_service'
+require 'dcell/registries/adapter'
+require 'dcell/registries/errors'
 
 require 'dcell/celluloid_ext'
 
