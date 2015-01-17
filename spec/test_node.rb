@@ -19,9 +19,11 @@ class TestActor
   include Celluloid
   attr_reader :value
   attr_accessor :magic
+  attr_accessor :mutable
 
   def initialize
     @value = 42
+    @mutable = 0
   end
 
   def the_answer
