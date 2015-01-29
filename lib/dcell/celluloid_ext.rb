@@ -19,6 +19,13 @@ module Celluloid
     end
   end
 
+  module ClassMethods
+    def supervise_as(name, *args, &block)
+      DCell.add_actor name
+      Supervisor.supervise_as(name, self, *args, &block)
+    end
+  end
+
   class CellProxy
     alias_method :____async, :async
     def async(meth = nil, *args, &block)

@@ -39,7 +39,7 @@ module DCell
       end
 
       def dispatch
-        actor = Celluloid::Actor[@name]
+        actor = DCell.get_actor @name
         mailbox, methods = nil, nil
         if actor
           mailbox, methods = actor.mailbox, actor.class.instance_methods(false)
@@ -66,7 +66,7 @@ module DCell
       end
 
       def dispatch
-        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], Celluloid::Actor.registered)
+        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], DCell.actors)
       end
 
       def to_msgpack(pk=nil)

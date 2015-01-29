@@ -29,7 +29,8 @@ require 'dcell/celluloid_ext'
 module DCell
   class NotConfiguredError < RuntimeError; end # Not configured yet
 
-  @config_lock  = Mutex.new
+  @lock = Mutex.new
+  @actors = Set.new
 
   def self.included(base)
     base.extend(ClassMethods)
@@ -47,7 +48,7 @@ module DCell
       # Stringify keys :/
       options = options.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
 
-      @config_lock.synchronize do
+      @lock.synchronize do
         @configuration = {
           'addr' => "tcp://127.0.0.1:*",
           'heartbeat_rate' => 5,
@@ -63,6 +64,24 @@ module DCell
       end
 
       me
+    end
+
+    def add_actor(name)
+      @lock.synchronize do
+        @actors << name.to_sym
+      end
+    end
+
+    def get_actor(name)
+      name = name.to_sym
+      if @actors.include? name
+        return Celluloid::Actor[name]
+      end
+      nil
+    end
+
+    def actors
+      @actors.to_a
     end
 
     def config(option)
@@ -132,6 +151,7 @@ module DCell
     supervise Server,      :as => :dcell_server, :args => [DCell]
     supervise InfoService, :as => :info
   end
+  DCell.add_actor :info
 
   Logger = Celluloid::Logger
 end
