@@ -66,13 +66,13 @@ module DCell
       me
     end
 
-    def add_actor(name)
+    def add_local_actor(name)
       @lock.synchronize do
         @actors << name.to_sym
       end
     end
 
-    def get_actor(name)
+    def get_local_actor(name)
       name = name.to_sym
       if @actors.include? name
         return Celluloid::Actor[name]
@@ -80,7 +80,7 @@ module DCell
       nil
     end
 
-    def actors
+    def local_actors
       @actors.to_a
     end
 
@@ -151,7 +151,7 @@ module DCell
     supervise Server,      :as => :dcell_server, :args => [DCell]
     supervise InfoService, :as => :info
   end
-  DCell.add_actor :info
+  DCell.add_local_actor :info
 
   Logger = Celluloid::Logger
 end
