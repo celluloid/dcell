@@ -1,9 +1,8 @@
 #!/usr/bin/env ruby
 require 'dcell'
-require 'dcell/registries/redis_adapter'
 
+require 'dcell/registries/redis_adapter'
 registry = DCell::Registry::RedisAdapter.new :server => 'localhost'
-DCell.start :id => "itchy", :registry => registry
 
 class Itchy
   include Celluloid
@@ -23,6 +22,8 @@ class Itchy
     @n
   end
 end
-
 Itchy.supervise_as :itchy
+
+DCell.start :id => "itchy", :registry => registry
+
 sleep

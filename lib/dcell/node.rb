@@ -72,7 +72,7 @@ module DCell
     end
 
     def move_node
-      addr = Directory[id]
+      addr = Directory[id].address
       kill_actors
       if addr
         update_client_address addr
@@ -168,7 +168,6 @@ module DCell
       return nil if mailbox.kind_of? NilClass
       actor = DCell::ActorProxy.new self, mailbox, methods
       add_actor actor
-      actor
     end
     alias_method :[], :find
 

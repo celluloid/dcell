@@ -20,4 +20,9 @@ describe DCell do
     DCellMock.setup :registry => registry
     DCellMock.id.should_not == nil
   end
+
+  it "finds remote actors" do
+    actor = DCell[:test_actor].first
+    actor.value.should == 42
+  end
 end

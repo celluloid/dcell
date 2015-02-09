@@ -9,7 +9,7 @@ module DCell
       # Finds a node by its node ID and adds to the cache
       def find(id)
         return DCell.me if id == DCell.id
-        addr = Directory[id]
+        addr = Directory[id].address
         return nil unless addr
         loop do
           begin

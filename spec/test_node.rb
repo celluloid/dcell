@@ -50,13 +50,13 @@ class TestActor
     'Bazinga'
   end
 end
+TestActor.supervise_as :test_actor
 
 Celluloid.logger = nil
 Celluloid.shutdown_timeout = 1
 
 options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
 options.merge! test_options
-DCell.setup options
-TestActor.supervise_as :test_actor
-DCell.run!
+
+DCell.start options
 sleep

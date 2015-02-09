@@ -84,6 +84,17 @@ module DCell
       @actors.to_a
     end
 
+    # Returns actors from multiple nodes
+    def find(actor)
+      actors = Array.new
+      Directory.each do |node|
+        next unless node.actors.include? actor
+        actors << Node[node.id][actor]
+      end
+      actors
+    end
+    alias_method :[], :find
+
     def config(option)
       unless @configuration
         Logger.warn "DCell unconfigured, can't get #{option}"
@@ -106,7 +117,7 @@ module DCell
     # Updates server address of the node
     def addr=(addr)
       @configuration['addr'] = addr
-      Directory.set @configuration['id'], addr
+      Directory[id].address = addr
       @me.update_server_address addr
     end
     alias_method :address=, :addr=
@@ -135,6 +146,7 @@ module DCell
 
     # Run the DCell application in the background
     def run!
+      Directory[id].actors = local_actors
       DCell::SupervisionGroup.run!
     end
 
@@ -144,6 +156,7 @@ module DCell
       run!
     end
   end
+
   extend ClassMethods
 
   # DCell's actor dependencies
