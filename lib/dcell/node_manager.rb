@@ -9,11 +9,19 @@ module DCell
       # Finds a node by its node ID and adds to the cache
       def find(id)
         return DCell.me if id == DCell.id
-
-        @nodes.register(id) do
-          addr = Directory[id]
-          return nil unless addr
-          Node.new id, addr
+        addr = Directory[id]
+        return nil unless addr
+        loop do
+          begin
+            node = nil
+            return @nodes.register(id) do
+              node = Node.new id, addr
+            end
+          rescue ResourceManagerConflict => e
+            Logger.warn "Conflict on registering node #{id}"
+            node.terminate
+            next
+          end
         end
       end
       alias_method :[], :find
