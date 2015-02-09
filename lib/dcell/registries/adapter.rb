@@ -14,20 +14,20 @@ module DCell
     # It's up to the registry backend how namespaces are implented(dedicated tables, databases, combinatation of ns:key, etc.)
 
     module Node
-      def get_node(node_id)
-        @node_registry.get(node_id)
+      def get_node(id)
+        @node_registry.get(id)
       end
 
-      def set_node(node_id, addr)
-        @node_registry.set(node_id, addr)
+      def set_node(id, meta)
+        @node_registry.set(id, meta)
       end
 
       def nodes
         @node_registry.all
       end
 
-      def remove_node(node_id)
-        @node_registry.remove(node_id)
+      def remove_node(id)
+        @node_registry.remove(id)
       end
 
       def clear_all_nodes
