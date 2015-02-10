@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 require 'dcell'
-
-require 'dcell/registries/redis_adapter'
-registry = DCell::Registry::RedisAdapter.new :server => 'localhost'
+require_relative 'registry'
 
 class Itchy
   include Celluloid

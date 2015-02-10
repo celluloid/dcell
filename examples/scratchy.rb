@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 require 'dcell'
-require 'dcell/registries/redis_adapter'
+require_relative 'registry'
 
-registry = DCell::Registry::RedisAdapter.new :server => 'localhost'
 DCell.start :registry => registry
+
 itchy_node = DCell::Node["itchy"]
 itchy = itchy_node[:itchy]
 
