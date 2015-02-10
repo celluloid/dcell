@@ -1,6 +1,18 @@
 #!/usr/bin/env ruby
+
 require 'dcell'
+require 'optparse'
 require_relative 'registry'
+
+id = 'itchy'
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: itchy.rb [options]"
+
+  opts.on("--id ID", "Assign node ID") do |v|
+    id = v
+  end
+end.parse!
 
 class Itchy
   include Celluloid
@@ -19,9 +31,18 @@ class Itchy
     end
     @n
   end
+
+  def work(value)
+    res = 0
+    10000.times do
+      res += Math.log2(value + 1)
+    end
+    res
+  end
 end
 Itchy.supervise_as :itchy
 
-DCell.start :id => "itchy", :registry => registry
+puts "Starting itchy with ID '#{id}'"
+DCell.start :id =>id, :registry => registry
 
 sleep
