@@ -164,9 +164,9 @@ module DCell
     # Find an call registered with a given name on this node
     def find(name)
       request = Message::Find.new(Thread.mailbox, name)
-      mailbox, methods = send_request request
-      return nil if mailbox.kind_of? NilClass
-      actor = DCell::ActorProxy.new self, mailbox, methods
+      methods = send_request request
+      return nil if methods.kind_of? NilClass
+      actor = DCell::ActorProxy.new self, name, methods
       add_actor actor
     end
     alias_method :[], :find

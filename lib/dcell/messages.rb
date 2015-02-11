@@ -49,11 +49,11 @@ module DCell
 
       def dispatch
         actor = DCell.get_local_actor @name
-        mailbox, methods = nil, nil
+        methods = nil
         if actor
-          mailbox, methods = actor.mailbox, actor.class.instance_methods(false)
+          methods = actor.class.instance_methods(false)
         end
-        respond SuccessResponse.new(@id, @sender[:address], [mailbox, methods])
+        respond SuccessResponse.new(@id, @sender[:address], methods)
       end
 
       def to_msgpack(pk=nil)
@@ -96,21 +96,12 @@ module DCell
         @sender, @message = sender, message
       end
 
-      def find_actor(mailbox)
-        ::Thread.list.each do |t|
-          if actor = t[:celluloid_actor]
-            return actor if actor.mailbox.address == mailbox[:address]
-          end
-        end
-        nil
-      end
-
       def __dispatch(actor)
         value = nil
-        if message[:block]
-          Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args] {|v| value = v}
+        if @message[:block]
+          Celluloid::Actor::call actor.mailbox, @message[:meth], *@message[:args] {|v| value = v}
         else
-          value = Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args]
+          value = Celluloid::Actor::call actor.mailbox, @message[:meth], *@message[:args]
         end
          SuccessResponse.new(@id, @sender[:address], value)
       rescue => e
@@ -118,7 +109,7 @@ module DCell
       end
 
       def dispatch
-        actor = find_actor(message[:mailbox])
+        actor = DCell.get_local_actor @message[:actor].to_sym
         if actor
           rsp = __dispatch actor
         else

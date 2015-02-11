@@ -3,8 +3,8 @@ module DCell
   class ActorProxy
     include Celluloid
 
-    def initialize(lnode, rmailbox, methods)
-      @lnode, @rmailbox = lnode, rmailbox
+    def initialize(lnode, actor, methods)
+      @lnode, @actor = lnode, actor
       methods.each do |meth|
         self.class.send(:define_method, meth) do |*args, &block|
           begin
@@ -18,7 +18,7 @@ module DCell
 
     private
     def ______method_missing(meth, *args, &block)
-      message = {:mailbox => @rmailbox, :meth => meth, :args => args, :block => block_given?}
+      message = {:actor => @actor, :meth => meth, :args => args, :block => block_given?}
       begin
         res = @lnode.relay message
         if block_given?
