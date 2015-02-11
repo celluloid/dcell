@@ -105,20 +105,22 @@ module DCell
         nil
       end
 
+      def __dispatch(actor)
+        value = nil
+        if message[:block]
+          Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args] {|v| value = v}
+        else
+          value = Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args]
+        end
+         SuccessResponse.new(@id, @sender[:address], value)
+      rescue => e
+        ErrorResponse.new(@id, @sender[:address], {:class => RuntimeError.name, :msg => e.to_s})
+      end
+
       def dispatch
         actor = find_actor(message[:mailbox])
         if actor
-          begin
-            value = nil
-            if message[:block]
-              Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args] {|v| value = v}
-            else
-              value = Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args]
-            end
-            rsp = SuccessResponse.new(@id, @sender[:address], value)
-          rescue => e
-            rsp = ErrorResponse.new(@id, @sender[:address], {:class => RuntimeError.name, :msg => e.to_s})
-          end
+          rsp = __dispatch actor
         else
           rsp = DeadActorResponse.new(@id, @sender[:address], nil)
         end
