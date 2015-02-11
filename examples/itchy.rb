@@ -17,9 +17,12 @@ end.parse!
 class Itchy
   include Celluloid
 
+  attr_accessor :res, :n
+
   def initialize
     puts "Ready for mayhem!"
     @n = 0
+    @res = 0
   end
 
   def fight
@@ -33,10 +36,12 @@ class Itchy
   end
 
   def work(value)
+    @n += 1
     res = 0
     10000.times do
       res += Math.log2(value + 1)
     end
+    @res += res
     res
   end
 end
