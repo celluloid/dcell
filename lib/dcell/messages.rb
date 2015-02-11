@@ -8,6 +8,15 @@ module DCell
       @id = object_id
     end
 
+    def respond(rsp)
+      node = Node[@sender[:id]]
+      if node
+        node.async.send_message rsp
+      else
+        Logger.warn "Node #{@sender[:id]} gone"
+      end
+    end
+
     # Heartbeat messages inform other nodes this node is healthy
     class Heartbeat < Message
       def initialize(from)
@@ -44,7 +53,7 @@ module DCell
         if actor
           mailbox, methods = actor.mailbox, actor.class.instance_methods(false)
         end
-        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], [mailbox, methods])
+        respond SuccessResponse.new(@id, @sender[:address], [mailbox, methods])
       end
 
       def to_msgpack(pk=nil)
@@ -66,7 +75,7 @@ module DCell
       end
 
       def dispatch
-        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], DCell.local_actors)
+        respond SuccessResponse.new(@id, @sender[:address], DCell.local_actors)
       end
 
       def to_msgpack(pk=nil)
@@ -113,7 +122,7 @@ module DCell
         else
           rsp = DeadActorResponse.new(@id, @sender[:address], nil)
         end
-        Node[@sender[:id]].async.send_message rsp
+        respond rsp
       end
 
       def to_msgpack(pk=nil)
