@@ -38,16 +38,17 @@ class Itchy
   def work(value)
     @n += 1
     res = 0
-    10000.times do
-      res += Math.log2(value + 1)
+    100000.times do
+      res += (value + 1) ** 2
     end
     @res += res
     res
   end
 end
-Itchy.supervise_as :itchy
 
-puts "Starting itchy with ID '#{id}'"
-DCell.start :id =>id, :registry => registry
-
-sleep
+if __FILE__ == $0
+  Itchy.supervise_as :itchy
+  puts "Starting itchy with ID '#{id}'"
+  DCell.start :id =>id, :registry => registry
+  sleep
+end
