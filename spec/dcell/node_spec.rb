@@ -11,8 +11,12 @@ describe DCell::Node do
   end
 
   before :each do
-    @node = wait_for_actor TEST_NODE[:id]
-    @node.id.should == TEST_NODE[:id]
+    id = TEST_NODE[:id]
+    @node = wait_for_actor id
+    @node.id.should == id
+
+    @unique = SecureRandom.hex
+    @node[:test_actor].mutable = @unique
   end
 
   it "finds all available nodes" do
@@ -31,23 +35,27 @@ describe DCell::Node do
   end
 
   context :crashing, :pending => RUBY_ENGINE=="jruby" do
-    it "retries remote actor lookup" do
-      @node[:test_actor].suicide 3
-      sleep 4
-      @node[:test_actor].value.should == 42
-    end
-
-    def wait_for_death(actor)
+    def wait_for_death(time)
+      sleep time + 1
+      id = TEST_NODE[:id]
       10.times do
-        break unless actor.alive?
-        sleep 1
+        node = DCell::Node[id]
+        begin
+          if node and node[:test_actor].mutable != @unique
+            return
+          end
+          sleep 1
+        rescue Celluloid::DeadActorError, Celluloid::Task::TerminatedError
+          return
+        end
       end
+      raise Exception, "Failed to wait for actor death"
     end
 
     it "raises exception on a sync call to dead actor" do
       actor = @node[:test_actor]
       actor.suicide 3
-      wait_for_death actor
+      wait_for_death 3
       expect {actor.value}.to raise_error Celluloid::DeadActorError
     end
 
@@ -55,35 +63,35 @@ describe DCell::Node do
       actor = @node[:test_actor]
       actor.async.suicide 0
       future = actor.future.value
-      wait_for_death actor
+      wait_for_death 0
       expect {future.value}.to raise_error Celluloid::DeadActorError
     end
 
     it "raises exception on access to the value of future operation which crashed the actor" do
       actor = @node[:test_actor]
       future = actor.future.suicide 0
-      wait_for_death actor
+      wait_for_death 0
       expect {future.value}.to raise_error Celluloid::DeadActorError
     end
 
     it "raises exception on sync operation if remote actor dies during async operation" do
       actor = @node[:test_actor]
       actor.async.suicide 0
-      wait_for_death actor
+      wait_for_death 0
       expect {actor.value}.to raise_error Celluloid::DeadActorError
     end
 
     it "raises exception on async operation if remote actor dies during async operation" do
       actor = @node[:test_actor]
       actor.async.suicide 0
-      wait_for_death actor
+      wait_for_death 0
       expect {actor.async}.to raise_error Celluloid::DeadActorError
     end
 
     it "raises exception on future operation if remote actor dies during async operation" do
       actor = @node[:test_actor]
       actor.async.suicide 0
-      wait_for_death actor
+      wait_for_death 0
       expect {actor.future}.to raise_error Celluloid::DeadActorError
     end
   end

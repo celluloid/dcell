@@ -39,13 +39,13 @@ class TestActor
     raise "the spec purposely crashed me :("
   end
 
-  def suicide(delay)
-    SimpleCov.result.format!
+  def suicide(delay, sig=:TERM)
+    SimpleCov.result.format! if sig == :KILL
     # avoid scheduling if no delay
     if delay > 0
-      after (delay) {Process.kill :KILL, Process.pid}
+      after (delay) {Process.kill sig, Process.pid}
     else
-      Process.kill :KILL, Process.pid
+      Process.kill sig, Process.pid
     end
     'Bazinga'
   end
