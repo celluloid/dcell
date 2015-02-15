@@ -13,6 +13,13 @@ module DCell
             raise e
           end
         end
+        self.class.send(:define_method, "____async_#{meth}") do |*args|
+          begin
+            ______async_method_missing meth.to_sym, *args
+          rescue AbortError => e
+            raise e
+          end
+        end
       end
     end
 
@@ -26,6 +33,15 @@ module DCell
         else
           res
         end
+      rescue Celluloid::Task::TerminatedError
+        abort Celluloid::DeadActorError.new
+      end
+    end
+
+    def ______async_method_missing(meth, *args)
+      message = {:actor => @actor, :meth => meth, :args => args, :async => true}
+      begin
+        @lnode.async_relay message
       rescue Celluloid::Task::TerminatedError
         abort Celluloid::DeadActorError.new
       end

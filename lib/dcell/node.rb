@@ -187,6 +187,12 @@ module DCell
       send_request request
     end
 
+    # Relay async message to remote actor
+    def async_relay(message)
+      request = Message::Relay.new(Thread.mailbox, message)
+      send_message request
+    end
+
     # Send a message to another DCell node
     def send_message(message)
       begin

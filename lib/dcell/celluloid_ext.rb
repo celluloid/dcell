@@ -26,6 +26,16 @@ module Celluloid
     end
   end
 
+  class AsyncProxy
+    alias_method :____method_missing, :method_missing
+    def method_missing(meth, *args, &block)
+      if @klass == "DCell::ActorProxy"
+        meth = "____async_#{meth}".to_sym
+      end
+      ____method_missing meth, *args, &block
+    end
+  end
+
   class CellProxy
     alias_method :____async, :async
     def async(meth = nil, *args, &block)

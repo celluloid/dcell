@@ -110,6 +110,10 @@ module DCell
 
       def dispatch
         actor = DCell.get_local_actor @message[:actor].to_sym
+        if @message[:async]
+          Celluloid::Actor::async actor.mailbox, @message[:meth], *@message[:args]
+          return
+        end
         if actor
           rsp = __dispatch actor
         else
