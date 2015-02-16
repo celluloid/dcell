@@ -38,6 +38,25 @@ module DCell
       end
     end
 
+    # Farewell messages notifies that remote node dies
+    class Farewell < Message
+      def initialize
+        @id = DCell.id
+      end
+
+      def dispatch
+        node = DCell::NodeCache.find @id
+        node.terminate if node
+      end
+
+      def to_msgpack(pk=nil)
+        {
+          :type => self.class.name,
+          :id   => @id,
+        }.to_msgpack(pk)
+      end
+    end
+
     # Query a node for the address of an actor
     class Find < Message
       attr_reader :sender, :name

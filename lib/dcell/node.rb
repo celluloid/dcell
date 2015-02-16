@@ -19,7 +19,7 @@ module DCell
     state :partitioned do
       @heartbeat.cancel if @heartbeat
       Logger.warn "Communication with #{id} interrupted"
-      move_node
+      reattach
     end
 
     # Access sugar to NodeManager methods
@@ -35,6 +35,7 @@ module DCell
       @heartbeat = nil
       @requests = ResourceManager.new
       @actors = ResourceManager.new
+      @remote_dead = false
 
       @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
       @heartbeat_timeout = DCell.heartbeat_timeout # How soon until a lost heartbeat triggers a node partition
@@ -71,13 +72,14 @@ module DCell
       end
     end
 
-    def move_node
-      addr = Directory[id].address
+    def reattach
       kill_actors
+      addr = Directory[id].address
       if addr
         update_client_address addr
         retry_requests
       else
+        @remote_dead = true
         terminate
       end
     end
@@ -98,9 +100,14 @@ module DCell
 
     def shutdown
       transition :shutdown
+      unless @remote_dead or DCell.id == id
+        kill_actors
+        farewell
+      end
       @socket.close if @socket
       NodeCache.delete id
       MailboxManager.delete Thread.mailbox
+      Logger.info "Disconnected from #{id}"
     end
 
     # Obtain the node's 0MQ socket
@@ -109,6 +116,7 @@ module DCell
 
       @socket = Celluloid::ZMQ::PushSocket.new
       begin
+        raise IOError unless @addr
         @socket.connect @addr
         @socket.linger = @heartbeat_timeout * 1000
       rescue IOError
@@ -190,6 +198,12 @@ module DCell
     # Relay async message to remote actor
     def async_relay(message)
       request = Message::Relay.new(Thread.mailbox, message)
+      send_message request
+    end
+
+    # Goodbye message to remote actor
+    def farewell
+      request = Message::Farewell.new
       send_message request
     end
 

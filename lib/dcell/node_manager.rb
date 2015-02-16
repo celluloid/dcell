@@ -1,13 +1,11 @@
 module DCell
   # Node discovery
   class NodeCache
-    include Enumerable
-
     @nodes = ResourceManager.new
 
     class << self
       # Finds a node by its node ID and adds to the cache
-      def find(id)
+      def register(id)
         return DCell.me if id == DCell.id
         addr = Directory[id].address
         return nil unless addr
@@ -24,10 +22,17 @@ module DCell
           end
         end
       end
-      alias_method :[], :find
+
+      def find(id)
+        @nodes.find id
+      end
 
       def delete(id)
         @nodes.delete id
+      end
+
+      def each(*args, &block)
+        @nodes.each *args, &block
       end
     end
   end
@@ -50,7 +55,7 @@ module DCell
 
     # Find a node by its node ID
     def find(id)
-      NodeCache.find id
+      NodeCache.register id
     end
     alias_method :[], :find
   end
