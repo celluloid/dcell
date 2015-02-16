@@ -19,7 +19,7 @@ module DCell
     state :partitioned do
       @heartbeat.cancel if @heartbeat
       Logger.warn "Communication with #{id} interrupted"
-      reattach
+      detach
     end
 
     # Access sugar to NodeManager methods
@@ -45,19 +45,17 @@ module DCell
     end
 
     def save_request(request)
-      return if request.kind_of? Message::Relay
       @requests.register(request.id) {request}
     end
 
     def delete_request(request)
-      return if request.kind_of? Message::Relay
       @requests.delete request.id
     end
 
-    def retry_requests
+    def cancel_requests
       @requests.each do |id, request|
         address = request.sender.address
-        rsp = RetryResponse.new id, address
+        rsp = CancelResponse.new id, address
         rsp.dispatch
       end
     end
@@ -72,26 +70,11 @@ module DCell
       end
     end
 
-    def reattach
+    def detach
       kill_actors
-      addr = Directory[id].address
-      if addr
-        update_client_address addr
-        retry_requests
-      else
-        @remote_dead = true
-        terminate
-      end
-    end
-
-    def update_client_address(addr)
-      @heartbeat.cancel if @heartbeat
-      @addr = addr
-      if @socket
-        @socket.close
-        @socket = nil
-      end
-      socket
+      cancel_requests
+      @remote_dead = true
+      terminate
     end
 
     def update_server_address(addr)
@@ -133,40 +116,22 @@ module DCell
     def push_request(request)
       send_message request
       save_request request
-      response = receive(@heartbeat_timeout*2) do |msg|
+      response = receive do |msg|
         msg.respond_to?(:request_id) && msg.request_id == request.id
       end
       delete_request request
       response
     end
 
-    def dead_actor
-      raise ::Celluloid::DeadActorError.new
-    end
-
-    def handle_response(request, response)
-      unless response
-        dead_actor if request.kind_of? Message::Relay
-        return false
-      end
-      return false if response.is_a? RetryResponse
-      dead_actor if response.is_a? DeadActorResponse
+    def send_request(request)
+      response = push_request request
+      return if response.is_a? CancelResponse
       if response.is_a? ErrorResponse
         klass = Utils::full_const_get response.value[:class]
         msg = response.value[:msg]
         raise klass.new msg
       end
-      true
-    end
-
-    def send_request(request)
-      # FIXME: need a robust way to retry the lost requests
-      loop do
-        response = push_request request
-        if handle_response request, response
-          return response.value
-        end
-      end
+      response.value
     end
 
     # Find an call registered with a given name on this node
@@ -217,7 +182,7 @@ module DCell
       socket << message
     end
     alias_method :<<, :send_message
-    
+
     # Send a heartbeat message after the given interval
     def send_heartbeat
       return if DCell.id == id

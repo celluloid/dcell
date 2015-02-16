@@ -54,8 +54,15 @@ describe DCell::Node do
 
     it "raises exception on a sync call to dead actor" do
       actor = @node[:test_actor]
-      actor.suicide 3
-      wait_for_death 3
+      actor.suicide 1
+      wait_for_death 1
+      expect {actor.value}.to raise_error Celluloid::DeadActorError
+    end
+
+    it "raises exception on a sync call to dead actor even if it was killed" do
+      actor = @node[:test_actor]
+      actor.suicide 1, :KILL
+      wait_for_death 1
       expect {actor.value}.to raise_error Celluloid::DeadActorError
     end
 

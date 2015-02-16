@@ -26,9 +26,6 @@ module DCell
   # Request failed
   class ErrorResponse < Response; end
 
-  # Retry response (request to retry action)
-  class RetryResponse < Response; end
-
-  # Remote actor is dead
-  class DeadActorResponse < Response; end
+  # Internal response to cancel pending request (remote node is likely dead)
+  class CancelResponse < Response; end
 end

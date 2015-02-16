@@ -46,7 +46,7 @@ module DCell
 
       def dispatch
         node = DCell::NodeCache.find @id
-        node.terminate if node
+        node.detach if node
       end
 
       def to_msgpack(pk=nil)
@@ -133,11 +133,7 @@ module DCell
           Celluloid::Actor::async actor.mailbox, @message[:meth], *@message[:args]
           return
         end
-        if actor
-          rsp = __dispatch actor
-        else
-          rsp = DeadActorResponse.new(@id, @sender[:address], nil)
-        end
+        rsp = __dispatch actor
         respond rsp
       end
 
