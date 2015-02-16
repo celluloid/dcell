@@ -124,7 +124,7 @@ module DCell
         end
          SuccessResponse.new(@id, @sender[:address], value)
       rescue => e
-        ErrorResponse.new(@id, @sender[:address], {:class => RuntimeError.name, :msg => e.to_s})
+        ErrorResponse.new(@id, @sender[:address], {:class => e.class.name, :msg => e.to_s})
       end
 
       def dispatch
