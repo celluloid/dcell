@@ -34,7 +34,7 @@ describe DCell::Node do
     @node.all.should include :test_actor
   end
 
-  context :crashing, :pending => RUBY_ENGINE=="jruby" do
+  context :crashing do
     def wait_for_death(time)
       sleep time + 1
       id = TEST_NODE[:id]
