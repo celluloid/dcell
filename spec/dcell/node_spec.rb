@@ -3,7 +3,7 @@ describe DCell::Node do
     30.times do
       node = DCell::Node[id]
       begin
-        return node if node and node.all
+        return node if node and node.all and node.alive?
       rescue Celluloid::DeadActorError, Celluloid::Task::TerminatedError
       end
       sleep 1
@@ -41,7 +41,7 @@ describe DCell::Node do
       10.times do
         node = DCell::Node[id]
         begin
-          if node and node[:test_actor].mutable != @unique
+          if node and node.alive? and node[:test_actor].mutable != @unique
             return
           end
           sleep 1
@@ -68,7 +68,7 @@ describe DCell::Node do
 
     it "raises exception on access to the value of future operation if remote actor dies" do
       actor = @node[:test_actor]
-      actor.async.suicide 0
+      actor.async.suicide 0, :KILL
       future = actor.future.value
       wait_for_death 0
       expect {future.value}.to raise_error Celluloid::DeadActorError
@@ -76,9 +76,9 @@ describe DCell::Node do
 
     it "raises exception on access to the value of future operation which crashed the actor" do
       actor = @node[:test_actor]
-      future = actor.future.suicide 0
+      future = actor.future.suicide 0, :KILL
       wait_for_death 0
-      expect {future.value}.to raise_error Celluloid::DeadActorError
+      expect {p future.value}.to raise_error Celluloid::DeadActorError
     end
 
     it "raises exception on sync operation if remote actor dies during async operation" do
