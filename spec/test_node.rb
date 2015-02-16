@@ -40,6 +40,7 @@ class TestActor
   end
 
   def suicide(delay, sig=:TERM)
+    sig = sig.to_sym
     SimpleCov.result.format! if sig == :KILL
     # avoid scheduling if no delay
     if delay > 0
