@@ -38,7 +38,7 @@ describe DCell::Node do
     def wait_for_death(time)
       sleep time + 1
       id = TEST_NODE[:id]
-      10.times do
+      30.times do
         node = DCell::Node[id]
         begin
           if node and node.alive? and node[:test_actor].mutable != @unique
@@ -46,7 +46,7 @@ describe DCell::Node do
           end
           sleep 1
         rescue Celluloid::DeadActorError, Celluloid::Task::TerminatedError
-          return
+          sleep 1
         end
       end
       raise Exception, "Failed to wait for actor death"
