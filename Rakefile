@@ -10,8 +10,8 @@ task :default do
   res = 0
   [:clean, 'testnode:bg', :spec, 'testnode:finish', 'coveralls:push'].each do |tsk|
     if tsk == :spec
-      sh "rake spec" do
-        res = 1
+      sh "rake spec" do |r|
+        res = 1 unless r
       end
     else
       Rake::Task[tsk].invoke
