@@ -17,7 +17,7 @@ module DCell
             end
           rescue ResourceManagerConflict => e
             Logger.warn "Conflict on registering node #{id}"
-            node.terminate
+            node.detach
             next
           end
         end
