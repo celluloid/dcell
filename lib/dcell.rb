@@ -89,7 +89,11 @@ module DCell
       actors = Array.new
       Directory.each do |node|
         next unless node.actors.include? actor
-        actors << Node[node.id][actor]
+        begin
+          actors << Node[node.id][actor]
+        rescue Exception => e
+          Logger.warn "Failed to get actor '#{actor}' on node '#{node.id}': #{e}"
+        end
       end
       actors
     end

@@ -16,7 +16,11 @@ module DCell
 
     def dispatch
       mailbox = MailboxManager.find @address
-      mailbox << self
+      if mailbox
+        mailbox << self
+      else
+        Logger.error "Failed to find mailbox at #{@address} for #{self.class.name}"
+      end
     end
   end
 
