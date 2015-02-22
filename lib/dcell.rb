@@ -37,7 +37,7 @@ module DCell
   end
 
   module ClassMethods
-    attr_reader :me, :registry
+    attr_reader :me
 
     # Configure DCell with the following options:
     #
@@ -49,19 +49,29 @@ module DCell
       options = options.inject({}) { |h,(k,v)| h[k.to_sym] = v; h }
 
       @lock.synchronize do
-        @configuration = {
+        configuration = {
           addr: "tcp://127.0.0.1:*",
           heartbeat_rate: 5,
           heartbeat_timeout: 10,
           async_pool_size: 50,
+          id: nil,
         }.merge(options)
 
-        @registry = @configuration[:registry]
-        raise ArgumentError, "no registry adapter given in config" unless @registry
+        configuration.each do |name, value|
+          instance_variable_set "@#{name}", value
+          self.class.class_eval do
+            attr_reader name
+          end
+        end
+        self.class.class_eval do
+          alias_method :address, :addr
+        end
 
-        @configuration[:id] ||= generate_node_id
-        @me = Node.new @configuration[:id], nil
-        ObjectSpace.define_finalizer(me, proc {Directory.remove @configuration[:id]})
+        raise ArgumentError, "no registry adapter given in config" unless @registry
+        @id ||= generate_node_id
+
+        @me = Node.new @id, nil
+        ObjectSpace.define_finalizer(me, proc {Directory.remove @id})
       end
 
       me
@@ -100,47 +110,13 @@ module DCell
     end
     alias_method :[], :find
 
-    def config(option)
-      unless @configuration
-        Logger.warn "DCell unconfigured, can't get #{option}"
-        return nil
-      end
-      @configuration[option]
-    end
-
-    # Obtain the local node ID
-    def id
-      config :id
-    end
-
-    # Obtain the 0MQ address to the local mailbox
-    def addr
-      config :addr
-    end
-    alias_method :address, :addr
-
     # Updates server address of the node
     def addr=(addr)
-      @configuration[:addr] = addr
+      @addr = addr
       Directory[id].address = addr
       @me.update_server_address addr
     end
     alias_method :address=, :addr=
-
-    # Default heartbeat rate for the nodes
-    def heartbeat_rate
-      config :heartbeat_rate
-    end
-
-    # Default heartbeat timeout for the nodes
-    def heartbeat_timeout
-      config :heartbeat_timeout
-    end
-
-    # Max size of mailbox when processing async messages
-    def async_pool_size
-      config :async_pool_size
-    end
 
     # Attempt to generate a unique node ID for this machine
     def generate_node_id
