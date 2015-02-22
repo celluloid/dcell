@@ -38,20 +38,6 @@ module DCell
         field :value, type: BSON::Binary
       end
 
-      class DCellRequest
-        include Mongoid::Document
-
-        field :key, type: String
-        field :value, type: BSON::Binary
-      end
-
-      class DCellResponse
-        include Mongoid::Document
-
-        field :key, type: String
-        field :value, type: BSON::Binary
-      end
-
       class Registry
         def initialize(storage)
           @storage = storage
