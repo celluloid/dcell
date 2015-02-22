@@ -53,6 +53,7 @@ module DCell
           'addr' => "tcp://127.0.0.1:*",
           'heartbeat_rate' => 5,
           'heartbeat_timeout' => 10,
+          'async_pool_size' => 50,
         }.merge(options)
 
         @registry = @configuration['registry']
@@ -134,6 +135,11 @@ module DCell
     # Default heartbeat timeout for the nodes
     def heartbeat_timeout
       config 'heartbeat_timeout'
+    end
+
+    # Max size of mailbox when processing async messages
+    def async_pool_size
+      config 'async_pool_size'
     end
 
     # Attempt to generate a unique node ID for this machine
