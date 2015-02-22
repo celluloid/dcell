@@ -6,14 +6,6 @@ require_relative 'registry'
 
 id = 'itchy'
 
-OptionParser.new do |opts|
-  opts.banner = "Usage: itchy.rb [options]"
-
-  opts.on("--id ID", "Assign node ID") do |v|
-    id = v
-  end
-end.parse!
-
 class Itchy
   include Celluloid
 
@@ -47,6 +39,14 @@ class Itchy
 end
 
 if __FILE__ == $0
+  OptionParser.new do |opts|
+    opts.banner = "Usage: itchy.rb [options]"
+
+    opts.on("--id ID", "Assign node ID") do |v|
+      id = v
+    end
+  end.parse!
+
   Itchy.supervise_as :itchy
   puts "Starting itchy with ID '#{id}'"
   DCell.start :id =>id, :registry => registry

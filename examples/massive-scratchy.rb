@@ -2,6 +2,17 @@
 require 'dcell'
 require_relative 'registry'
 require_relative 'itchy'
+require 'optparse'
+
+local = true
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: massive-scratchy.rb [options]"
+
+  opts.on("--no-local", "Do not run local celluloid actor tests") do
+    local = false
+  end
+end.parse!
 
 DCell.start :registry => registry
 puts "Making itchy work hard everywhere!"
@@ -55,6 +66,8 @@ itchies = DCell[:itchy]
 run_test itchies, :future, "remote futures", repeat
 run_test itchies, :async, "remote async", repeat
 itchies.each {|itchy| itchy.terminate}
+
+exit unless local
 
 itchies = max.times.map {Itchy.new}
 run_test itchies, :future, "local futures", repeat
