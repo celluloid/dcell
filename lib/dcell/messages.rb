@@ -31,9 +31,9 @@ module DCell
 
       def to_msgpack(pk=nil)
         {
-          :type => self.class.name,
-          :id   => @id,
-          :args => [@from]
+          type: self.class.name,
+          id:   @id,
+          args: [@from]
         }.to_msgpack(pk)
       end
     end
@@ -51,8 +51,8 @@ module DCell
 
       def to_msgpack(pk=nil)
         {
-          :type => self.class.name,
-          :id   => @id,
+          type: self.class.name,
+          id:   @id,
         }.to_msgpack(pk)
       end
     end
@@ -77,9 +77,9 @@ module DCell
 
       def to_msgpack(pk=nil)
         {
-          :type => self.class.name,
-          :id   => @id,
-          :args => [@sender, @name]
+          type: self.class.name,
+          id:   @id,
+          args: [@sender, @name]
         }.to_msgpack(pk)
       end
     end
@@ -99,9 +99,9 @@ module DCell
 
       def to_msgpack(pk=nil)
         {
-          :type => self.class.name,
-          :id   => @id,
-          :args => [@sender]
+          type: self.class.name,
+          id:   @id,
+          args: [@sender]
         }.to_msgpack(pk)
       end
     end
@@ -134,7 +134,7 @@ module DCell
         end
          SuccessResponse.new(@id, @sender[:address], value)
       rescue => e
-        ErrorResponse.new(@id, @sender[:address], {:class => e.class.name, :msg => e.to_s})
+        ErrorResponse.new(@id, @sender[:address], {class: e.class.name, msg: e.to_s})
       end
 
       def dispatch
@@ -145,9 +145,9 @@ module DCell
 
       def to_msgpack(pk=nil)
         {
-          :type => self.class.name,
-          :id   => @id,
-          :args => [@sender, @message]
+          type: self.class.name,
+          id:   @id,
+          args: [@sender, @message]
         }.to_msgpack(pk)
       end
     end

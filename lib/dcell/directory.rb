@@ -31,8 +31,8 @@ module DCell
 
     def to_msgpack(pk=nil)
       {
-        :address => @address,
-        :actors => @actors,
+        address: @address,
+        actors: @actors,
       }.to_msgpack(pk)
     end
   end

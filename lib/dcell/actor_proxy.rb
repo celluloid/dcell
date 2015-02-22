@@ -25,7 +25,7 @@ module DCell
 
     private
     def ______method_missing(meth, *args, &block)
-      message = {:actor => @actor, :meth => meth, :args => args, :block => block_given?}
+      message = {actor: @actor, meth: meth, args: args, block: block_given?}
       begin
         res = @lnode.relay message
         if block_given?
@@ -39,7 +39,7 @@ module DCell
     end
 
     def ______async_method_missing(meth, *args)
-      message = {:actor => @actor, :meth => meth, :args => args, :async => true}
+      message = {actor: @actor, meth: meth, args: args, async: true}
       begin
         @lnode.async_relay message
       rescue Celluloid::Task::TerminatedError

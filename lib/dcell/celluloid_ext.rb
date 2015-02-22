@@ -13,8 +13,8 @@ module Celluloid
     def to_msgpack(pk=nil)
       DCell::MailboxManager.register self
       {
-        :address => @address,
-        :id      => DCell.id
+        address: @address,
+        id:      DCell.id
       }.to_msgpack(pk)
     end
   end

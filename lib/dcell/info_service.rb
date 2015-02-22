@@ -99,22 +99,22 @@ module DCell
       uptime_string = `uptime`
 
       {
-        :os            => os,
-        :os_version    => os_version,
-        :hostname      => hostname,
-        :platform      => platform,
-        :distribution  => distribution,
-        :ruby_version  => ruby_version,
-        :ruby_engine   => ruby_engine,
-        :ruby_platform => ruby_platform,
-        :load_averages => load_averages(uptime_string),
-        :uptime        => uptime(uptime_string),
-        :cpu => {
-          :arch   => cpu_arch,
-          :type   => cpu_type,
-          :vendor => cpu_vendor,
-          :speed  => cpu_speed,
-          :count  => cpu_count
+        os:            os,
+        os_version:    os_version,
+        hostname:      hostname,
+        platform:      platform,
+        distribution:  distribution,
+        ruby_version:  ruby_version,
+        ruby_engine:   ruby_engine,
+        ruby_platform: ruby_platform,
+        load_averages: load_averages(uptime_string),
+        uptime:        uptime(uptime_string),
+        cpu: {
+          arch:   cpu_arch,
+          type:   cpu_type,
+          vendor: cpu_vendor,
+          speed:  cpu_speed,
+          count:  cpu_count
         }
       }
     end

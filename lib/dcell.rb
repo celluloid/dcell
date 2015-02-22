@@ -45,23 +45,23 @@ module DCell
     # * addr: 0MQ address of the local node (e.g. tcp://4.3.2.1:7777)
     # *
     def setup(options = {})
-      # Stringify keys :/
-      options = options.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
+      # Symbolize keys!
+      options = options.inject({}) { |h,(k,v)| h[k.to_sym] = v; h }
 
       @lock.synchronize do
         @configuration = {
-          'addr' => "tcp://127.0.0.1:*",
-          'heartbeat_rate' => 5,
-          'heartbeat_timeout' => 10,
-          'async_pool_size' => 50,
+          addr: "tcp://127.0.0.1:*",
+          heartbeat_rate: 5,
+          heartbeat_timeout: 10,
+          async_pool_size: 50,
         }.merge(options)
 
-        @registry = @configuration['registry']
+        @registry = @configuration[:registry]
         raise ArgumentError, "no registry adapter given in config" unless @registry
 
-        @configuration['id'] ||= generate_node_id
-        @me = Node.new @configuration['id'], nil
-        ObjectSpace.define_finalizer(me, proc {Directory.remove @configuration['id']})
+        @configuration[:id] ||= generate_node_id
+        @me = Node.new @configuration[:id], nil
+        ObjectSpace.define_finalizer(me, proc {Directory.remove @configuration[:id]})
       end
 
       me
@@ -110,18 +110,18 @@ module DCell
 
     # Obtain the local node ID
     def id
-      config 'id'
+      config :id
     end
 
     # Obtain the 0MQ address to the local mailbox
     def addr
-      config 'addr'
+      config :addr
     end
     alias_method :address, :addr
 
     # Updates server address of the node
     def addr=(addr)
-      @configuration['addr'] = addr
+      @configuration[:addr] = addr
       Directory[id].address = addr
       @me.update_server_address addr
     end
@@ -129,17 +129,17 @@ module DCell
 
     # Default heartbeat rate for the nodes
     def heartbeat_rate
-      config 'heartbeat_rate'
+      config :heartbeat_rate
     end
 
     # Default heartbeat timeout for the nodes
     def heartbeat_timeout
-      config 'heartbeat_timeout'
+      config :heartbeat_timeout
     end
 
     # Max size of mailbox when processing async messages
     def async_pool_size
-      config 'async_pool_size'
+      config :async_pool_size
     end
 
     # Attempt to generate a unique node ID for this machine
@@ -171,8 +171,8 @@ module DCell
 
   # DCell's actor dependencies
   class SupervisionGroup < Celluloid::SupervisionGroup
-    supervise Server,      :as => :dcell_server, :args => [DCell]
-    supervise InfoService, :as => :info
+    supervise Server,      as: :dcell_server, args: [DCell]
+    supervise InfoService, as: :info
   end
   DCell.add_local_actor :info
 

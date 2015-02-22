@@ -10,10 +10,10 @@ module DCell
     # FSM
     default_state :disconnected
     state :shutdown
-    state :disconnected, :to => [:connected, :shutdown]
+    state :disconnected, to: [:connected, :shutdown]
     state :connected do
       send_heartbeat
-      transition :partitioned, :delay => @heartbeat_timeout
+      transition :partitioned, delay: @heartbeat_timeout
       Logger.info "Connected to #{id}"
     end
     state :partitioned do
@@ -194,7 +194,7 @@ module DCell
     def handle_heartbeat(from)
       return if from == id
       transition :connected
-      transition :partitioned, :delay => @heartbeat_timeout
+      transition :partitioned, delay: @heartbeat_timeout
     end
 
     # Friendlier inspection
