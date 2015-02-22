@@ -29,6 +29,7 @@ module DCell
         return
       end
 
+      # this may break the order of in which commands are executed from a single client
       Celluloid::Future.new do
         begin
           message.dispatch
