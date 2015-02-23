@@ -72,7 +72,7 @@ module DCell
     # Wait for incoming 0MQ messages
     def run
       while true
-        async.handle_message @socket.read
+        handle_message @socket.read
       end
     end
   end
