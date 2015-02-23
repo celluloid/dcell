@@ -115,32 +115,22 @@ module DCell
         @sender, @message = sender, message
       end
 
-      def __dispatch(actor)
-        value = nil
-        mailbox = actor.mailbox
-        if @message[:async]
-          if mailbox.size > DCell.async_pool_size
-            Logger.info "Mailbox of actor '#{@message[:actor]}' is full, syncing"
-            Celluloid::Actor::call mailbox, @message[:meth], *@message[:args] {|v| value = v}
-          else
-            Celluloid::Actor::async mailbox, @message[:meth], *@message[:args]
-          end
-          return nil
-        end
-        if @message[:block]
-          Celluloid::Actor::call mailbox, @message[:meth], *@message[:args] {|v| value = v}
-        else
-          value = Celluloid::Actor::call mailbox, @message[:meth], *@message[:args]
-        end
-         SuccessResponse.new(@id, @sender[:address], value)
-      rescue => e
-        ErrorResponse.new(@id, @sender[:address], {class: e.class.name, msg: e.to_s})
+      def success(value)
+        respond SuccessResponse.new(@id, @sender[:address], value)
+      end
+
+      def exception(e)
+        respond ErrorResponse.new(@id, @sender[:address], {class: e.class.name, msg: e.to_s})
       end
 
       def dispatch
         actor = DCell.get_local_actor @message[:actor].to_sym
-        rsp = __dispatch actor
-        respond rsp if rsp
+        begin
+          mailbox = actor.mailbox
+          Celluloid::Actor::async mailbox, :____dcell_dispatch, self
+        rescue => e
+          respond ErrorResponse.new(@id, @sender[:address], {class: e.class.name, msg: e.to_s})
+        end
       end
 
       def to_msgpack(pk=nil)

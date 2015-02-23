@@ -19,6 +19,23 @@ module Celluloid
     end
   end
 
+  module InstanceMethods
+    def ____dcell_dispatch(message)
+      info = message.message
+      begin
+        value = nil
+        if info[:block]
+          send(info[:meth], *info[:args]) {|v| value = v}
+        else
+          value = send(info[:meth], *info[:args])
+        end
+        message.success value
+      rescue => e
+        message.exception e
+      end
+    end
+  end
+
   module ClassMethods
     def supervise_as(name, *args, &block)
       DCell.add_local_actor name

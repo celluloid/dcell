@@ -53,7 +53,6 @@ module DCell
           addr: "tcp://127.0.0.1:*",
           heartbeat_rate: 5,
           heartbeat_timeout: 10,
-          async_pool_size: 50,
           id: nil,
         }.merge(options)
 
