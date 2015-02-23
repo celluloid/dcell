@@ -29,12 +29,10 @@ module DCell
         return
       end
 
-      Celluloid::Future.new do
-        begin
-          message.dispatch
-        rescue => ex
-          Logger.crash("message dispatch failed", ex)
-        end
+      begin
+        message.dispatch
+      rescue => ex
+        Logger.crash("message dispatch failed", ex)
       end
     end
 
@@ -74,7 +72,7 @@ module DCell
     # Wait for incoming 0MQ messages
     def run
       while true
-        handle_message @socket.read
+        async.handle_message @socket.read
       end
     end
   end
