@@ -4,6 +4,7 @@ require 'optparse'
 
 pids = Array.new
 count = 1
+indexed = false
 
 args = []
 scratchy = 'scratchy.rb'
@@ -13,6 +14,9 @@ OptionParser.new do |opts|
 
   opts.on("--count COUNT", OptionParser::DecimalInteger, "Number of massive-scratchy instances") do |v|
     count = v
+  end
+  opts.on("--indexed", "Connect to itchy actor with index") do
+    indexed = true
   end
   opts.on("--massive", "execute massive scratchy instead of generic") do
     args = ['--no-local']
@@ -30,7 +34,9 @@ Signal.trap(:INT) do
 end
 
 count.times do |id|
-  pid = Process.spawn Gem.ruby, File.expand_path("./examples/#{scratchy}"), *args
+  pargs = args
+  pargs += ["--actor", "itchy-#{id}"] if indexed
+  pid = Process.spawn Gem.ruby, File.expand_path("./examples/#{scratchy}"), *pargs
   unless pid
     STDERR.print "ERROR: Couldn't start test node."
   end

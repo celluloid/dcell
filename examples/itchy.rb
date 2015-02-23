@@ -39,16 +39,28 @@ class Itchy
 end
 
 if __FILE__ == $0
+  count = 1
   OptionParser.new do |opts|
     opts.banner = "Usage: itchy.rb [options]"
 
     opts.on("--id ID", "Assign node ID") do |v|
       id = v
     end
+    opts.on("--count COUNT", OptionParser::DecimalInteger, "Number of itchy actors") do |v|
+      count = v
+    end
   end.parse!
 
-  Itchy.supervise_as :itchy
-  puts "Starting itchy with ID '#{id}'"
+  if count == 1
+    Itchy.supervise_as :itchy
+    puts "Starting :itchy with ID '#{id}'"
+  else
+    count.times do |idx|
+      name = "itchy-#{idx}".to_sym
+      Itchy.supervise_as name
+      puts "Starting #{name} with ID '#{id}'"
+    end
+  end
   DCell.start :id =>id, :registry => registry
   sleep
 end

@@ -5,12 +5,16 @@ require_relative 'itchy'
 require 'optparse'
 
 local = true
+actor = :itchy
 
 OptionParser.new do |opts|
   opts.banner = "Usage: massive-scratchy.rb [options]"
 
   opts.on("--no-local", "Do not run local celluloid actor tests") do
     local = false
+  end
+  opts.on("--actor ACTOR", "Actor name to stress") do |a|
+    actor = a.to_sym
   end
 end.parse!
 
@@ -59,10 +63,10 @@ end
 
 Celluloid.logger = nil
 
-max = DCell[:itchy].count
+max = DCell[actor].count
 repeat = 1000
 
-itchies = DCell[:itchy]
+itchies = DCell[actor]
 run_test itchies, :future, "remote futures", repeat
 run_test itchies, :async, "remote async", repeat
 itchies.each {|itchy| itchy.terminate}
