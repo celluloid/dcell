@@ -10,16 +10,16 @@ module DCell
     # FSM
     default_state :disconnected
     state :shutdown
-    state :disconnected, :to => [:connected, :shutdown]
+    state :disconnected, to: [:connected, :shutdown]
     state :connected do
       send_heartbeat
-      transition :partitioned, :delay => @heartbeat_timeout
+      transition :partitioned, delay: @heartbeat_timeout
       Logger.info "Connected to #{id}"
     end
     state :partitioned do
       @heartbeat.cancel if @heartbeat
       Logger.warn "Communication with #{id} interrupted"
-      move_node
+      detach
     end
 
     # Access sugar to NodeManager methods
@@ -35,6 +35,7 @@ module DCell
       @heartbeat = nil
       @requests = ResourceManager.new
       @actors = ResourceManager.new
+      @remote_dead = false
 
       @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
       @heartbeat_timeout = DCell.heartbeat_timeout # How soon until a lost heartbeat triggers a node partition
@@ -44,19 +45,17 @@ module DCell
     end
 
     def save_request(request)
-      return if request.kind_of? Message::Relay
       @requests.register(request.id) {request}
     end
 
     def delete_request(request)
-      return if request.kind_of? Message::Relay
       @requests.delete request.id
     end
 
-    def retry_requests
+    def cancel_requests
       @requests.each do |id, request|
         address = request.sender.address
-        rsp = RetryResponse.new id, address
+        rsp = CancelResponse.new id, address
         rsp.dispatch
       end
     end
@@ -71,25 +70,11 @@ module DCell
       end
     end
 
-    def move_node
-      addr = Directory[id]
+    def detach
       kill_actors
-      if addr
-        update_client_address addr
-        retry_requests
-      else
-        terminate
-      end
-    end
-
-    def update_client_address(addr)
-      @heartbeat.cancel if @heartbeat
-      @addr = addr
-      if @socket
-        @socket.close
-        @socket = nil
-      end
-      socket
+      cancel_requests
+      @remote_dead = true
+      terminate
     end
 
     def update_server_address(addr)
@@ -98,9 +83,14 @@ module DCell
 
     def shutdown
       transition :shutdown
+      unless @remote_dead or DCell.id == id
+        kill_actors
+        farewell
+      end
       @socket.close if @socket
       NodeCache.delete id
       MailboxManager.delete Thread.mailbox
+      Logger.info "Disconnected from #{id}"
     end
 
     # Obtain the node's 0MQ socket
@@ -109,6 +99,7 @@ module DCell
 
       @socket = Celluloid::ZMQ::PushSocket.new
       begin
+        raise IOError unless @addr
         @socket.connect @addr
         @socket.linger = @heartbeat_timeout * 1000
       rescue IOError
@@ -125,50 +116,31 @@ module DCell
     def push_request(request)
       send_message request
       save_request request
-      response = receive(@heartbeat_timeout*2) do |msg|
+      response = receive do |msg|
         msg.respond_to?(:request_id) && msg.request_id == request.id
       end
       delete_request request
       response
     end
 
-    def dead_actor
-      raise ::Celluloid::DeadActorError.new
-    end
-
-    def handle_response(request, response)
-      unless response
-        dead_actor if request.kind_of? Message::Relay
-        return false
-      end
-      return false if response.is_a? RetryResponse
-      dead_actor if response.is_a? DeadActorResponse
+    def send_request(request)
+      response = push_request request
+      return if response.is_a? CancelResponse
       if response.is_a? ErrorResponse
         klass = Utils::full_const_get response.value[:class]
         msg = response.value[:msg]
         raise klass.new msg
       end
-      true
-    end
-
-    def send_request(request)
-      # FIXME: need a robust way to retry the lost requests
-      loop do
-        response = push_request request
-        if handle_response request, response
-          return response.value
-        end
-      end
+      response.value
     end
 
     # Find an call registered with a given name on this node
     def find(name)
       request = Message::Find.new(Thread.mailbox, name)
-      mailbox, methods = send_request request
-      return nil if mailbox.kind_of? NilClass
-      actor = DCell::ActorProxy.new self, mailbox, methods
+      methods = send_request request
+      return nil if methods.kind_of? NilClass
+      actor = DCell::ActorProxy.new self, name, methods
       add_actor actor
-      actor
     end
     alias_method :[], :find
 
@@ -188,6 +160,18 @@ module DCell
       send_request request
     end
 
+    # Relay async message to remote actor
+    def async_relay(message)
+      request = Message::Relay.new(Thread.mailbox, message)
+      send_message request
+    end
+
+    # Goodbye message to remote actor
+    def farewell
+      request = Message::Farewell.new
+      send_message request
+    end
+
     # Send a message to another DCell node
     def send_message(message)
       begin
@@ -198,7 +182,7 @@ module DCell
       socket << message
     end
     alias_method :<<, :send_message
-    
+
     # Send a heartbeat message after the given interval
     def send_heartbeat
       return if DCell.id == id
@@ -210,7 +194,7 @@ module DCell
     def handle_heartbeat(from)
       return if from == id
       transition :connected
-      transition :partitioned, :delay => @heartbeat_timeout
+      transition :partitioned, delay: @heartbeat_timeout
     end
 
     # Friendlier inspection

@@ -19,9 +19,11 @@ class TestActor
   include Celluloid
   attr_reader :value
   attr_accessor :magic
+  attr_accessor :mutable
 
   def initialize
     @value = 42
+    @mutable = 0
   end
 
   def the_answer
@@ -37,24 +39,25 @@ class TestActor
     raise "the spec purposely crashed me :("
   end
 
-  def suicide(delay)
-    SimpleCov.result.format!
+  def suicide(delay, sig=:TERM)
+    sig = sig.to_sym
+    SimpleCov.result.format! if sig == :KILL
     # avoid scheduling if no delay
     if delay > 0
-      after (delay) {Process.kill :KILL, Process.pid}
+      after (delay) {Process.kill sig, Process.pid}
     else
-      Process.kill :KILL, Process.pid
+      Process.kill sig, Process.pid
     end
     'Bazinga'
   end
 end
+TestActor.supervise_as :test_actor
 
 Celluloid.logger = nil
 Celluloid.shutdown_timeout = 1
 
 options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
 options.merge! test_options
-DCell.setup options
-TestActor.supervise_as :test_actor
-DCell.run!
+
+DCell.start options
 sleep

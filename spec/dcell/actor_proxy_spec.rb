@@ -42,6 +42,13 @@ describe DCell::ActorProxy do
     @remote_actor.future(:value).value.should == 42
   end
 
+  it "remote actor maintains context" do
+    # damn test won't work with multiple clients
+    mutable = @remote_actor.mutable
+    @remote_actor.mutable = mutable + 1
+    @remote_actor.mutable.should == mutable + 1
+  end
+
   context :linking do
     before :each do
       @local_actor = LocalActor.new

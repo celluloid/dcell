@@ -8,6 +8,15 @@ module DCell
       @id = object_id
     end
 
+    def respond(rsp)
+      node = Node[@sender[:id]]
+      if node
+        node.async.send_message rsp
+      else
+        Logger.warn "Node #{@sender[:id]} gone"
+      end
+    end
+
     # Heartbeat messages inform other nodes this node is healthy
     class Heartbeat < Message
       def initialize(from)
@@ -22,9 +31,28 @@ module DCell
 
       def to_msgpack(pk=nil)
         {
-          :type => self.class.name,
-          :id   => @id,
-          :args => [@from]
+          type: self.class.name,
+          id:   @id,
+          args: [@from]
+        }.to_msgpack(pk)
+      end
+    end
+
+    # Farewell messages notifies that remote node dies
+    class Farewell < Message
+      def initialize
+        @id = DCell.id
+      end
+
+      def dispatch
+        node = DCell::NodeCache.find @id
+        node.detach if node
+      end
+
+      def to_msgpack(pk=nil)
+        {
+          type: self.class.name,
+          id:   @id,
         }.to_msgpack(pk)
       end
     end
@@ -39,19 +67,19 @@ module DCell
       end
 
       def dispatch
-        actor = Celluloid::Actor[@name]
-        mailbox, methods = nil, nil
+        actor = DCell.get_local_actor @name
+        methods = nil
         if actor
-          mailbox, methods = actor.mailbox, actor.class.instance_methods(false)
+          methods = actor.class.instance_methods(false)
         end
-        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], [mailbox, methods])
+        respond SuccessResponse.new(@id, @sender[:address], methods)
       end
 
       def to_msgpack(pk=nil)
         {
-          :type => self.class.name,
-          :id   => @id,
-          :args => [@sender, @name]
+          type: self.class.name,
+          id:   @id,
+          args: [@sender, @name]
         }.to_msgpack(pk)
       end
     end
@@ -66,14 +94,14 @@ module DCell
       end
 
       def dispatch
-        Node[@sender[:id]] << SuccessResponse.new(@id, @sender[:address], Celluloid::Actor.registered)
+        respond SuccessResponse.new(@id, @sender[:address], DCell.local_actors)
       end
 
       def to_msgpack(pk=nil)
         {
-          :type => self.class.name,
-          :id   => @id,
-          :args => [@sender]
+          type: self.class.name,
+          id:   @id,
+          args: [@sender]
         }.to_msgpack(pk)
       end
     end
@@ -87,40 +115,29 @@ module DCell
         @sender, @message = sender, message
       end
 
-      def find_actor(mailbox)
-        ::Thread.list.each do |t|
-          if actor = t[:celluloid_actor]
-            return actor if actor.mailbox.address == mailbox[:address]
-          end
-        end
-        nil
+      def success(value)
+        respond SuccessResponse.new(@id, @sender[:address], value)
+      end
+
+      def exception(e)
+        respond ErrorResponse.new(@id, @sender[:address], {class: e.class.name, msg: e.to_s})
       end
 
       def dispatch
-        actor = find_actor(message[:mailbox])
-        if actor
-          begin
-            value = nil
-            if message[:block]
-              Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args] {|v| value = v}
-            else
-              value = Celluloid::Actor::call actor.mailbox, message[:meth], *message[:args]
-            end
-            rsp = SuccessResponse.new(@id, @sender[:address], value)
-          rescue => e
-            rsp = ErrorResponse.new(@id, @sender[:address], {:class => RuntimeError.name, :msg => e.to_s})
-          end
-        else
-          rsp = DeadActorResponse.new(@id, @sender[:address], nil)
+        actor = DCell.get_local_actor @message[:actor].to_sym
+        begin
+          mailbox = actor.mailbox
+          Celluloid::Actor::async mailbox, :____dcell_dispatch, self
+        rescue => e
+          respond ErrorResponse.new(@id, @sender[:address], {class: e.class.name, msg: e.to_s})
         end
-        Node[@sender[:id]].async.send_message rsp
       end
 
       def to_msgpack(pk=nil)
         {
-          :type => self.class.name,
-          :id   => @id,
-          :args => [@sender, @message]
+          type: self.class.name,
+          id:   @id,
+          args: [@sender, @message]
         }.to_msgpack(pk)
       end
     end

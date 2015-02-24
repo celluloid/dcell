@@ -28,6 +28,9 @@ require 'cassandra'
 module DCell
   module Registry
     class CassandraAdapter
+      include Node
+      include Global
+
       DEFAULT_KEYSPACE = "dcell"
       DEFAULT_CF = "dcell"
 
@@ -44,83 +47,40 @@ module DCell
 
         cass = Cassandra.new(keyspace, options[:servers])
 
-        @node_registry   = NodeRegistry.new(cass, columnfamily)
-        @global_registry = GlobalRegistry.new(cass, columnfamily)
+        @node_registry = Registry.new(cass, 'nodes', columnfamily)
+        @global_registry = Registry.new(cass, 'globals', columnfamily)
       end
 
-      def remove_node(node)
-        @node_registry.remove node
-      end
-
-      def clear_all_nodes
-        @node_registry.clear_all
-      end
-
-      def clear_globals
-        @global_registry.clear_all
-      end
-
-      class NodeRegistry
-        def initialize(cass, cf)
+      class Registry
+        def initialize(cass, table, cf)
           @cass = cass
-          @cf = cf
-        end
-
-        def get(node_id)
-          @cass.get @cf, "nodes", node_id
-        end
-
-        def set(node_id, addr)
-          @cass.insert @cf, "nodes", { node_id => addr }
-        end
-
-        def nodes
-          @cass.get(@cf, "nodes").keys
-        end
-
-        def remove(node_id)
-          @cass.remove @cf, "nodes", node_id
-        end
-
-        def clear_all
-          @cass.remove @cf, "nodes"
-        end
-      end
-
-      def get_node(node_id);       @node_registry.get(node_id) end
-      def set_node(node_id, addr); @node_registry.set(node_id, addr) end
-      def nodes;                   @node_registry.nodes end
-
-      class GlobalRegistry
-        def initialize(cass, cf)
-          @cass = cass
+          @table = table
           @cf = cf
         end
 
         def get(key)
-          string = @cass.get @cf, "globals", key.to_s
-          Marshal.load string if string
+          value = @cass.get @cf, @table, key.to_s
+          return nil unless value
+          MessagePack.unpack(value, options={:symbolize_keys => true})
         end
 
-        # Set a global value
         def set(key, value)
-          string = Marshal.dump value
-          @cass.insert @cf, "globals", { key.to_s => string }
+          id = Utils::uuid
+          @cass.insert @cf, @table, { key.to_s => value.to_msgpack }
         end
 
-        # The keys to all globals in the system
-        def global_keys
-          @cass.get(@cf, "globals").keys
+        def all
+          @cass.get(@cf, @table).keys
+        end
+
+        def remove(key)
+          @cass.remove @cf, @table, key
         end
 
         def clear_all
-          @cass.remove @cf, "globals"
+          @cass.remove @cf, @table
         end
       end
-
-      def get_global(key);        @global_registry.get(key) end
-      def set_global(key, value); @global_registry.set(key, value) end
-      def global_keys;            @global_registry.global_keys end
     end
   end
 end

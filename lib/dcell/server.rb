@@ -41,7 +41,7 @@ module DCell
     # Decode incoming messages
     def decode_message(message)
       begin
-        msg = MessagePack.unpack(message, options={:symbolize_keys => true})
+        msg = MessagePack.unpack(message, options={symbolize_keys: true})
       rescue => ex
         raise InvalidMessageError, "couldn't unpack message: #{ex}"
       end
@@ -72,7 +72,7 @@ module DCell
     # Wait for incoming 0MQ messages
     def run
       while true
-        async.handle_message @socket.read
+        handle_message @socket.read
       end
     end
   end

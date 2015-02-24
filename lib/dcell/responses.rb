@@ -9,14 +9,18 @@ module DCell
 
     def to_msgpack(pk=nil)
       {
-        :type => self.class.name,
-        :args => [@request_id, @address, @value]
+        type: self.class.name,
+        args: [@request_id, @address, @value]
       }.to_msgpack(pk)
     end
 
     def dispatch
       mailbox = MailboxManager.find @address
-      mailbox << self
+      if mailbox
+        mailbox << self
+      else
+        Logger.error "Failed to find mailbox at #{@address} for #{self.class.name}"
+      end
     end
   end
 
@@ -26,9 +30,6 @@ module DCell
   # Request failed
   class ErrorResponse < Response; end
 
-  # Retry response (request to retry action)
-  class RetryResponse < Response; end
-
-  # Remote actor is dead
-  class DeadActorResponse < Response; end
+  # Internal response to cancel pending request (remote node is likely dead)
+  class CancelResponse < Response; end
 end

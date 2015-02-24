@@ -13,9 +13,43 @@ module Celluloid
     def to_msgpack(pk=nil)
       DCell::MailboxManager.register self
       {
-        :address => @address,
-        :id      => DCell.id
+        address: @address,
+        id:      DCell.id
       }.to_msgpack(pk)
+    end
+  end
+
+  module InstanceMethods
+    def ____dcell_dispatch(message)
+      info = message.message
+      begin
+        value = nil
+        if info[:block]
+          send(info[:meth], *info[:args]) {|v| value = v}
+        else
+          value = send(info[:meth], *info[:args])
+        end
+        message.success value
+      rescue => e
+        message.exception e
+      end
+    end
+  end
+
+  module ClassMethods
+    def supervise_as(name, *args, &block)
+      DCell.add_local_actor name
+      Supervisor.supervise_as(name, self, *args, &block)
+    end
+  end
+
+  class AsyncProxy
+    alias_method :____method_missing, :method_missing
+    def method_missing(meth, *args, &block)
+      if @klass == "DCell::ActorProxy"
+        meth = "____async_#{meth}".to_sym
+      end
+      ____method_missing meth, *args, &block
     end
   end
 

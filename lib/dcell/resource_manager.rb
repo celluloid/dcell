@@ -1,6 +1,8 @@
 require 'weakref'
 
 module DCell
+  class ResourceManagerConflict < RuntimeError; end
+
   class ResourceManager
     def initialize
       @lock = Mutex.new
@@ -12,12 +14,20 @@ module DCell
     def register(id, &block)
       @lock.synchronize do
         ref = @items[id]
-        unless ref && ref.weakref_alive?
-          item = block.call
-          return nil unless item
-          ref = WeakRef.new(item)
-          @items[id] = ref
+        if ref and ref.weakref_alive?
+          return ref.__getobj__
         end
+      end
+      item = block.call
+      return nil unless item
+      ref = WeakRef.new(item)
+      @lock.synchronize do
+        old = @items[id]
+        if old and old.weakref_alive? \
+          and old.__getobj__.object_id != item.object_id
+          raise ResourceManagerConflict, "Resource collision"
+        end
+        @items[id] = ref
         ref.__getobj__
       end
     end

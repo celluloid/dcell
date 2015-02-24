@@ -63,7 +63,7 @@ module DCell
       @node = node
       @info = @node[:info].to_hash
 
-      template = ERB.new File.read(template, :mode => 'rb')
+      template = ERB.new File.read(template, mode: 'rb')
       template.result(binding)
     end
 
