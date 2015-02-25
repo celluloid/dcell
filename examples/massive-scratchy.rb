@@ -63,10 +63,11 @@ end
 
 Celluloid.logger = nil
 
-max = DCell[actor].count
+itchies = DCell[actor]
+max = itchies.count
+puts "Found #{itchies.count} instances of #{actor}"
 repeat = 1000
 
-itchies = DCell[actor]
 run_test itchies, :future, "remote futures", repeat
 run_test itchies, :async, "remote async", repeat
 itchies.each {|itchy| itchy.terminate}
