@@ -98,9 +98,12 @@ module DCell
     def find(actor)
       actors = Array.new
       Directory.each do |node|
+        next if node.id == DCell.id
         next unless node.actors.include? actor
         begin
-          actors << Node[node.id][actor]
+          rnode = Node[node.id]
+          rnode.ping 1
+          actors << rnode[actor]
         rescue Exception => e
           Logger.warn "Failed to get actor '#{actor}' on node '#{node.id}': #{e}"
         end
