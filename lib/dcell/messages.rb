@@ -38,7 +38,7 @@ module DCell
       end
     end
 
-    # Farewell messages notifies that remote node dies
+    # Farewell message notifies that remote node dies
     class Farewell < Message
       def initialize
         @id = DCell.id
@@ -53,6 +53,26 @@ module DCell
         {
           type: self.class.name,
           id:   @id,
+        }.to_msgpack(pk)
+      end
+    end
+
+    # Ping message checks if remote node is alive or not
+    class Ping < Message
+      def initialize(sender)
+        super()
+        @sender = sender
+      end
+
+      def dispatch
+        respond SuccessResponse.new(@id, @sender[:address], true)
+      end
+
+      def to_msgpack(pk=nil)
+        {
+          type: self.class.name,
+          id:   @id,
+          args: [@sender]
         }.to_msgpack(pk)
       end
     end

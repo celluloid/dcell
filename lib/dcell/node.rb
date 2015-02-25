@@ -1,6 +1,9 @@
 module DCell
   # A node in a DCell cluster
   class Node
+    # Exception raised when no response was received within a given timeout
+    class NoResponseError < Exception; end
+
     include Celluloid
     include Celluloid::FSM
     attr_reader :id, :addr
@@ -115,18 +118,20 @@ module DCell
       @socket
     end
 
-    def push_request(request)
+    def push_request(request, timeout=nil)
       send_message request
       save_request request
-      response = receive do |msg|
+      response = receive(timeout) do |msg|
         msg.respond_to?(:request_id) && msg.request_id == request.id
       end
       delete_request request
+      abort NoResponseError.new unless response
       response
     end
 
-    def send_request(request)
-      response = push_request request
+    def send_request(request, timeout=nil)
+      response = push_request request, timeout
+      return nil unless response
       return if response.is_a? CancelResponse
       if response.is_a? ErrorResponse
         klass = Utils::full_const_get response.value[:class]
@@ -155,6 +160,12 @@ module DCell
       end
     end
     alias_method :all, :actors
+
+    # Send a ping message with a given timeout
+    def ping(timeout=nil)
+      request = Message::Ping.new(Thread.mailbox)
+      send_request request, timeout
+    end
 
     # Relay message to remote actor
     def relay(message)
