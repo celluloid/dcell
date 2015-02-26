@@ -1,7 +1,7 @@
 shared_context "a DCell registry" do
   context "node registry" do
     address = "tcp://localhost:7777"
-    meta = {address: address, actors: ["one", "two", "three"]}
+    meta = {address: address, actors: ["one", "two", "three"], ttl: Time.now.to_i}
 
     before :each do
       subject.clear_all_nodes

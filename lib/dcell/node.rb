@@ -4,6 +4,9 @@ module DCell
     # Exception raised when no response was received within a given timeout
     class NoResponseError < Exception; end
 
+    # Exception raised when remote node appears dead
+    class DeadNodeError < Exception; end
+
     include Celluloid
     include Celluloid::FSM
     attr_reader :id, :addr
@@ -23,6 +26,7 @@ module DCell
     end
     state :partitioned do
       @heartbeat.cancel if @heartbeat
+      @ttl.cancel if @ttl
       Logger.warn "Communication with #{id} interrupted"
       detach
     end
@@ -34,9 +38,10 @@ module DCell
       include NodeManager
     end
 
-    def initialize(id, addr)
+    def initialize(id, addr, server=false)
       @id, @addr = id, addr
       @socket = nil
+      @ttl = nil
       @heartbeat = nil
       @requests = ResourceManager.new
       @actors = ResourceManager.new
@@ -44,6 +49,14 @@ module DCell
 
       @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
       @heartbeat_timeout = DCell.heartbeat_timeout # How soon until a lost heartbeat triggers a node partition
+      @ttl_rate = DCell.ttl_rate # How often update TTL in the registry
+
+      if server
+        update_ttl
+      elsif not Directory[@id].alive?
+        Logger.warn "Node '#{@id}' looks dead"
+        raise DeadNodeError.new
+      end
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self
@@ -90,7 +103,7 @@ module DCell
       transition :shutdown
       unless @remote_dead or DCell.id == id
         kill_actors
-        farewell
+        farewell if Directory[id].alive? rescue IOError
       end
       @socket.close if @socket
       NodeCache.delete id
@@ -104,7 +117,10 @@ module DCell
 
       @socket = Celluloid::ZMQ::PushSocket.new
       begin
-        raise IOError unless @addr
+        unless @addr
+          Logger.info "No address for #{id}"
+          raise IOError.new
+        end
         @socket.connect @addr
         @socket.linger = @heartbeat_timeout * 1000
       rescue IOError
@@ -201,6 +217,12 @@ module DCell
       return if DCell.id == id
       send_message DCell::Message::Heartbeat.new id
       @heartbeat = after(@heartbeat_rate) { send_heartbeat }
+    end
+
+    # Update TTL in registry
+    def update_ttl
+      Directory[id].update_ttl
+      @ttl = after(@ttl_rate) { update_ttl }
     end
 
     # Handle an incoming heartbeat for this node
