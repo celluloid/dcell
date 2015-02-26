@@ -13,7 +13,7 @@ module DCell
           begin
             node = nil
             return @nodes.register(id) do
-              node = Node.new id, addr
+              node = Node.new(id, addr) rescue nil
             end
           rescue ResourceManagerConflict => e
             Logger.warn "Conflict on registering node #{id}"
@@ -39,17 +39,13 @@ module DCell
 
   # Node lookup
   module NodeManager
-    # Return all available nodes in the cluster
-    def all
-      Directory.all.map do |id|
-        find id
-      end
-    end
-
     # Iterate across all available nodes
     def each
-      Directory.all.each do |id|
-        yield find id
+      Directory.each do |node|
+        # skip dead nodes and nodes w/o an address, those might not be operational yet
+        next unless node.alive? and node.address
+        remote = find node.id
+        yield remote
       end
     end
 

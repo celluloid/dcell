@@ -37,7 +37,7 @@ module DCell
 
     def render_resource(connection, path)
       if node_id = path[%r{^nodes/(.*)$}, 1]
-        node = DCell::Node[node_id]
+        node = DCell::Node[node_id] rescue nil
         path = "index.html"
       else
         node = DCell.me

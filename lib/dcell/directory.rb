@@ -1,15 +1,17 @@
 module DCell
   # Node metadata helper
   class DirectoryMeta
-    attr_reader :id, :address, :actors
+    attr_reader :id, :address, :actors, :ttl
 
     def initialize(id, meta)
       @id = id
       if meta
         @address = meta[:address]
         @actors = meta[:actors].map {|a| a.to_sym}
+        @ttl = Time.at meta[:ttl] || 0
       else
         @actors = Array.new
+        @ttl = Time.now
       end
     end
 
@@ -29,10 +31,20 @@ module DCell
     end
     alias_method :<<, :add_actor
 
+    def update_ttl(time=nil)
+      @ttl = time || Time.now
+      DCell.registry.set_node @id, self
+    end
+
+    def alive?
+      Time.now - @ttl < DCell.ttl_rate*2
+    end
+
     def to_msgpack(pk=nil)
       {
         address: @address,
         actors: @actors,
+        ttl: @ttl.to_i,
       }.to_msgpack(pk)
     end
   end
@@ -48,11 +60,6 @@ module DCell
       DirectoryMeta.new(id, meta)
     end
     alias_method :[], :find
-
-    # List all of the node IDs in the directory
-    def all
-      DCell.registry.nodes
-    end
 
     # Iterates over all registered nodes
     def each
