@@ -17,5 +17,12 @@ Celluloid.shutdown_timeout = 1
 RSpec.configure do |config|
   config.before(:suite) do
     DCell.start test_options
+
+    DCell::Directory["deadman"].address = "tcp://localhost:-1"
+    DCell::Directory["deadman"].actors = [:test_actor]
+
+    DCell::Directory["corpse"].address = "tcp://localhost:-2"
+    DCell::Directory["corpse"].actors = [:test_actor]
+    DCell::Directory["corpse"].update_ttl Time.at 0
   end
 end

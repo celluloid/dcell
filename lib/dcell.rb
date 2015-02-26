@@ -53,6 +53,7 @@ module DCell
           addr: "tcp://127.0.0.1:*",
           heartbeat_rate: 5,
           heartbeat_timeout: 10,
+          ttl_rate: 20,
           id: nil,
         }.merge(options)
 
@@ -69,7 +70,7 @@ module DCell
         raise ArgumentError, "no registry adapter given in config" unless @registry
         @id ||= generate_node_id
 
-        @me = Node.new @id, nil
+        @me = Node.new @id, nil, true
         ObjectSpace.define_finalizer(me, proc {Directory.remove @id})
       end
 
@@ -106,6 +107,7 @@ module DCell
           actors << rnode[actor]
         rescue Exception => e
           Logger.warn "Failed to get actor '#{actor}' on node '#{node.id}': #{e}"
+          rnode.terminate if rnode
         end
       end
       actors

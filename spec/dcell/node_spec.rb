@@ -1,13 +1,14 @@
 describe DCell::Node do
   def wait_for_actor(id)
     30.times do
-      node = DCell::Node[id]
       begin
+        node = DCell::Node[id]
         return node if node and node.all and node.alive?
       rescue Celluloid::DeadActorError, Celluloid::Task::TerminatedError
       end
       sleep 1
     end
+    raise Exception, "Failed to wait for actor"
   end
 
   before :each do
@@ -20,7 +21,7 @@ describe DCell::Node do
   end
 
   it "finds all available nodes" do
-    nodes = DCell::Node.all
+    nodes = DCell::Node.map
     nodes.should include(DCell.me)
   end
 
@@ -39,8 +40,8 @@ describe DCell::Node do
       sleep time + 1
       id = TEST_NODE[:id]
       30.times do
-        node = DCell::Node[id]
         begin
+          node = DCell::Node[id]
           if node and node.alive? and node[:test_actor].mutable != @unique
             return
           end
