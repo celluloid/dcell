@@ -2,10 +2,6 @@ describe Celluloid, "extensions" do
   before do
     class WillKane
       include Celluloid
-
-      def speak
-        "Don't shove me Harv."
-      end
     end
     @marshal = WillKane.new
   end

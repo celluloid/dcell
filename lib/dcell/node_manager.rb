@@ -30,10 +30,6 @@ module DCell
       def delete(id)
         @nodes.delete id
       end
-
-      def each(*args, &block)
-        @nodes.each *args, &block
-      end
     end
   end
 
