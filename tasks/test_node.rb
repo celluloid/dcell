@@ -16,17 +16,17 @@ module TestNode
   def self.wait_until_ready
     STDERR.print "Waiting for test node to start up..."
 
-    node = nil
+    actor = nil
     60.times do
       begin
-        node = DCell::Node[TEST_NODE[:id]]
-        break if node
+        actor = DCell[:test_actor].first
+        break if actor
         STDERR.print "."
         sleep 1
       end
     end
 
-    if node
+    if actor
       STDERR.puts " done!"
     else
       STDERR.puts " FAILED!"
