@@ -8,7 +8,7 @@ module DCell
       if meta
         @address = meta[:address]
         @actors = meta[:actors].map {|a| a.to_sym}
-        @ttl = Time.at meta[:ttl]
+        @ttl = Time.at meta[:ttl] || 0
       else
         @actors = Array.new
         @ttl = Time.now
