@@ -61,6 +61,7 @@ if __FILE__ == $0
       puts "Starting #{name} with ID '#{id}'"
     end
   end
-  DCell.start :id =>id, :registry => registry
+
+  DCell.start id: id, registry: registry
   sleep
 end

@@ -2,7 +2,7 @@
 require 'dcell'
 require_relative 'registry'
 
-DCell.start :registry => registry
+DCell.start registry: registry
 
 def connect(attempts=10)
   attempts.times do

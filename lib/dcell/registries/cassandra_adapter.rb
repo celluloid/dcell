@@ -35,8 +35,7 @@ module DCell
       DEFAULT_CF = "dcell"
 
       def initialize(options)
-        # Convert all options to symbols :/
-        options = options.inject({}) { |h,(k,v)| h[k.to_sym] = v; h }
+        options = Utils::symbolize_keys options
 
         keyspace = options[:keyspace] || DEFAULT_KEYSPACE
         columnfamily = options[:columnfamily] || DEFAULT_CF
@@ -61,7 +60,7 @@ module DCell
         def get(key)
           value = @cass.get @cf, @table, key.to_s
           return nil unless value
-          MessagePack.unpack(value, options={:symbolize_keys => true})
+          MessagePack.unpack(value, options={symbolize_keys: true})
         end
 
         def set(key, value)

@@ -45,8 +45,7 @@ module DCell
     # * addr: 0MQ address of the local node (e.g. tcp://4.3.2.1:7777)
     # *
     def setup(options = {})
-      # Symbolize keys!
-      options = options.inject({}) { |h,(k,v)| h[k.to_sym] = v; h }
+      options = Utils::symbolize_keys options
 
       @lock.synchronize do
         configuration = {
