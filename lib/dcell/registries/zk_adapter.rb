@@ -74,10 +74,8 @@ module DCell
 
         def remove(key)
           path = "#{@base_path}/#{key}"
-          begin
-            @zk.delete path
-          rescue ZK::Exceptions::NoNode
-          end
+          @zk.delete path
+        rescue ZK::Exceptions::NoNode
         end
 
         def clear_all
