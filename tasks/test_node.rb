@@ -2,6 +2,9 @@ require 'dcell'
 
 Dir['./spec/options/*.rb'].map { |f| require f }
 
+Celluloid.logger = nil
+Celluloid.shutdown_timeout = 1
+
 DCell.start test_options
 
 module TestNode
