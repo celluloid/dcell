@@ -10,15 +10,21 @@ module DCell
           begin
             ______method_missing meth.to_sym, *args, &block
           rescue AbortError => e
-            raise e
+            cause = e.cause
+            raise Celluloid::DeadActorError.new if cause.kind_of? Celluloid::DeadActorError
+            raise RuntimeError, cause
           end
         end
         self.class.send(:define_method, "____async_#{meth}") do |*args|
           begin
             ______async_method_missing meth.to_sym, *args
+          # :nocov: as really hard to simulate
           rescue AbortError => e
-            raise e
+            cause = e.cause
+            raise Celluloid::DeadActorError.new if cause.kind_of? Celluloid::DeadActorError
+            raise RuntimeError, cause
           end
+          # :nocov:
         end
       end
     end
@@ -42,9 +48,11 @@ module DCell
       message = {actor: @actor, meth: meth, args: args, async: true}
       begin
         @lnode.async_relay message
+      # :nocov: as really hard to simulate
       rescue Celluloid::Task::TerminatedError
         abort Celluloid::DeadActorError.new
       end
+      # :nocov:
     end
   end
 end

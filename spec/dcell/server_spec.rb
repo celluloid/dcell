@@ -19,4 +19,17 @@ describe DCell::PullServer do
 
     server.close
   end
+
+  it "properly handles improperly encoded messages and those that crash during dispatch" do
+    DCellMock.setup addr: 'tcp://127.0.0.1:*', registry: {adapter: 'dummy'}
+    server = DCell::PullServer.new DCellMock
+
+    ping = DCell::Message::Ping.new(nil).to_msgpack
+    expect {server.handle_message ping}.not_to raise_error
+
+    invalid = {}.to_msgpack
+    expect {server.handle_message invalid}.not_to raise_error
+
+    server.close
+  end
 end

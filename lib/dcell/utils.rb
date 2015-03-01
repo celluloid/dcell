@@ -18,10 +18,6 @@ module DCell
           h
         end
       end
-
-      def uuid
-        SecureRandom.uuid
-      end
     end
   end
 end

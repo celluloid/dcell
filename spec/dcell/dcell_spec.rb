@@ -25,4 +25,23 @@ describe DCell do
     actor = DCell[:test_actor].first
     actor.value.should == 42
   end
+
+  it "properly handles messages to non-existant actors" do
+    node = DCell::Node[TEST_NODE[:id]]
+    actor = DCell::ActorProxy.new(node, :ghost, ['whooo'])
+    expect {actor.whooo}.to raise_error NoMethodError
+  end
+
+  it "properly handles responses to already terminated actors" do
+    node = DCell::Node[TEST_NODE[:id]]
+
+    request = DCell::Message::Ping.new({id: nil, address: nil})
+    node.send_message request
+
+    request = DCell::Message::Ping.new({id: DCell.id, address: nil})
+    node.send_message request
+
+    actor = node[:test_actor]
+    actor.value.should == 42
+  end
 end
