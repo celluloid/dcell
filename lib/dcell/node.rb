@@ -137,11 +137,6 @@ module DCell
       Logger.info "Disconnected from #{id}"
     end
 
-    # Update remote node addr
-    def addr=(addr)
-      @addr = addr
-    end
-
     # Obtain the node's 0MQ socket
     def socket
       return @socket if @socket

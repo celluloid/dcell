@@ -59,12 +59,7 @@ module DCell
 
         raise ArgumentError, "no registry adapter given in config" unless @registry
         @id ||= generate_node_id
-
-        @me = Node.new @id, nil, true
-        ObjectSpace.define_finalizer(me, proc {Directory.remove @id})
       end
-
-      me
     end
 
     # Returns actors from multiple nodes
@@ -105,8 +100,9 @@ module DCell
     # Updates server address of the node
     def addr=(addr)
       @addr = addr
-      Directory[id].address = addr
-      @me.addr = addr
+      @me = Node.new @id, @addr, true
+      Directory[@id].address = addr
+      ObjectSpace.define_finalizer(me, proc {Directory.remove @id})
     end
     alias_method :address=, :addr=
 
