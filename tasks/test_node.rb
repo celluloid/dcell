@@ -5,8 +5,6 @@ Dir['./spec/options/*.rb'].map { |f| require f }
 Celluloid.logger = nil
 Celluloid.shutdown_timeout = 1
 
-DCell.start test_options
-
 module TestNode
   def self.start
     @pid = Process.spawn Gem.ruby, File.expand_path("./spec/test_node_wrap.rb")
@@ -51,6 +49,8 @@ end
 
 namespace :testnode do
   task :bg do
+    DCell.start test_options
+
     TestNode.start
     TestNode.wait_until_ready
   end
