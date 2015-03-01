@@ -25,7 +25,9 @@ module DCell
         old = @items[id]
         if old and old.weakref_alive? \
           and old.__getobj__.object_id != item.object_id
+          # :nocov:
           raise ResourceManagerConflict, "Resource collision"
+          # :nocov:
         end
         @items[id] = ref
         ref.__getobj__
@@ -62,8 +64,10 @@ module DCell
           return unless ref
           ref.__getobj__
         rescue WeakRef::RefError
+          # :nocov:
           @items.delete id
           nil
+          # :nocov:
         end
       end
     end

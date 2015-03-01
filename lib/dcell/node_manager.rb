@@ -15,9 +15,11 @@ module DCell
               node = Node.new(id, addr) rescue nil
             end
           rescue ResourceManagerConflict => e
+            # :nocov:
             Logger.warn "Conflict on registering node #{id}"
             node.detach
             next
+            # :nocov:
           end
         end
       end
@@ -47,7 +49,7 @@ module DCell
     # Find a node by its node ID
     def find(id)
       node = Directory[id]
-      return nil unless node.alive? and node.address
+      return nil unless node and node.alive? and node.address
       NodeCache.register id, node.address
     end
     alias_method :[], :find

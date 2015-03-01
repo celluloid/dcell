@@ -56,6 +56,7 @@ module DCell
 
     # Get the address for a particular Node ID
     def find(id)
+      return nil unless id
       meta = DCell.registry.get_node(id)
       DirectoryMeta.new(id, meta)
     end
@@ -64,13 +65,17 @@ module DCell
     # Iterates over all registered nodes
     def each
       DCell.registry.nodes.each do |id|
-        yield Directory[id]
+        node = Directory[id]
+        next unless node
+        yield node
       end
     end
 
     # Remove all nodes in the directory
     def clear_all
+      # :nocov:
       DCell.registry.clear_all_nodes
+      # :nocov:
     end
 
     # Remove information for a give Node ID

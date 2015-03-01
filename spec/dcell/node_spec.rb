@@ -3,12 +3,16 @@ describe DCell::Node do
     30.times do
       begin
         node = DCell::Node[id]
-        return node if node and node.all and node.alive?
-      rescue Celluloid::DeadActorError, Celluloid::Task::TerminatedError
+        return node if node and node.ping 1
+      rescue
       end
+      # :nocov:
       sleep 1
+      # :nocov:
     end
+    # :nocov:
     raise Exception, "Failed to wait for actor"
+    # :nocov:
   end
 
   before :each do
@@ -35,22 +39,46 @@ describe DCell::Node do
     @node.all.should include :test_actor
   end
 
+  it "failes to attach to obviously dead node" do
+    expect {DCell::Node.new("corpse", nil)}.to raise_error DCell::DeadNodeError
+  end
+
+  it "failes to connect to invalid address" do
+    node = DCell::Node.new(TEST_NODE[:id], 'udp://?:?')
+    expect {node.socket}.to raise_error IOError
+  end
+
+  it "fails to send complex structures" do
+    actor = @node[:test_actor]
+    expect {actor.win(->() {'magic'})}.to raise_error
+  end
+
+  it "provides fancy name during inspection" do
+    @node.inspect.should start_with "#<DCell::Node[#{TEST_NODE[:id]}]"
+  end
+
   context :crashing do
+    after :each do
+      id = TEST_NODE[:id]
+      @node = wait_for_actor id
+      @node.id.should == id
+    end
+
     def wait_for_death(time)
       sleep time + 1
-      id = TEST_NODE[:id]
       30.times do
         begin
-          node = DCell::Node[id]
-          if node and node.alive? and node[:test_actor].mutable != @unique
-            return
-          end
-          sleep 1
-        rescue Celluloid::DeadActorError, Celluloid::Task::TerminatedError
-          sleep 1
+          actor = DCell[:test_actor].first
+          return if actor and actor.mutable != @unique
+        rescue
         end
+        # :nocov:
+        sleep 1
+        # :nocov:
       end
+      # :nocov:
       raise Exception, "Failed to wait for actor death"
+      # :nocov:
     end
 
     it "raises exception on a sync call to dead actor" do

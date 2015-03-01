@@ -3,9 +3,7 @@ module DCell
     attr_accessor :id
 
     def initialize
-      # Memoize the original object ID so it will get marshalled
-      # Perhaps this should use a real UUID scheme
-      @id = object_id
+      @id = SecureRandom.uuid
     end
 
     def respond(rsp)
