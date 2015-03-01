@@ -74,7 +74,7 @@ module DCell
         next if node.id == DCell.id
         next unless node.actors.include? actor
         begin
-          rnode = Node[node.id]
+          rnode = Node[node.id] or raise 'Not found'
           rnode.ping 1
           actors << rnode[actor]
         rescue Exception => e
