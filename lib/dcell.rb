@@ -79,7 +79,7 @@ module DCell
           actors << rnode[actor]
         rescue Exception => e
           Logger.warn "Failed to get actor '#{actor}' on node '#{node.id}': #{e}"
-          rnode.terminate if rnode
+          rnode.terminate if rnode rescue nil
         end
       end
       actors
