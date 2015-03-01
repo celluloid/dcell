@@ -56,7 +56,7 @@ TestActor.supervise_as :test_actor
 Celluloid.logger = nil
 Celluloid.shutdown_timeout = 1
 
-options = {:id => TEST_NODE[:id], :addr => "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
+options = {id: TEST_NODE[:id], addr: "tcp://#{TEST_NODE[:addr]}:#{TEST_NODE[:port]}"}
 options.merge! test_options
 
 DCell.start options
