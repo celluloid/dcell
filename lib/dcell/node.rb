@@ -1,12 +1,12 @@
 module DCell
+  # Exception raised when no response was received within a given timeout
+  class NoResponseError < Exception; end
+
+  # Exception raised when remote node appears dead
+  class DeadNodeError < Exception; end
+
   # A node in a DCell cluster
   class Node
-    # Exception raised when no response was received within a given timeout
-    class NoResponseError < Exception; end
-
-    # Exception raised when remote node appears dead
-    class DeadNodeError < Exception; end
-
     include Celluloid
     include Celluloid::FSM
 
@@ -140,13 +140,10 @@ module DCell
     # Obtain the node's 0MQ socket
     def socket
       return @socket if @socket
+      raise IOError unless @addr
 
       @socket = Celluloid::ZMQ::PushSocket.new
       begin
-        unless @addr
-          Logger.info "No address for #{id}"
-          raise IOError.new
-        end
         @socket.connect @addr
         @socket.linger = @heartbeat_timeout * 1000
       rescue IOError
@@ -190,7 +187,7 @@ module DCell
       if response.is_a? ErrorResponse
         klass = Utils::full_const_get response.value[:class]
         msg = response.value[:msg]
-        raise klass.new msg
+        abort klass.new msg
       end
       response.value
     end
