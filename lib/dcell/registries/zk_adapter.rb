@@ -38,16 +38,23 @@ module DCell
         end
 
         @zk = ZK.new(*servers)
-        @node_registry = Registry.new(@zk, @base_path, :nodes, true)
-        @global_registry = Registry.new(@zk, @base_path, :globals, false)
+        @node_registry = Registry.new(@zk, @base_path, :nodes)
+        @global_registry = Registry.new(@zk, @base_path, :globals)
       end
 
       class Registry
-        def initialize(zk, base_path, name, ephemeral)
+        include Celluloid
+
+        finalizer :close
+
+        def initialize(zk, base_path, name)
           @zk = zk
           @base_path = File.join(base_path, name.to_s)
-          @ephemeral = ephemeral
           @zk.mkdir_p @base_path
+        end
+
+        def close
+          @zk.close!
         end
 
         def get(key)
@@ -58,7 +65,7 @@ module DCell
 
         def _set(key, value, unique)
           path = "#{@base_path}/#{key}"
-          @zk.create path, value.to_msgpack, ephemeral: @ephemeral
+          @zk.create path, value.to_msgpack
         rescue ZK::Exceptions::NodeExists
           raise KeyExists if unique
           @zk.set path, value.to_msgpack
@@ -73,9 +80,13 @@ module DCell
         end
 
         def remove(key)
+          closed = @zk.closed?
+          @zk.reopen if closed
           path = "#{@base_path}/#{key}"
           @zk.delete path
         rescue ZK::Exceptions::NoNode
+        ensure
+          @zk.close if closed
         end
 
         def clear_all
