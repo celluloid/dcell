@@ -24,7 +24,10 @@ module Celluloid
       info = message.message
       begin
         value = nil
-        if info[:block]
+        if info[:async]
+          send(info[:meth], *info[:args])
+          return
+        elsif info[:block]
           send(info[:meth], *info[:args]) {|v| value = v}
         else
           value = send(info[:meth], *info[:args])
