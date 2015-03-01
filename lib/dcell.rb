@@ -55,16 +55,7 @@ module DCell
           ttl_rate: 20,
           id: nil,
         }.merge(options)
-
-        configuration.each do |name, value|
-          instance_variable_set "@#{name}", value
-          self.class.class_eval do
-            attr_reader name
-          end
-        end
-        self.class.class_eval do
-          alias_method :address, :addr
-        end
+        configuration_accessors configuration
 
         raise ArgumentError, "no registry adapter given in config" unless @registry
         @id ||= generate_node_id
@@ -74,24 +65,6 @@ module DCell
       end
 
       me
-    end
-
-    def add_local_actor(name)
-      @lock.synchronize do
-        @actors << name.to_sym
-      end
-    end
-
-    def get_local_actor(name)
-      name = name.to_sym
-      if @actors.include? name
-        return Celluloid::Actor[name]
-      end
-      nil
-    end
-
-    def local_actors
-      @actors.to_a
     end
 
     # Returns actors from multiple nodes
@@ -113,13 +86,47 @@ module DCell
     end
     alias_method :[], :find
 
+    # Run the DCell application in the background
+    def run!
+      Directory[id].actors = local_actors
+      DCell::SupervisionGroup.run!
+    end
+
+    # Start combines setup and run! into a single step
+    def start(options = {})
+      setup options
+      run!
+    end
+
+    ##################################################
+    # Internal API
+    ##################################################
+
     # Updates server address of the node
     def addr=(addr)
       @addr = addr
       Directory[id].address = addr
-      @me.update_server_address addr
+      @me.addr = addr
     end
     alias_method :address=, :addr=
+
+    def add_local_actor(name)
+      @lock.synchronize do
+        @actors << name.to_sym
+      end
+    end
+
+    def get_local_actor(name)
+      name = name.to_sym
+      if @actors.include? name
+        return Celluloid::Actor[name]
+      end
+      nil
+    end
+
+    def local_actors
+      @actors.to_a
+    end
 
     # Attempt to generate a unique node ID for this machine
     def generate_node_id
@@ -133,16 +140,16 @@ module DCell
       end
     end
 
-    # Run the DCell application in the background
-    def run!
-      Directory[id].actors = local_actors
-      DCell::SupervisionGroup.run!
-    end
-
-    # Start combines setup and run! into a single step
-    def start(options = {})
-      setup options
-      run!
+    def configuration_accessors(configuration)
+      configuration.each do |name, value|
+        instance_variable_set "@#{name}", value
+        self.class.class_eval do
+          attr_reader name
+        end
+      end
+      self.class.class_eval do
+        alias_method :address, :addr
+      end
     end
   end
 

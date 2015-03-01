@@ -146,8 +146,7 @@ module DCell
       def dispatch
         actor = DCell.get_local_actor @message[:actor].to_sym
         begin
-          mailbox = actor.mailbox
-          Celluloid::Actor::async mailbox, :____dcell_dispatch, self
+          actor.async :____dcell_dispatch, self
         rescue => e
           respond ErrorResponse.new(@id, @sender[:address], {class: e.class.name, msg: e.to_s})
         end
