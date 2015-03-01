@@ -60,7 +60,7 @@ module DCell
           first = @storage.where(key: key).first
           if first and first.value
             return MessagePack.unpack(first.value.data,
-                                      options={:symbolize_keys => true})
+                                      options={symbolize_keys: true})
           end
           nil
         end

@@ -14,18 +14,17 @@ module DCell
       # servers: a list of Zookeeper servers to connect to. Each server in the
       #          list has a host/port configuration
       def initialize(options)
-        # Stringify keys :/
-        options = options.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
+        options = Utils::symbolize_keys options
 
-        @env = options['env'] || 'production'
+        @env = options[:env] || 'production'
         @base_path = "#{PREFIX}/#{@env}"
 
         # Let them specify a single server instead of many
-        server = options['server']
+        server = options[:server]
         if server
           servers = [server]
         else
-          servers = options['servers']
+          servers = options[:servers]
           raise "no Zookeeper servers given" unless servers
         end
 
@@ -53,13 +52,13 @@ module DCell
 
         def get(key)
           result, _ = @zk.get("#{@base_path}/#{key}", watch: true)
-          MessagePack.unpack(result, options={:symbolize_keys => true}) if result
+          MessagePack.unpack(result, options={symbolize_keys: true}) if result
         rescue ZK::Exceptions::NoNode
         end
 
         def _set(key, value, unique)
           path = "#{@base_path}/#{key}"
-          @zk.create path, value.to_msgpack, :ephemeral => @ephemeral
+          @zk.create path, value.to_msgpack, ephemeral: @ephemeral
         rescue ZK::Exceptions::NodeExists
           raise KeyExists if unique
           @zk.set path, value.to_msgpack
