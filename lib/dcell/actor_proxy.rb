@@ -5,54 +5,40 @@ module DCell
 
     def initialize(lnode, actor, methods)
       @lnode, @actor = lnode, actor
+
       methods.each do |meth|
         self.class.send(:define_method, meth) do |*args, &block|
-          begin
-            ______method_missing meth.to_sym, *args, &block
-          rescue AbortError => e
-            cause = e.cause
-            raise Celluloid::DeadActorError.new if cause.kind_of? Celluloid::DeadActorError
-            raise RuntimeError, cause
-          end
+          ______any_method_missing :______method_missing, meth, *args, &block
         end
         self.class.send(:define_method, "____async_#{meth}") do |*args|
-          begin
-            ______async_method_missing meth.to_sym, *args
-          # :nocov: as really hard to simulate
-          rescue AbortError => e
-            cause = e.cause
-            raise Celluloid::DeadActorError.new if cause.kind_of? Celluloid::DeadActorError
-            raise RuntimeError, cause
-          end
-          # :nocov:
+          ______any_method_missing :______async_method_missing, meth, *args
         end
       end
     end
 
     private
-    def ______method_missing(meth, *args, &block)
-      message = {actor: @actor, meth: meth, args: args, block: block_given?}
+    def ______any_method_missing(handler, meth, *args, &block)
       begin
-        res = @lnode.relay message
-        if block_given?
-          yield res
-        else
-          res
-        end
+        send handler, meth, *args, &block
       rescue Celluloid::Task::TerminatedError
         abort Celluloid::DeadActorError.new
       end
+    rescue AbortError => e
+      cause = e.cause
+      raise Celluloid::DeadActorError.new if cause.kind_of? Celluloid::DeadActorError
+      raise RuntimeError, cause
+    end
+
+    def ______method_missing(meth, *args, &block)
+      message = {actor: @actor, meth: meth, args: args, block: block_given?}
+      res = @lnode.relay message
+      yield res if block_given?
+      res
     end
 
     def ______async_method_missing(meth, *args)
       message = {actor: @actor, meth: meth, args: args, async: true}
-      begin
-        @lnode.async_relay message
-      # :nocov: as really hard to simulate
-      rescue Celluloid::Task::TerminatedError
-        abort Celluloid::DeadActorError.new
-      end
-      # :nocov:
+      @lnode.async_relay message
     end
   end
 end
