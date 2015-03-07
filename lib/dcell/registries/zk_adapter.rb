@@ -6,9 +6,6 @@ module DCell
       include Node
       include Global
 
-      PREFIX  = "/dcell"
-      DEFAULT_PORT = 2181
-
       # Create a new connection to Zookeeper
       #
       # servers: a list of Zookeeper servers to connect to. Each server in the
@@ -16,30 +13,15 @@ module DCell
       def initialize(options)
         options = Utils::symbolize_keys options
 
-        @env = options[:env] || 'production'
-        @base_path = "#{PREFIX}/#{@env}"
+        env = options[:env] || 'production'
+        base_path = options[:namespace] || "/dcell/#{env}"
 
-        # Let them specify a single server instead of many
-        server = options[:server]
-        if server
-          servers = [server]
-        else
-          servers = options[:servers]
-          raise "no Zookeeper servers given" unless servers
-        end
+        options[:servers] ||= []
+        options[:servers] << "127.0.0.1:2181" unless options[:servers].any?
 
-        # Add the default Zookeeper port unless specified
-        servers.map! do |server|
-          if server[/:\d+$/]
-            server
-          else
-            "#{server}:#{DEFAULT_PORT}"
-          end
-        end
-
-        @zk = ZK.new(*servers)
-        @node_registry = Registry.new(@zk, @base_path, :nodes)
-        @global_registry = Registry.new(@zk, @base_path, :globals)
+        @zk = ZK.new(*options[:servers])
+        @node_registry = Registry.new(@zk, base_path, :nodes)
+        @global_registry = Registry.new(@zk, base_path, :globals)
       end
 
       class Registry

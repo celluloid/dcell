@@ -31,14 +31,11 @@ module DCell
       include Node
       include Global
 
-      DEFAULT_KEYSPACE = "dcell"
-      DEFAULT_CF = "dcell"
-
       def initialize(options)
         options = Utils::symbolize_keys options
 
-        keyspace = options[:keyspace] || DEFAULT_KEYSPACE
-        columnfamily = options[:columnfamily] || DEFAULT_CF
+        keyspace = options[:env] || 'production'
+        columnfamily = options[:namespace] || 'dcell'
 
         options[:servers] ||= []
         options[:servers] << options[:server] if options[:server]
