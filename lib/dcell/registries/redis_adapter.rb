@@ -8,14 +8,14 @@ module DCell
       include Node
       include Global
 
-      def initialize(options)
+      def initialize(options={})
         options = Utils::symbolize_keys options
 
-        @env = options[:env] || 'production'
-        @namespace = options[:namespace] || "dcell_#{@env}"
+        env = options[:env] || 'production'
+        namespace = options[:namespace] || "dcell_#{env}"
 
         redis  = Redis.new options
-        @redis = Redis::Namespace.new @namespace, redis: redis
+        @redis = Redis::Namespace.new namespace, redis: redis
 
         @node_registry = Registry.new(@redis, 'nodes')
         @global_registry = Registry.new(@redis, 'globals')
