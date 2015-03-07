@@ -6,7 +6,7 @@ before_install:
 
 before_script:
   - sleep 15
-  - cassandra-cli --batch < <(echo -e "create keyspace dcell with placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy' and strategy_options = {replication_factor:1};\nuse dcell;\ncreate column family dcell;")
+  - cassandra-cli --batch < <(echo -e "create keyspace test with placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy' and strategy_options = {replication_factor:1};\nuse test;\ncreate column family dcell;")
 
 services:
   - redis-server
