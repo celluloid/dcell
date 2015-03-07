@@ -20,8 +20,8 @@ require 'dcell/responses'
 require 'dcell/mailbox_manager'
 require 'dcell/server'
 require 'dcell/info_service'
-
-require 'dcell/registries/redis_adapter'
+require 'dcell/registries/adapter'
+require 'dcell/registries/errors'
 
 require 'dcell/celluloid_ext'
 
@@ -29,14 +29,15 @@ require 'dcell/celluloid_ext'
 module DCell
   class NotConfiguredError < RuntimeError; end # Not configured yet
 
-  @config_lock  = Mutex.new
+  @lock = Mutex.new
+  @actors = Set.new
 
   def self.included(base)
     base.extend(ClassMethods)
   end
 
   module ClassMethods
-    attr_reader :me, :registry
+    attr_reader :me
 
     # Configure DCell with the following options:
     #
@@ -44,73 +45,77 @@ module DCell
     # * addr: 0MQ address of the local node (e.g. tcp://4.3.2.1:7777)
     # *
     def setup(options = {})
-      # Stringify keys :/
-      options = options.inject({}) { |h,(k,v)| h[k.to_s] = v; h }
+      # Symbolize keys!
+      options = options.inject({}) { |h,(k,v)| h[k.to_sym] = v; h }
 
-      @config_lock.synchronize do
-        @configuration = {
-          'addr' => "tcp://127.0.0.1:*",
-          'registry' => {'adapter' => 'redis', 'server' => 'localhost'},
-          'heartbeat_rate' => 5,
-          'heartbeat_timeout' => 10,
+      @lock.synchronize do
+        configuration = {
+          addr: "tcp://127.0.0.1:*",
+          heartbeat_rate: 5,
+          heartbeat_timeout: 10,
+          id: nil,
         }.merge(options)
 
-        registry_adapter = @configuration['registry'][:adapter] || @configuration['registry']['adapter']
-        raise ArgumentError, "no registry adapter given in config" unless registry_adapter
-
-        registry_class_name = registry_adapter.split("_").map(&:capitalize).join << "Adapter"
-
-        begin
-          registry_class = DCell::Registry.const_get registry_class_name
-        rescue NameError
-          raise ArgumentError, "invalid registry adapter: #{registry_adapter}"
+        configuration.each do |name, value|
+          instance_variable_set "@#{name}", value
+          self.class.class_eval do
+            attr_reader name
+          end
+        end
+        self.class.class_eval do
+          alias_method :address, :addr
         end
 
-        @registry = registry_class.new(@configuration['registry'])
-        @configuration['id'] ||= generate_node_id
-        @me = Node.new @configuration['id'], nil
-        ObjectSpace.define_finalizer(me, proc {Directory.remove @configuration['id']})
+        raise ArgumentError, "no registry adapter given in config" unless @registry
+        @id ||= generate_node_id
+
+        @me = Node.new @id, nil
+        ObjectSpace.define_finalizer(me, proc {Directory.remove @id})
       end
 
       me
     end
 
-    def config(option)
-      unless @configuration
-        Logger.warn "DCell unconfigured, can't get #{option}"
-        return nil
+    def add_local_actor(name)
+      @lock.synchronize do
+        @actors << name.to_sym
       end
-      @configuration[option]
     end
 
-    # Obtain the local node ID
-    def id
-      config 'id'
+    def get_local_actor(name)
+      name = name.to_sym
+      if @actors.include? name
+        return Celluloid::Actor[name]
+      end
+      nil
     end
 
-    # Obtain the 0MQ address to the local mailbox
-    def addr
-      config 'addr'
+    def local_actors
+      @actors.to_a
     end
-    alias_method :address, :addr
+
+    # Returns actors from multiple nodes
+    def find(actor)
+      actors = Array.new
+      Directory.each do |node|
+        next unless node.actors.include? actor
+        begin
+          actors << Node[node.id][actor]
+        rescue Exception => e
+          Logger.warn "Failed to get actor '#{actor}' on node '#{node.id}': #{e}"
+        end
+      end
+      actors
+    end
+    alias_method :[], :find
 
     # Updates server address of the node
     def addr=(addr)
-      @configuration['addr'] = addr
-      Directory.set @configuration['id'], addr
+      @addr = addr
+      Directory[id].address = addr
       @me.update_server_address addr
     end
     alias_method :address=, :addr=
-
-    # Default heartbeat rate for the nodes
-    def heartbeat_rate
-      config 'heartbeat_rate'
-    end
-
-    # Default heartbeat timeout for the nodes
-    def heartbeat_timeout
-      config 'heartbeat_timeout'
-    end
 
     # Attempt to generate a unique node ID for this machine
     def generate_node_id
@@ -126,6 +131,7 @@ module DCell
 
     # Run the DCell application in the background
     def run!
+      Directory[id].actors = local_actors
       DCell::SupervisionGroup.run!
     end
 
@@ -135,13 +141,15 @@ module DCell
       run!
     end
   end
+
   extend ClassMethods
 
   # DCell's actor dependencies
   class SupervisionGroup < Celluloid::SupervisionGroup
-    supervise Server,      :as => :dcell_server, :args => [DCell]
-    supervise InfoService, :as => :info
+    supervise Server,      as: :dcell_server, args: [DCell]
+    supervise InfoService, as: :info
   end
+  DCell.add_local_actor :info
 
   Logger = Celluloid::Logger
 end

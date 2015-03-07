@@ -1,18 +1,19 @@
 shared_context "a DCell registry" do
   context "node registry" do
+    address = "tcp://localhost:7777"
+    meta = {address: address, actors: ["one", "two", "three"]}
+
     before :each do
       subject.clear_all_nodes
     end
 
-    it "stores node addresses" do
-      address = "tcp://localhost:7777"
-
-      subject.set_node("foobar", address)
-      subject.get_node("foobar").should == address
+    it "stores node address and other properties" do
+      subject.set_node("foobar", meta)
+      subject.get_node("foobar").should == meta
     end
 
     it "stores the IDs of all nodes" do
-      subject.set_node("foobar", "tcp://localhost:7777")
+      subject.set_node("foobar", meta)
       subject.nodes.should include "foobar"
     end
   end
