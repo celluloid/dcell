@@ -15,5 +15,4 @@ gem 'coveralls',     require: false
 gemspec
 
 gem 'zk'
-gem 'mongoid'
 gem 'cassandra'
