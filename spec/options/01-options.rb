@@ -1,7 +1,6 @@
 TEST_DB = {
   :redis => {:server => 'localhost', :env => 'test'},
   :zk => {:server => 'localhost', :env => 'test'},
-  :mongodb => {:db => 'dcell-test'},
   :cassandra => {},
 }
 TEST_NODE = {

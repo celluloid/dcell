@@ -65,7 +65,6 @@ module DCell
         end
 
         def set(key, value)
-          id = Utils::uuid
           @cass.insert @cf, @table, { key.to_s => value.to_msgpack }
         end
 
