@@ -6,32 +6,37 @@ module DCell
       @id = SecureRandom.uuid
     end
 
-    def respond(rsp)
+    def __respond(rsp, pipe)
       node = Node[@sender[:id]]
       if node
-        node.async.send_message rsp
+        node.async.send_message rsp, pipe
       else
         Logger.warn "Node #{@sender[:id]} gone"
       end
     end
 
+    def respond(rsp)
+      __respond rsp, :default
+    end
+
     # Heartbeat messages inform other nodes this node is healthy
     class Heartbeat < Message
-      def initialize(from)
+      def initialize(from, raddr)
         @id = DCell.id
         @from = from
+        @raddr = raddr
       end
 
       def dispatch
         node = DCell::Node[@id]
-        node.handle_heartbeat @from if node
+        node.handle_heartbeat @from, @raddr if node
       end
 
       def to_msgpack(pk=nil)
         {
           type: self.class.name,
           id:   @id,
-          args: [@from]
+          args: [@from, @raddr]
         }.to_msgpack(pk)
       end
     end
@@ -131,6 +136,10 @@ module DCell
       def initialize(sender, message)
         super()
         @sender, @message = sender, message
+      end
+
+      def respond(rsp)
+        __respond rsp, :relay
       end
 
       def success(value)

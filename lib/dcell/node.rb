@@ -1,9 +1,26 @@
+require 'uri'
+
 module DCell
   # Exception raised when no response was received within a given timeout
   class NoResponseError < Exception; end
 
   # Exception raised when remote node appears dead
   class DeadNodeError < Exception; end
+
+  class RelayServer
+    attr_accessor :addr
+
+    def initialize
+      uri = URI(DCell.addr)
+      @addr = "#{uri.scheme}://#{uri.host}:*"
+      @server = Server.new self
+    end
+
+    def terminate
+      @server.terminate
+    end
+  end
+
 
   # A node in a DCell cluster
   class Node
@@ -34,9 +51,9 @@ module DCell
 
     def initialize(id, addr, server=false)
       @id, @addr = id, addr
-      @socket = nil
-      @ttl = nil
-      @heartbeat = nil
+      @raddr = nil
+      @socket, @rsocket = nil, nil
+      @ttl, @heartbeat = nil, nil
       @requests = ResourceManager.new
       @actors = ResourceManager.new
       @remote_dead = false
@@ -51,6 +68,7 @@ module DCell
         Logger.warn "Node '#{@id}' looks dead"
         raise DeadNodeError.new
       end
+      @rserver = RelayServer.new
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self
@@ -79,7 +97,7 @@ module DCell
     # Send a ping message with a given timeout
     def ping(timeout=nil)
       request = Message::Ping.new(Thread.mailbox)
-      send_request request, timeout
+      send_request request, :default, timeout
     end
 
     # Friendlier inspection
@@ -132,45 +150,68 @@ module DCell
         farewell if Directory[id].alive? rescue IOError
       end
       @socket.close if @socket
+      @rsocket.close if @rsocket
+      @rserver.terminate if @rserver
       NodeCache.delete id
       MailboxManager.delete Thread.mailbox
       Logger.info "Disconnected from #{id}"
     end
 
     # Obtain the node's 0MQ socket
-    def socket
-      return @socket if @socket
-      raise IOError unless @addr
+    def __socket(addr)
+      raise IOError unless addr
 
-      @socket = Celluloid::ZMQ::PushSocket.new
+      socket = Celluloid::ZMQ::PushSocket.new
       begin
-        @socket.connect @addr
-        @socket.linger = @heartbeat_timeout * 1000
+        socket.connect addr
+        socket.linger = @heartbeat_timeout * 1000
       rescue IOError
-        @socket.close
-        @socket = nil
+        socket.close
+        socket = nil
         raise
       end
-      @addr = @socket.get(::ZMQ::LAST_ENDPOINT).strip
+      socket
+    end
 
+    # Obtain socket for relay messages
+    def rsocket
+      return @rsocket if @rsocket
+      # a backup if relay message was the first one
+      unless @raddr
+        Logger.warn "Remote relay pipe of node #{id} is not yet ready"
+        return socket
+      end
+      @rsocket = __socket @raddr
+    end
+
+    # Obtain socket for management messages
+    def socket
+      return @socket if @socket
+      @socket = __socket @addr
       transition :connected
       @socket
     end
 
     # Pack and send a message to another DCell node
-    def send_message(message)
+    def send_message(message, pipe=:default)
+      queue = nil
+      if pipe == :default
+        queue = socket
+      elsif pipe == :relay
+        queue = rsocket
+      end
+
       begin
         message = message.to_msgpack
       rescue => e
         abort e
       end
-      socket << message
+      queue << message
     end
-    alias_method :<<, :send_message
 
     # Send request and wait for response
-    def push_request(request, timeout=nil)
-      send_message request
+    def push_request(request, pipe=:default, timeout=nil)
+      send_message request, pipe
       save_request request
       response = receive(timeout) do |msg|
         msg.respond_to?(:request_id) && msg.request_id == request.id
@@ -181,8 +222,8 @@ module DCell
     end
 
     # Send request and handle unroll response
-    def send_request(request, timeout=nil)
-      response = push_request request, timeout
+    def send_request(request, pipe=:default, timeout=nil)
+      response = push_request request, pipe, timeout
       return if response.is_a? CancelResponse
       if response.is_a? ErrorResponse
         klass = Utils::full_const_get response.value[:class]
@@ -195,13 +236,13 @@ module DCell
     # Relay message to remote actor
     def relay(message)
       request = Message::Relay.new(Thread.mailbox, message)
-      send_request request
+      send_request request, :relay
     end
 
     # Relay async message to remote actor
     def async_relay(message)
       request = Message::Relay.new(Thread.mailbox, message)
-      send_message request
+      send_message request, :relay
     end
 
     # Goodbye message to remote actor
@@ -213,13 +254,15 @@ module DCell
     # Send a heartbeat message after the given interval
     def send_heartbeat
       return if DCell.id == id
-      send_message DCell::Message::Heartbeat.new id
+      request = DCell::Message::Heartbeat.new id, @rserver.addr
+      send_message request
       @heartbeat = after(@heartbeat_rate) { send_heartbeat }
     end
 
     # Handle an incoming heartbeat for this node
-    def handle_heartbeat(from)
+    def handle_heartbeat(from, raddr)
       return if from == id
+      @raddr = raddr
       transition :connected
       transition :partitioned, delay: @heartbeat_timeout
     end
