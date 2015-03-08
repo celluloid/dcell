@@ -210,7 +210,7 @@ module DCell
     end
 
     # Send request and wait for response
-    def push_request(request, pipe=:default, timeout=nil)
+    def push_request(request, pipe=:default, timeout=@heartbeat_timeout)
       send_message request, pipe
       save_request request
       response = receive(timeout) do |msg|
@@ -222,7 +222,7 @@ module DCell
     end
 
     # Send request and handle unroll response
-    def send_request(request, pipe=:default, timeout=nil)
+    def send_request(request, pipe=:default, timeout=@heartbeat_timeout)
       response = push_request request, pipe, timeout
       return if response.is_a? CancelResponse
       if response.is_a? ErrorResponse
