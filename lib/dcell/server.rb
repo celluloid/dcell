@@ -48,7 +48,7 @@ module DCell
       begin
         klass = Utils::full_const_get msg[:type]
         o = klass.new *msg[:args]
-        if o.respond_to? :id and msg[:id]
+        if o.respond_to? :id= and msg[:id]
           o.id = msg[:id]
         end
         o
