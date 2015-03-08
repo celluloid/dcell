@@ -65,7 +65,9 @@ module DCell
     # Returns actors from multiple nodes
     def find(actor)
       actors = Array.new
-      Directory.each do |node|
+      Directory.each do |id|
+        node = Directory[id]
+        next unless node
         next if node.id == DCell.id
         next unless node.actors.include? actor
         begin

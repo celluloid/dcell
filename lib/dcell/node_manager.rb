@@ -5,14 +5,16 @@ module DCell
 
     class << self
       # Finds a node by its node ID and adds to the cache
-      def register(id, addr)
+      def register(id)
         return DCell.me if id == DCell.id
-        return nil unless addr
         loop do
           begin
             node = nil
             return @nodes.register(id) do
-              node = Node.new(id, addr) rescue nil
+              ninfo = Directory[id]
+              if ninfo and ninfo.alive? and ninfo.address
+                node = Node.new(id, ninfo.address) rescue nil
+              end
             end
           rescue ResourceManagerConflict => e
             # :nocov:
@@ -38,19 +40,16 @@ module DCell
   module NodeManager
     # Iterate across all available nodes
     def each
-      Directory.each do |node|
-        # skip dead nodes and nodes w/o an address, those might not be operational yet
-        next unless node.alive? and node.address
-        remote = NodeCache.register node.id, node.address
+      Directory.each do |id|
+        remote = NodeCache.register id
+        next unless remote
         yield remote
       end
     end
 
     # Find a node by its node ID
     def find(id)
-      node = Directory[id]
-      return nil unless node and node.alive? and node.address
-      NodeCache.register id, node.address
+      NodeCache.register id
     end
     alias_method :[], :find
   end
