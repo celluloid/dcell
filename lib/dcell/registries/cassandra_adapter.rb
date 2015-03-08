@@ -31,7 +31,7 @@ module DCell
       include Node
       include Global
 
-      def initialize(options)
+      def initialize(options={})
         options = Utils::symbolize_keys options
 
         keyspace = options[:env] || 'production'

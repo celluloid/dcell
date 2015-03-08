@@ -8,7 +8,7 @@ module DCell
       include Node
       include Global
 
-      def initialize(options)
+      def initialize(options={})
         options = Utils::symbolize_keys options
 
         env = options[:env] || 'production'

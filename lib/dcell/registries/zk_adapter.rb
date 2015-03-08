@@ -10,7 +10,7 @@ module DCell
       #
       # servers: a list of Zookeeper servers to connect to. Each server in the
       #          list has a host/port configuration
-      def initialize(options)
+      def initialize(options={})
         options = Utils::symbolize_keys options
 
         env = options[:env] || 'production'
