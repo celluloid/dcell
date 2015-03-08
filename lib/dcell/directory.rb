@@ -65,9 +65,7 @@ module DCell
     # Iterates over all registered nodes
     def each
       DCell.registry.nodes.each do |id|
-        node = Directory[id]
-        next unless node
-        yield node
+        yield id
       end
     end
 

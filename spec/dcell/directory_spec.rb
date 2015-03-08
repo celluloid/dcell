@@ -23,8 +23,8 @@ describe DCell::Directory do
   it "presents all stored addresses" do
     DCell::Directory["foo"].address = "tcp://fooaddress"
     DCell::Directory["bar"].address = "tcp://baraddress"
-    DCell::Directory.map{|node| node.id}.should include("foo")
-    DCell::Directory.map{|node| node.id}.should include("bar")
+    DCell::Directory.to_a.should include("foo")
+    DCell::Directory.to_a.should include("bar")
   end
 
   it "clears node addresses" do
