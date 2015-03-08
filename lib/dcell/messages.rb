@@ -2,8 +2,9 @@ module DCell
   class Message
     attr_accessor :id
 
-    def initialize
-      @id = SecureRandom.uuid
+    def id
+      @id ||= SecureRandom.uuid
+      @id
     end
 
     def __respond(rsp, pipe)
@@ -28,14 +29,14 @@ module DCell
       end
 
       def dispatch
-        node = DCell::Node[@id]
+        node = DCell::Node[id]
         node.handle_heartbeat @from, @raddr if node
       end
 
       def to_msgpack(pk=nil)
         {
           type: self.class.name,
-          id:   @id,
+          id:   id,
           args: [@from, @raddr]
         }.to_msgpack(pk)
       end
@@ -48,14 +49,14 @@ module DCell
       end
 
       def dispatch
-        node = DCell::NodeCache.find @id
+        node = DCell::NodeCache.find id
         node.detach if node
       end
 
       def to_msgpack(pk=nil)
         {
           type: self.class.name,
-          id:   @id,
+          id:   id,
         }.to_msgpack(pk)
       end
     end
@@ -63,18 +64,17 @@ module DCell
     # Ping message checks if remote node is alive or not
     class Ping < Message
       def initialize(sender)
-        super()
         @sender = sender
       end
 
       def dispatch
-        respond SuccessResponse.new(@id, @sender[:address], true)
+        respond SuccessResponse.new(id, @sender[:address], true)
       end
 
       def to_msgpack(pk=nil)
         {
           type: self.class.name,
-          id:   @id,
+          id:   id,
           args: [@sender]
         }.to_msgpack(pk)
       end
@@ -85,7 +85,6 @@ module DCell
       attr_reader :sender, :name
 
       def initialize(sender, name)
-        super()
         @sender, @name = sender, name
       end
 
@@ -95,13 +94,13 @@ module DCell
         if actor
           methods = actor.class.instance_methods(false)
         end
-        respond SuccessResponse.new(@id, @sender[:address], methods)
+        respond SuccessResponse.new(id, @sender[:address], methods)
       end
 
       def to_msgpack(pk=nil)
         {
           type: self.class.name,
-          id:   @id,
+          id:   id,
           args: [@sender, @name]
         }.to_msgpack(pk)
       end
@@ -112,18 +111,17 @@ module DCell
       attr_reader :sender
 
       def initialize(sender)
-        super()
         @sender = sender
       end
 
       def dispatch
-        respond SuccessResponse.new(@id, @sender[:address], DCell.local_actors)
+        respond SuccessResponse.new(id, @sender[:address], DCell.local_actors)
       end
 
       def to_msgpack(pk=nil)
         {
           type: self.class.name,
-          id:   @id,
+          id:   id,
           args: [@sender]
         }.to_msgpack(pk)
       end
@@ -134,7 +132,6 @@ module DCell
       attr_reader :sender, :message
 
       def initialize(sender, message)
-        super()
         @sender, @message = sender, message
       end
 
@@ -143,11 +140,11 @@ module DCell
       end
 
       def success(value)
-        respond SuccessResponse.new(@id, @sender[:address], value)
+        respond SuccessResponse.new(id, @sender[:address], value)
       end
 
       def exception(e)
-        respond ErrorResponse.new(@id, @sender[:address], {class: e.class.name, msg: e.to_s})
+        respond ErrorResponse.new(id, @sender[:address], {class: e.class.name, msg: e.to_s})
       end
 
       def dispatch
@@ -155,14 +152,14 @@ module DCell
         begin
           actor.async :____dcell_dispatch, self
         rescue => e
-          respond ErrorResponse.new(@id, @sender[:address], {class: e.class.name, msg: e.to_s})
+          respond ErrorResponse.new(id, @sender[:address], {class: e.class.name, msg: e.to_s})
         end
       end
 
       def to_msgpack(pk=nil)
         {
           type: self.class.name,
-          id:   @id,
+          id:   id,
           args: [@sender, @message]
         }.to_msgpack(pk)
       end
