@@ -17,7 +17,7 @@ module DCell
     end
 
     def terminate
-      @server.terminate
+      @server.terminate if @server.alive?
     end
   end
 
@@ -51,9 +51,6 @@ module DCell
 
     def initialize(id, addr, server=false)
       @id, @addr = id, addr
-      @raddr = nil
-      @socket, @rsocket = nil, nil
-      @ttl, @heartbeat = nil, nil
       @requests = ResourceManager.new
       @actors = ResourceManager.new
       @remote_dead = false
@@ -68,7 +65,6 @@ module DCell
         Logger.warn "Node '#{@id}' looks dead"
         raise DeadNodeError.new
       end
-      @rserver = RelayServer.new
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self
@@ -176,11 +172,7 @@ module DCell
     # Obtain socket for relay messages
     def rsocket
       return @rsocket if @rsocket
-      # a backup if relay message was the first one
-      unless @raddr
-        Logger.warn "Remote relay pipe of node #{id} is not yet ready"
-        return socket
-      end
+      send_relayopen unless @raddr
       @rsocket = __socket @raddr
     end
 
@@ -254,17 +246,33 @@ module DCell
     # Send a heartbeat message after the given interval
     def send_heartbeat
       return if DCell.id == id
-      request = DCell::Message::Heartbeat.new id, @rserver.addr
+      request = DCell::Message::Heartbeat.new id
       send_message request
       @heartbeat = after(@heartbeat_rate) { send_heartbeat }
     end
 
     # Handle an incoming heartbeat for this node
-    def handle_heartbeat(from, raddr)
+    def handle_heartbeat(from)
       return if from == id
-      @raddr = raddr
       transition :connected
       transition :partitioned, delay: @heartbeat_timeout
+    end
+
+    # Send an advertising message
+    def send_relayopen
+      meta = {raddr: rserver.addr}
+      request = Message::RelayOpen.new(Thread.mailbox, id, meta)
+      @raddr = send_request request
+    end
+
+    # Handle an incoming node advertising message for this node
+    def handle_relayopen(from, meta)
+      @raddr = meta[:raddr]
+    end
+
+    def rserver
+      return @rserver if @rserver
+      @rserver = RelayServer.new
     end
 
     # Update TTL in registry
