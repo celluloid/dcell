@@ -20,24 +20,51 @@ module DCell
       __respond rsp, :default
     end
 
-    # Heartbeat messages inform other nodes this node is healthy
-    class Heartbeat < Message
-      def initialize(from, raddr)
+    # A request to open relay pipe
+    class RelayOpen < Message
+      def initialize(sender, from, meta)
         @id = DCell.id
+        @sender = sender
         @from = from
-        @raddr = raddr
+        @meta = meta
       end
 
       def dispatch
         node = DCell::Node[id]
-        node.handle_heartbeat @from, @raddr if node
+        node.handle_relayopen @from, @meta
+        respond SuccessResponse.new(id, @sender[:address], node.rserver.addr)
+      rescue => e
+        # :nocov:
+        respond ErrorResponse.new(id, @sender[:address], {class: e.class.name, msg: e.to_s})
+        # :nocov:
       end
 
       def to_msgpack(pk=nil)
         {
           type: self.class.name,
           id:   id,
-          args: [@from, @raddr]
+          args: [@sender, @from, @meta]
+        }.to_msgpack(pk)
+      end
+    end
+
+    # Heartbeat messages inform other nodes this node is healthy
+    class Heartbeat < Message
+      def initialize(from)
+        @id = DCell.id
+        @from = from
+      end
+
+      def dispatch
+        node = DCell::Node[id]
+        node.handle_heartbeat @from if node
+      end
+
+      def to_msgpack(pk=nil)
+        {
+          type: self.class.name,
+          id:   id,
+          args: [@from]
         }.to_msgpack(pk)
       end
     end
