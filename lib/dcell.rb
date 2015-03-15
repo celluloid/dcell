@@ -59,6 +59,14 @@ module DCell
 
         raise ArgumentError, "no registry adapter given in config" unless @registry
         @id ||= generate_node_id
+
+        if Celluloid.logger
+          # :nocov:
+          Celluloid.logger.formatter = proc do |severity, datetime, progname, msg|
+            "[#{datetime}][#{severity}][#{@id}] #{msg}\n"
+          end
+          # :nocov:
+        end
       end
     end
 
