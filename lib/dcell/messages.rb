@@ -17,21 +17,19 @@ module DCell
     end
 
     def respond(rsp)
-      __respond rsp, :default
+      __respond rsp, :response
     end
 
     # A request to open relay pipe
     class RelayOpen < Message
-      def initialize(sender, from, meta)
+      def initialize(sender)
         @id = DCell.id
         @sender = sender
-        @from = from
-        @meta = meta
       end
 
       def dispatch
         node = DCell::Node[id]
-        node.handle_relayopen @from, @meta
+        node.handle_relayopen
         respond SuccessResponse.new(id, @sender[:address], node.rserver.addr)
       rescue => e
         # :nocov:
@@ -43,7 +41,7 @@ module DCell
         {
           type: self.class.name,
           id:   id,
-          args: [@sender, @from, @meta]
+          args: [@sender]
         }.to_msgpack(pk)
       end
     end
@@ -77,7 +75,7 @@ module DCell
 
       def dispatch
         node = DCell::NodeCache.find id
-        node.detach if node
+        node.detach if node and node.alive?
       end
 
       def to_msgpack(pk=nil)

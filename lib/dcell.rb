@@ -4,6 +4,7 @@ require 'celluloid/zmq'
 require 'socket'
 require 'securerandom'
 require 'msgpack'
+require 'uri'
 
 Celluloid::ZMQ.init
 
@@ -13,12 +14,13 @@ require 'dcell/resource_manager'
 require 'dcell/actor_proxy'
 require 'dcell/directory'
 require 'dcell/messages'
+require 'dcell/sockets'
+require 'dcell/server'
 require 'dcell/node_manager'
 require 'dcell/node'
 require 'dcell/global'
 require 'dcell/responses'
 require 'dcell/mailbox_manager'
-require 'dcell/server'
 require 'dcell/info_service'
 require 'dcell/registries/adapter'
 require 'dcell/registries/errors'
@@ -141,7 +143,7 @@ module DCell
         @registry.unique
       else
         digest = Digest::SHA512.new
-        seed = Socket.gethostname + rand.to_s + Time.now.to_s + SecureRandom.hex
+        seed = ::Socket.gethostname + rand.to_s + Time.now.to_s + SecureRandom.hex
         digest.update(seed).to_s
       end
     end
@@ -163,7 +165,7 @@ module DCell
 
   # DCell's actor dependencies
   class SupervisionGroup < Celluloid::SupervisionGroup
-    supervise Server,      as: :dcell_server, args: [DCell]
+    supervise RequestServer, as: :server
     supervise InfoService, as: :info
   end
   DCell.add_local_actor :info
