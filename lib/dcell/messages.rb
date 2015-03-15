@@ -20,6 +20,10 @@ module DCell
       __respond rsp, :response
     end
 
+    def exception(e)
+      respond ErrorResponse.new(id, @sender[:address], {class: e.class.name, msg: e.to_s, tb: e.backtrace})
+    end
+
     # A request to open relay pipe
     class RelayOpen < Message
       def initialize(sender)
@@ -33,7 +37,7 @@ module DCell
         respond SuccessResponse.new(id, @sender[:address], node.rserver.addr)
       rescue => e
         # :nocov:
-        respond ErrorResponse.new(id, @sender[:address], {class: e.class.name, msg: e.to_s})
+        exception e
         # :nocov:
       end
 
@@ -168,16 +172,12 @@ module DCell
         respond SuccessResponse.new(id, @sender[:address], value)
       end
 
-      def exception(e)
-        respond ErrorResponse.new(id, @sender[:address], {class: e.class.name, msg: e.to_s})
-      end
-
       def dispatch
         actor = DCell.get_local_actor @message[:actor].to_sym
         begin
           actor.async :____dcell_dispatch, self
         rescue => e
-          respond ErrorResponse.new(id, @sender[:address], {class: e.class.name, msg: e.to_s})
+          exception e
         end
       end
 

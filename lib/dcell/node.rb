@@ -188,9 +188,11 @@ module DCell
       response = push_request request, pipe, timeout
       return if response.is_a? CancelResponse
       if response.is_a? ErrorResponse
-        klass = Utils::full_const_get response.value[:class]
-        msg = response.value[:msg]
-        abort klass.new msg
+        value = response.value
+        klass = Utils::full_const_get value[:class]
+        exception = klass.new value[:msg]
+        exception.set_backtrace value[:tb]
+        abort exception
       end
       response.value
     end
