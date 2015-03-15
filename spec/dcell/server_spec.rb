@@ -1,35 +1,14 @@
-describe DCell::PullServer do
-  it "raises exception on invalid address configuration" do
-    DCellMock.setup addr: 'tcp://127.0.1.0', registry: {adapter: 'dummy'}
-    expect {DCell::PullServer.new DCellMock}.to raise_error(IOError)
-  end
-
-  it "raises exception if address is already in use" do
-    DCellMock.setup addr: 'tcp://127.0.0.1:1123', registry: {adapter: 'dummy'}
-    server = DCell::PullServer.new DCellMock
-    expect {DCell::PullServer.new DCellMock}.to raise_error(IOError)
-  end
-
+describe DCell::MessageHandler do
   it "properly handles incorrectly encoded incoming message" do
-    DCellMock.setup addr: 'tcp://127.0.0.1:*', registry: {adapter: 'dummy'}
-    server = DCell::PullServer.new DCellMock
-
-    expect {server.decode_message ''}.to raise_error(DCell::PullServer::InvalidMessageError)
-    expect {server.handle_message ''}.not_to raise_error
-
-    server.close
+    expect {DCell::MessageHandler.decode_message ''}.to raise_error(DCell::MessageHandler::InvalidMessageError)
+    expect {DCell::MessageHandler.handle_message ''}.not_to raise_error
   end
 
   it "properly handles improperly encoded messages and those that crash during dispatch" do
-    DCellMock.setup addr: 'tcp://127.0.0.1:*', registry: {adapter: 'dummy'}
-    server = DCell::PullServer.new DCellMock
-
     ping = DCell::Message::Ping.new(nil).to_msgpack
-    expect {server.handle_message ping}.not_to raise_error
+    expect {DCell::MessageHandler.handle_message ping}.not_to raise_error
 
     invalid = {}.to_msgpack
-    expect {server.handle_message invalid}.not_to raise_error
-
-    server.close
+    expect {DCell::MessageHandler.handle_message invalid}.not_to raise_error
   end
 end
