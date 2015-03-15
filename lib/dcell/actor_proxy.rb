@@ -26,7 +26,7 @@ module DCell
     rescue AbortError => e
       cause = e.cause
       raise Celluloid::DeadActorError.new if cause.kind_of? Celluloid::DeadActorError
-      raise RuntimeError, cause
+      raise RuntimeError, cause, cause.backtrace
     end
 
     def ______method_missing(meth, *args, &block)
