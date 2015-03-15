@@ -1,24 +1,8 @@
 module DCell
   # Servers handle incoming 0MQ traffic
-  class PullServer
-    # Bind to the given 0MQ address (in URL form ala tcp://host:port)
-    def initialize(cell)
-      @socket = Celluloid::ZMQ::PullSocket.new
-
-      begin
-        @socket.bind(cell.addr)
-        real_addr = @socket.get(::ZMQ::LAST_ENDPOINT).strip
-        cell.addr = real_addr
-        @socket.linger = 1000
-      rescue IOError
-        @socket.close
-        raise
-      end
-    end
-
-    def close
-      @socket.close if @socket
-    end
+  module MessageHandler
+    class InvalidMessageError < StandardError; end
+    extend self
 
     # Handle incoming messages
     def handle_message(message)
@@ -35,8 +19,6 @@ module DCell
         Logger.crash("message dispatch failed", ex)
       end
     end
-
-    class InvalidMessageError < StandardError; end # undecodable message
 
     # Decode incoming messages
     def decode_message(message)
@@ -58,22 +40,77 @@ module DCell
     end
   end
 
-  class Server < PullServer
+  class Server
     include Celluloid::ZMQ
+    include MessageHandler
 
-    finalizer :close
+    attr_accessor :farewell
+    finalizer :shutdown
 
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
-    def initialize(cell)
-      super(cell)
+    def initialize(socket)
+      @socket = socket
+      @farewell = false
       async.run
+    end
+
+    def shutdown
+      return unless @socket
+      if @farewell
+        msg = Message::Farewell.new.to_msgpack
+        @socket.write msg
+      end
+      @socket.close
+    end
+
+    def write(id, msg)
+      if @socket.kind_of? Celluloid::ZMQ::RouterSocket
+        @socket.write id, msg
+      else
+        @socket.write msg
+      end
     end
 
     # Wait for incoming 0MQ messages
     def run
       while true
-        handle_message @socket.read
+        message = @socket.read_multipart
+        if @socket.kind_of? Celluloid::ZMQ::RouterSocket
+          id, message = message
+        else
+          message = message[0]
+        end
+        handle_message message
       end
+    end
+  end
+
+  # Sets up main DCell request server
+  class RequestServer < Server
+    def initialize
+      socket, addr = Socket::server(DCell.addr, DCell.id)
+      DCell.addr = addr
+      super(socket)
+    end
+  end
+
+  # Sets up node relay server
+  class RelayServer < Server
+    attr_reader :addr
+
+    def initialize
+      uri = URI(DCell.addr)
+      addr = "#{uri.scheme}://#{uri.host}:*"
+      socket, @addr = Socket::server(addr, DCell.id)
+      super(socket)
+    end
+  end
+
+  # Sets up client server
+  class ClientServer < Server
+    def initialize(addr, linger)
+      socket = Socket::client(addr, DCell.id, linger)
+      super(socket)
     end
   end
 end

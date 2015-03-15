@@ -43,11 +43,6 @@ describe DCell::Node do
     expect {DCell::Node.new("corpse", nil)}.to raise_error DCell::DeadNodeError
   end
 
-  it "failes to connect to invalid address" do
-    node = DCell::Node.new(TEST_NODE[:id], 'udp://?:?')
-    expect {node.socket}.to raise_error IOError
-  end
-
   it "fails to send complex structures" do
     actor = @node[:test_actor]
     expect {actor.win(->() {'magic'})}.to raise_error

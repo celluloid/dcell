@@ -1,5 +1,3 @@
-require 'uri'
-
 module DCell
   # Exception raised when no response was received within a given timeout
   class NoResponseError < Exception; end
@@ -7,28 +5,12 @@ module DCell
   # Exception raised when remote node appears dead
   class DeadNodeError < Exception; end
 
-  class RelayServer
-    attr_accessor :addr
-
-    def initialize
-      uri = URI(DCell.addr)
-      @addr = "#{uri.scheme}://#{uri.host}:*"
-      @server = Server.new self
-    end
-
-    def terminate
-      @server.terminate if @server.alive?
-    end
-  end
-
-
   # A node in a DCell cluster
   class Node
     include Celluloid
     include Celluloid::FSM
 
     attr_reader :id
-
     finalizer :shutdown
 
     # FSM
@@ -54,6 +36,7 @@ module DCell
       @requests = ResourceManager.new
       @actors = ResourceManager.new
       @remote_dead = false
+      @leech = false
 
       @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
       @heartbeat_timeout = DCell.heartbeat_timeout # How soon until a lost heartbeat triggers a node partition
@@ -93,7 +76,7 @@ module DCell
     # Send a ping message with a given timeout
     def ping(timeout=nil)
       request = Message::Ping.new(Thread.mailbox)
-      send_request request, :default, timeout
+      send_request request, :request, timeout
     end
 
     # Friendlier inspection
@@ -141,54 +124,41 @@ module DCell
     # Graceful termination of the node
     def shutdown
       transition :shutdown
-      unless @remote_dead or DCell.id == id
+      unless @remote_dead or DCell.id == @id
         kill_actors
-        farewell if Directory[id].alive? rescue IOError
+        farewell
       end
-      @socket.close if @socket
-      @rsocket.close if @rsocket
-      @rserver.terminate if @rserver
-      NodeCache.delete id
+      @socket.terminate if @socket && @socket.alive?
+      @rsocket.terminate if @rsocket && @rsocket.alive?
+      @rserver.terminate if @rserver && @rserver.alive?
+      NodeCache.delete @id
       MailboxManager.delete Thread.mailbox
-      Logger.info "Disconnected from #{id}"
-    end
-
-    # Obtain the node's 0MQ socket
-    def __socket(addr)
-      raise IOError unless addr
-
-      socket = Celluloid::ZMQ::PushSocket.new
-      begin
-        socket.connect addr
-        socket.linger = @heartbeat_timeout * 1000
-      rescue IOError
-        socket.close
-        socket = nil
-        raise
-      end
-      socket
+      Logger.info "Disconnected from #{@id}"
     end
 
     # Obtain socket for relay messages
     def rsocket
       return @rsocket if @rsocket
       send_relayopen unless @raddr
-      @rsocket = __socket @raddr
+      @rsocket = ClientServer.new @raddr, @heartbeat_timeout*1000
     end
 
     # Obtain socket for management messages
     def socket
       return @socket if @socket
-      @socket = __socket @addr
+      @socket = ClientServer.new @addr, @heartbeat_timeout*1000
+      @socket.farewell = true
       transition :connected
       @socket
     end
 
     # Pack and send a message to another DCell node
-    def send_message(message, pipe=:default)
+    def send_message(message, pipe=:request)
       queue = nil
-      if pipe == :default
+      if pipe == :request
         queue = socket
+      elsif pipe == :response
+        queue = Celluloid::Actor[:server]
       elsif pipe == :relay
         queue = rsocket
       end
@@ -198,11 +168,11 @@ module DCell
       rescue => e
         abort e
       end
-      queue << message
+      queue.write @id, message
     end
 
     # Send request and wait for response
-    def push_request(request, pipe=:default, timeout=nil)
+    def push_request(request, pipe=:request, timeout=nil)
       send_message request, pipe
       save_request request
       response = receive(timeout) do |msg|
@@ -214,7 +184,7 @@ module DCell
     end
 
     # Send request and handle unroll response
-    def send_request(request, pipe=:default, timeout=nil)
+    def send_request(request, pipe=:request, timeout=nil)
       response = push_request request, pipe, timeout
       return if response.is_a? CancelResponse
       if response.is_a? ErrorResponse
@@ -239,35 +209,37 @@ module DCell
 
     # Goodbye message to remote actor
     def farewell
+      return unless Directory[@id].alive?
       request = Message::Farewell.new
       send_message request
+    rescue
     end
 
     # Send a heartbeat message after the given interval
     def send_heartbeat
-      return if DCell.id == id
-      request = DCell::Message::Heartbeat.new id
-      send_message request
+      return if DCell.id == @id
+      request = DCell::Message::Heartbeat.new @id
+      send_message request, @leech ? :response : :request
       @heartbeat = after(@heartbeat_rate) { send_heartbeat }
     end
 
     # Handle an incoming heartbeat for this node
     def handle_heartbeat(from)
-      return if from == id
+      return if from == @id
+      @leech = true unless state == :connected
       transition :connected
       transition :partitioned, delay: @heartbeat_timeout
     end
 
     # Send an advertising message
     def send_relayopen
-      meta = {raddr: rserver.addr}
-      request = Message::RelayOpen.new(Thread.mailbox, id, meta)
+      request = Message::RelayOpen.new(Thread.mailbox)
       @raddr = send_request request
     end
 
     # Handle an incoming node advertising message for this node
-    def handle_relayopen(from, meta)
-      @raddr = meta[:raddr]
+    def handle_relayopen
+      @rsocket = rserver
     end
 
     def rserver
@@ -277,22 +249,22 @@ module DCell
 
     # Update TTL in registry
     def update_ttl
-      Directory[id].update_ttl
+      Directory[@id].update_ttl
       @ttl = after(@ttl_rate) { update_ttl }
     end
 
     def on_connected
       send_heartbeat
-      unless id == DCell.id
+      unless @id == DCell.id
         transition :partitioned, delay: @heartbeat_timeout
       end
-      Logger.info "Connected to #{id}"
+      Logger.info "Connected to #{@id}"
     end
 
     def on_partitioned
       @heartbeat.cancel if @heartbeat
       @ttl.cancel if @ttl
-      Logger.warn "Communication with #{id} interrupted"
+      Logger.warn "Communication with #{@id} interrupted"
       detach
     end
   end
