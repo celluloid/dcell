@@ -7,7 +7,7 @@ module DCell
     attr_reader :cpu_arch, :cpu_type, :cpu_vendor, :cpu_speed, :cpu_count
     attr_reader :ruby_version, :ruby_engine, :ruby_platform
 
-    UPTIME_REGEX = /up ((\d+ days?,)?\s*(\d+:\d+|\d+ \w+)),.*(( \d.\d{2},?){3})/
+    UPTIME_REGEX = /up ((\d+ days?,)?\s*(\d+:\d+|\d+ \w+)),.*(( \d+.\d+,?){3})/
 
     def initialize
       @cpu_arch = RbConfig::CONFIG['host_cpu']
@@ -70,7 +70,7 @@ module DCell
       matches = uptime_string.match(UPTIME_REGEX)
       unless matches
         Logger.warn "Couldn't parse uptime output: #{uptime_string}"
-        return
+        return ['']
       end
 
       averages = matches[4].strip
