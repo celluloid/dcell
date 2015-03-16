@@ -61,6 +61,7 @@ module DCell
         @socket.write msg
       end
       @socket.close
+      instance_variables.each { |iv| remove_instance_variable iv }
     end
 
     def write(id, msg)
