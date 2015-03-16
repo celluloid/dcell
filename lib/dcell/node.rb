@@ -134,6 +134,7 @@ module DCell
       NodeCache.delete @id
       MailboxManager.delete Thread.mailbox
       Logger.info "Disconnected from #{@id}"
+      instance_variables.each { |iv| remove_instance_variable iv }
     end
 
     # Obtain socket for relay messages
