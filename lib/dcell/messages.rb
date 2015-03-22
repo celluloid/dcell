@@ -3,7 +3,7 @@ module DCell
     attr_accessor :id
 
     def id
-      @id ||= SecureRandom.uuid
+      @id ||= Celluloid.uuid
       @id
     end
 
