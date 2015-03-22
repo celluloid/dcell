@@ -38,9 +38,10 @@ module DCell
       @remote_dead = false
       @leech = false
 
-      @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
-      @heartbeat_timeout = DCell.heartbeat_timeout # How soon until a lost heartbeat triggers a node partition
-      @ttl_rate = DCell.ttl_rate # How often update TTL in the registry
+      @heartbeat_rate    = DCell.heartbeat_rate
+      @heartbeat_timeout = DCell.heartbeat_timeout
+      @request_timeout   = DCell.request_timeout
+      @ttl_rate          = DCell.ttl_rate
 
       if server
         update_ttl
@@ -173,7 +174,7 @@ module DCell
     end
 
     # Send request and wait for response
-    def push_request(request, pipe=:request, timeout=nil)
+    def push_request(request, pipe=:request, timeout=@request_timeout)
       send_message request, pipe
       save_request request
       response = receive(timeout) do |msg|
