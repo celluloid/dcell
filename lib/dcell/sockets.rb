@@ -10,8 +10,6 @@ module DCell
       raise IOError unless socket
       begin
         socket.identity = id
-        socket.set ::ZMQ::SNDHWM, 0
-        socket.set ::ZMQ::RCVHWM, 0
         socket.bind(addr)
         socket.linger = linger
       rescue IOError
@@ -30,7 +28,6 @@ module DCell
       raise IOError unless socket
       begin
         socket.identity = id
-        socket.set ::ZMQ::RCVHWM, 0
         socket.connect addr
         socket.linger = linger
       rescue IOError
