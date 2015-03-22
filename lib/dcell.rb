@@ -52,9 +52,10 @@ module DCell
       @lock.synchronize do
         configuration = {
           addr: "tcp://127.0.0.1:*",
-          heartbeat_rate: 5,
-          heartbeat_timeout: 10,
-          ttl_rate: 20,
+          heartbeat_rate: 5,        # How often to send heartbeats in seconds
+          heartbeat_timeout: 10,    # How soon until a lost heartbeat triggers a node partition
+          request_timeout: 10,      # Timeout on waiting for the response
+          ttl_rate: 20,             # How often update TTL in the registry
           id: nil,
         }.merge(options)
         configuration_accessors configuration
