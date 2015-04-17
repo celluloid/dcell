@@ -2,7 +2,8 @@ require 'dcell'
 
 Dir['./spec/options/*.rb'].map { |f| require f }
 
-DCell.start test_options
+Celluloid.logger = nil
+Celluloid.shutdown_timeout = 1
 
 module TestNode
   def self.start
@@ -16,17 +17,17 @@ module TestNode
   def self.wait_until_ready
     STDERR.print "Waiting for test node to start up..."
 
-    node = nil
+    actor = nil
     60.times do
       begin
-        node = DCell::Node[TEST_NODE[:id]]
-        break if node
+        actor = DCell[:test_actor].first
+        break if actor
         STDERR.print "."
         sleep 1
       end
     end
 
-    if node
+    if actor
       STDERR.puts " done!"
     else
       STDERR.puts " FAILED!"
@@ -48,6 +49,8 @@ end
 
 namespace :testnode do
   task :bg do
+    DCell.start test_options
+
     TestNode.start
     TestNode.wait_until_ready
   end

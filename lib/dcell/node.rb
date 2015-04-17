@@ -1,10 +1,16 @@
 module DCell
+  # Exception raised when no response was received within a given timeout
+  class NoResponseError < Exception; end
+
+  # Exception raised when remote node appears dead
+  class DeadNodeError < Exception; end
+
   # A node in a DCell cluster
   class Node
     include Celluloid
     include Celluloid::FSM
-    attr_reader :id, :addr
 
+    attr_reader :id
     finalizer :shutdown
 
     # FSM
@@ -12,14 +18,10 @@ module DCell
     state :shutdown
     state :disconnected, to: [:connected, :shutdown]
     state :connected do
-      send_heartbeat
-      transition :partitioned, delay: @heartbeat_timeout
-      Logger.info "Connected to #{id}"
+      on_connected
     end
     state :partitioned do
-      @heartbeat.cancel if @heartbeat
-      Logger.warn "Communication with #{id} interrupted"
-      detach
+      on_partitioned
     end
 
     # Access sugar to NodeManager methods
@@ -29,20 +31,63 @@ module DCell
       include NodeManager
     end
 
-    def initialize(id, addr)
+    def initialize(id, addr, server=false)
       @id, @addr = id, addr
-      @socket = nil
-      @heartbeat = nil
       @requests = ResourceManager.new
       @actors = ResourceManager.new
       @remote_dead = false
+      @leech = false
 
-      @heartbeat_rate    = DCell.heartbeat_rate  # How often to send heartbeats in seconds
-      @heartbeat_timeout = DCell.heartbeat_timeout # How soon until a lost heartbeat triggers a node partition
+      @heartbeat_rate    = DCell.heartbeat_rate
+      @heartbeat_timeout = DCell.heartbeat_timeout
+      @request_timeout   = DCell.request_timeout
+      @ttl_rate          = DCell.ttl_rate
+
+      if server
+        update_ttl
+      elsif not Directory[@id].alive?
+        Logger.warn "Node '#{@id}' looks dead"
+        raise DeadNodeError.new
+      end
 
       # Total hax to accommodate the new Celluloid::FSM API
       attach self
     end
+
+    # Find an call registered with a given name on this node
+    def find(name)
+      request = Message::Find.new(Thread.mailbox, name)
+      methods = send_request request
+      return nil if methods.kind_of? NilClass
+      actor = DCell::ActorProxy.new self, name, methods
+      add_actor actor
+    end
+    alias_method :[], :find
+
+    # List all registered actors on this node
+    def actors
+      request = Message::List.new(Thread.mailbox)
+      list = send_request request
+      list.map! do |entry|
+        entry.to_sym
+      end
+    end
+    alias_method :all, :actors
+
+    # Send a ping message with a given timeout
+    def ping(timeout=nil)
+      request = Message::Ping.new(Thread.mailbox)
+      send_request request, :request, timeout
+    end
+
+    # Friendlier inspection
+    def inspect
+      "#<DCell::Node[#{@id}] @addr=#{@addr.inspect}>"
+    end
+
+    ##################################################
+    # Internal API
+    ##################################################
 
     def save_request(request)
       @requests.register(request.id) {request}
@@ -77,129 +122,154 @@ module DCell
       terminate
     end
 
-    def update_server_address(addr)
-      @addr = addr
-    end
-
+    # Graceful termination of the node
     def shutdown
       transition :shutdown
-      unless @remote_dead or DCell.id == id
+      unless @remote_dead or DCell.id == @id
         kill_actors
         farewell
       end
-      @socket.close if @socket
-      NodeCache.delete id
+      @socket.terminate if @socket && @socket.alive?
+      @rsocket.terminate if @rsocket && @rsocket.alive?
+      @rserver.terminate if @rserver && @rserver.alive?
+      NodeCache.delete @id
       MailboxManager.delete Thread.mailbox
-      Logger.info "Disconnected from #{id}"
+      Logger.info "Disconnected from #{@id}"
+      instance_variables.each { |iv| remove_instance_variable iv }
     end
 
-    # Obtain the node's 0MQ socket
+    # Obtain socket for relay messages
+    def rsocket
+      return @rsocket if @rsocket
+      send_relayopen unless @raddr
+      @rsocket = ClientServer.new @raddr, @heartbeat_timeout*1000
+    end
+
+    # Obtain socket for management messages
     def socket
       return @socket if @socket
-
-      @socket = Celluloid::ZMQ::PushSocket.new
-      begin
-        raise IOError unless @addr
-        @socket.connect @addr
-        @socket.linger = @heartbeat_timeout * 1000
-      rescue IOError
-        @socket.close
-        @socket = nil
-        raise
-      end
-      @addr = @socket.get(::ZMQ::LAST_ENDPOINT).strip
-
+      @socket = ClientServer.new @addr, @heartbeat_timeout*1000
+      @socket.farewell = true
       transition :connected
       @socket
     end
 
-    def push_request(request)
-      send_message request
-      save_request request
-      response = receive do |msg|
-        msg.respond_to?(:request_id) && msg.request_id == request.id
+    # Pack and send a message to another DCell node
+    def send_message(message, pipe=:request)
+      queue = nil
+      if pipe == :request
+        queue = socket
+      elsif pipe == :response
+        queue = Celluloid::Actor[:server]
+      elsif pipe == :relay
+        queue = rsocket
       end
-      delete_request request
-      response
-    end
 
-    def send_request(request)
-      response = push_request request
-      return if response.is_a? CancelResponse
-      if response.is_a? ErrorResponse
-        klass = Utils::full_const_get response.value[:class]
-        msg = response.value[:msg]
-        raise klass.new msg
-      end
-      response.value
-    end
-
-    # Find an call registered with a given name on this node
-    def find(name)
-      request = Message::Find.new(Thread.mailbox, name)
-      methods = send_request request
-      return nil if methods.kind_of? NilClass
-      actor = DCell::ActorProxy.new self, name, methods
-      add_actor actor
-    end
-    alias_method :[], :find
-
-    # List all registered actors on this node
-    def actors
-      request = Message::List.new(Thread.mailbox)
-      list = send_request request
-      list.map! do |entry|
-        entry.to_sym
-      end
-    end
-    alias_method :all, :actors
-
-    # Relay message to remote actor
-    def relay(message)
-      request = Message::Relay.new(Thread.mailbox, message)
-      send_request request
-    end
-
-    # Relay async message to remote actor
-    def async_relay(message)
-      request = Message::Relay.new(Thread.mailbox, message)
-      send_message request
-    end
-
-    # Goodbye message to remote actor
-    def farewell
-      request = Message::Farewell.new
-      send_message request
-    end
-
-    # Send a message to another DCell node
-    def send_message(message)
       begin
         message = message.to_msgpack
       rescue => e
         abort e
       end
-      socket << message
+      queue.write @id, message
     end
-    alias_method :<<, :send_message
+
+    # Send request and wait for response
+    def push_request(request, pipe=:request, timeout=@request_timeout)
+      send_message request, pipe
+      save_request request
+      response = receive(timeout) do |msg|
+        msg.respond_to?(:request_id) && msg.request_id == request.id
+      end
+      delete_request request
+      abort NoResponseError.new unless response
+      response
+    end
+
+    # Send request and handle unroll response
+    def send_request(request, pipe=:request, timeout=nil)
+      response = push_request request, pipe, timeout
+      return if response.is_a? CancelResponse
+      if response.is_a? ErrorResponse
+        value = response.value
+        klass = Utils::full_const_get value[:class]
+        exception = klass.new value[:msg]
+        exception.set_backtrace value[:tb]
+        abort exception
+      end
+      response.value
+    end
+
+    # Relay message to remote actor
+    def relay(message)
+      request = Message::Relay.new(Thread.mailbox, message)
+      send_request request, :relay
+    end
+
+    # Relay async message to remote actor
+    def async_relay(message)
+      request = Message::Relay.new(Thread.mailbox, message)
+      send_message request, :relay
+    end
+
+    # Goodbye message to remote actor
+    def farewell
+      return unless Directory[@id].alive?
+      request = Message::Farewell.new
+      send_message request
+    rescue
+    end
 
     # Send a heartbeat message after the given interval
     def send_heartbeat
-      return if DCell.id == id
-      send_message DCell::Message::Heartbeat.new id
+      return if DCell.id == @id
+      request = DCell::Message::Heartbeat.new @id
+      send_message request, @leech ? :response : :request
       @heartbeat = after(@heartbeat_rate) { send_heartbeat }
     end
 
     # Handle an incoming heartbeat for this node
     def handle_heartbeat(from)
-      return if from == id
+      return if from == @id
+      @leech = true unless state == :connected
       transition :connected
       transition :partitioned, delay: @heartbeat_timeout
     end
 
-    # Friendlier inspection
-    def inspect
-      "#<DCell::Node[#{@id}] @addr=#{@addr.inspect}>"
+    # Send an advertising message
+    def send_relayopen
+      request = Message::RelayOpen.new(Thread.mailbox)
+      @raddr = send_request request
+    end
+
+    # Handle an incoming node advertising message for this node
+    def handle_relayopen
+      @rsocket = rserver
+    end
+
+    def rserver
+      return @rserver if @rserver
+      @rserver = RelayServer.new
+    end
+
+    # Update TTL in registry
+    def update_ttl
+      Directory[@id].update_ttl
+      @ttl = after(@ttl_rate) { update_ttl }
+    end
+
+    def on_connected
+      send_heartbeat
+      unless @id == DCell.id
+        transition :partitioned, delay: @heartbeat_timeout
+      end
+      Logger.info "Connected to #{@id}"
+    end
+
+    def on_partitioned
+      @heartbeat.cancel if @heartbeat
+      @ttl.cancel if @ttl
+      Logger.warn "Communication with #{@id} interrupted"
+      detach
     end
   end
 end

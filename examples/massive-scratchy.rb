@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+
 require 'dcell'
 require_relative 'registry'
 require_relative 'itchy'
@@ -18,7 +19,7 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-DCell.start :registry => registry
+DCell.start registry: registry
 puts "Making itchy work hard everywhere!"
 
 def reset(itchies)
@@ -63,10 +64,12 @@ end
 
 Celluloid.logger = nil
 
-max = DCell[actor].count
+itchies = DCell[actor]
+max = itchies.count
+puts "Found #{itchies.count} instances of #{actor}"
+exit if itchies.count == 0
 repeat = 1000
 
-itchies = DCell[actor]
 run_test itchies, :future, "remote futures", repeat
 run_test itchies, :async, "remote async", repeat
 itchies.each {|itchy| itchy.terminate}

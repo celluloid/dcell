@@ -31,15 +31,11 @@ module DCell
       include Node
       include Global
 
-      DEFAULT_KEYSPACE = "dcell"
-      DEFAULT_CF = "dcell"
+      def initialize(options={})
+        options = Utils::symbolize_keys options
 
-      def initialize(options)
-        # Convert all options to symbols :/
-        options = options.inject({}) { |h,(k,v)| h[k.to_sym] = v; h }
-
-        keyspace = options[:keyspace] || DEFAULT_KEYSPACE
-        columnfamily = options[:columnfamily] || DEFAULT_CF
+        keyspace = options[:env] || 'production'
+        columnfamily = options[:namespace] || 'dcell'
 
         options[:servers] ||= []
         options[:servers] << options[:server] if options[:server]
@@ -61,7 +57,7 @@ module DCell
         def get(key)
           value = @cass.get @cf, @table, key.to_s
           return nil unless value
-          MessagePack.unpack(value, options={:symbolize_keys => true})
+          MessagePack.unpack(value, options={symbolize_keys: true})
         end
 
         def set(key, value)

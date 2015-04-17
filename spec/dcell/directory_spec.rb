@@ -1,4 +1,10 @@
 describe DCell::Directory do
+  after :each do
+    ["foo", "bar", "foobar"].each do |id|
+      DCell::Directory.remove id
+    end
+  end
+
   it "stores node addresses" do
     DCell::Directory["foobar"].address = "tcp://localhost:1870"
     DCell::Directory["foobar"].address.should == "tcp://localhost:1870"
@@ -17,18 +23,14 @@ describe DCell::Directory do
   it "presents all stored addresses" do
     DCell::Directory["foo"].address = "tcp://fooaddress"
     DCell::Directory["bar"].address = "tcp://baraddress"
-    DCell::Directory.all.should include("foo")
-    DCell::Directory.all.should include("bar")
-    DCell::Directory.map{|node| node.id}.should include("foo")
-    DCell::Directory.map{|node| node.id}.should include("bar")
+    DCell::Directory.to_a.should include("foo")
+    DCell::Directory.to_a.should include("bar")
   end
 
   it "clears node addresses" do
-    DCell::Directory["foo"].address = "tcp://fooaddress"
-    DCell::Directory["foobar"].address.should == "tcp://localhost:1870"
-    ["foo", "foobar"].each do |node|
-      DCell::Directory.remove node
-    end
-    DCell::Directory["foobar"].address.should_not == "tcp://localhost:1870"
+    DCell::Directory["foobar"].address = "tcp://fooaddress"
+    DCell::Directory["foobar"].address.should == "tcp://fooaddress"
+    DCell::Directory.remove "foobar"
+    DCell::Directory["foobar"].address.should_not == "tcp://fooaddress"
   end
 end

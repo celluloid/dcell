@@ -7,18 +7,21 @@ module DCell
       # Finds a node by its node ID and adds to the cache
       def register(id)
         return DCell.me if id == DCell.id
-        addr = Directory[id].address
-        return nil unless addr
         loop do
           begin
             node = nil
             return @nodes.register(id) do
-              node = Node.new id, addr
+              ninfo = Directory[id]
+              if ninfo and ninfo.alive? and ninfo.address
+                node = Node.new(id, ninfo.address) rescue nil
+              end
             end
           rescue ResourceManagerConflict => e
+            # :nocov:
             Logger.warn "Conflict on registering node #{id}"
             node.detach
             next
+            # :nocov:
           end
         end
       end
@@ -30,26 +33,17 @@ module DCell
       def delete(id)
         @nodes.delete id
       end
-
-      def each(*args, &block)
-        @nodes.each *args, &block
-      end
     end
   end
 
   # Node lookup
   module NodeManager
-    # Return all available nodes in the cluster
-    def all
-      Directory.all.map do |id|
-        find id
-      end
-    end
-
     # Iterate across all available nodes
     def each
-      Directory.all.each do |id|
-        yield find id
+      Directory.each do |id|
+        remote = NodeCache.register id
+        next unless remote
+        yield remote
       end
     end
 
