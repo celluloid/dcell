@@ -6,6 +6,8 @@ gem 'celluloid-zmq',    github: 'celluloid/celluloid-zmq',    branch: 'master'
 gem 'celluloid-redis',  github: 'celluloid/celluloid-redis',  branch: 'master'
 gem 'reel',             github: 'celluloid/reel',             tag: 'v0.4.0'
 
+gem 'transpec', github: 'yujinakayama/transpec', tag: 'v3.1.0'
+
 #gem 'ffi-rzmq', github: 'chuckremes/ffi-rzmq'
 
 gem 'jruby-openssl', platform: :jruby
