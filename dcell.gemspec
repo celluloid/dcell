@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_runtime_dependency "celluloid",     "~> 0.16.0"
-  gem.add_runtime_dependency "celluloid-zmq", "~> 0.16.0"
+  gem.add_runtime_dependency "celluloid-zmq", "~> 0.17.0.pre1"
   gem.add_runtime_dependency "reel",          "~> 0.4.0"
   gem.add_runtime_dependency "http",          "~> 0.5.0"
   gem.add_runtime_dependency "msgpack"
