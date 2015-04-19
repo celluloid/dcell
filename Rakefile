@@ -1,16 +1,18 @@
-require "bundler/gem_tasks"
-require "coveralls/rake/task"
+require 'bundler/gem_tasks'
+require 'coveralls/rake/task'
 
-Dir["tasks/**/*.task"].each { |task| load task }
-Dir["tasks/**/*.rb"].each { |task| load task }
+Dir['tasks/**/*.task'].each { |task| load task }
+Dir['tasks/**/*.rb'].each { |task| load task }
 
 Coveralls::RakeTask.new
 
 task :default do
   res = 0
-  [:clean, 'testnode:bg', :spec, 'testnode:finish', 'coveralls:push'].each do |tsk|
+  tasks = [:clean, 'testnode:bg', :spec, 'testnode:finish', 'coveralls:push']
+  tasks << 'rubocop' unless ENV['CI']
+  tasks.each do |tsk|
     if tsk == :spec
-      sh "rake spec" do |r|
+      sh 'rake spec' do |r|
         res = 1 unless r
       end
     else
