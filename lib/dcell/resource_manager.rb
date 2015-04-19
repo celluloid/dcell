@@ -14,19 +14,16 @@ module DCell
     def register(id, &block)
       @lock.synchronize do
         ref = @items[id]
-        if ref and ref.weakref_alive?
-          return ref.__getobj__
-        end
+        return ref.__getobj__ if ref && ref.weakref_alive?
       end
       item = block.call
       return nil unless item
       ref = WeakRef.new(item)
       @lock.synchronize do
         old = @items[id]
-        if old and old.weakref_alive? \
-          and old.__getobj__.object_id != item.object_id
+        if old && old.weakref_alive? && old.__getobj__.object_id != item.object_id
           # :nocov:
-          raise ResourceManagerConflict, "Resource collision"
+          fail ResourceManagerConflict, 'Resource collision'
           # :nocov:
         end
         @items[id] = ref

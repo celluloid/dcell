@@ -12,7 +12,7 @@ module DCell
             node = nil
             return @nodes.register(id) do
               ninfo = Directory[id]
-              if ninfo and ninfo.alive? and ninfo.address
+              if ninfo && ninfo.alive? && ninfo.address
                 node = Node.new(id, ninfo.address) rescue nil
               end
             end

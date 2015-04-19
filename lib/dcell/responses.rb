@@ -10,7 +10,7 @@ module DCell
     def to_msgpack(pk=nil)
       {
         type: self.class.name,
-        args: [@request_id, @address, @value]
+        args: [@request_id, @address, @value],
       }.to_msgpack(pk)
     end
 

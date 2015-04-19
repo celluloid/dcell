@@ -49,11 +49,11 @@ module DCell
     def setup(options = {})
       @registry = nil
 
-      options = Utils::symbolize_keys options
+      options = Utils.symbolize_keys options
 
       @lock.synchronize do
         configuration = {
-          addr: "tcp://127.0.0.1:*",
+          addr: 'tcp://127.0.0.1:*',
           heartbeat_rate: 5,        # How often to send heartbeats (in seconds)
           heartbeat_timeout: 10,    # How soon until a lost heartbeat triggers a node partition (in seconds)
           request_timeout: 10,      # Timeout on waiting for the response (in seconds)
@@ -62,7 +62,7 @@ module DCell
         }.merge(options)
         configuration_accessors configuration
 
-        raise ArgumentError, "no registry adapter given in config" unless @registry
+        fail ArgumentError, 'no registry adapter given in config' unless @registry
         @id ||= generate_node_id
 
         if Celluloid.logger
@@ -83,7 +83,7 @@ module DCell
         next if node.id == DCell.id
         next unless node.actors.include? actor
         begin
-          rnode = Node[node.id] or raise 'Not found'
+          rnode = Node[node.id] or fail 'Not found'
           rnode.ping 1
           actors << rnode[actor]
         rescue Exception => e
@@ -115,7 +115,7 @@ module DCell
       @addr = addr
       @me = Node.new @id, @addr, true
       Directory[@id].address = addr
-      ObjectSpace.define_finalizer(me, proc {Directory.remove @id})
+      ObjectSpace.define_finalizer(me, proc { Directory.remove @id })
     end
     alias_method :address=, :addr=
 
@@ -127,9 +127,7 @@ module DCell
 
     def get_local_actor(name)
       name = name.to_sym
-      if @actors.include? name
-        return Celluloid::Actor[name]
-      end
+      return Celluloid::Actor[name] if @actors.include? name
       nil
     end
 

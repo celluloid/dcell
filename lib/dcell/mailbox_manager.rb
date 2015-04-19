@@ -7,7 +7,7 @@ module DCell
       # Enter a mailbox into the registry
       def register(mailbox)
         address = mailbox.address
-        @mailboxes.register(address) {mailbox}
+        @mailboxes.register(address) { mailbox }
       end
 
       # Find a mailbox by its address

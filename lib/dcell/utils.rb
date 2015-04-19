@@ -3,7 +3,7 @@ module DCell
   module Utils
     class << self
       def full_const_get(name)
-        list = name.split("::")
+        list = name.split('::')
         obj = Object
         list.each do |x|
           next if x.length == 0
@@ -13,7 +13,7 @@ module DCell
       end
 
       def symbolize_keys(hash)
-        hash.inject({}) do |h,(k,v)|
+        hash.inject({}) do |h, (k, v)|
           h[k.to_sym] = v
           h
         end

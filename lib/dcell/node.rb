@@ -47,9 +47,9 @@ module DCell
 
       if server
         update_ttl
-      elsif not Directory[@id].alive?
+      elsif !Directory[@id].alive?
         Logger.warn "Node '#{@id}' looks dead"
-        raise DeadNodeError.new
+        fail DeadNodeError.new
       end
 
       # Total hax to accommodate the new Celluloid::FSM API
@@ -60,7 +60,7 @@ module DCell
     def find(name)
       request = Message::Find.new(Thread.mailbox, name)
       methods = send_request request
-      return nil if methods.kind_of? NilClass
+      return nil if methods.is_a? NilClass
       actor = DCell::ActorProxy.create.new self, name, methods
       add_actor actor
     end
@@ -70,9 +70,7 @@ module DCell
     def actors
       request = Message::List.new(Thread.mailbox)
       list = send_request request
-      list.map! do |entry|
-        entry.to_sym
-      end
+      list.map!(&:to_sym)
     end
     alias_method :all, :actors
 
@@ -92,7 +90,7 @@ module DCell
     ##################################################
 
     def save_request(request)
-      @requests.register(request.id) {request}
+      @requests.register(request.id) { request }
     end
 
     def delete_request(request)
@@ -108,7 +106,7 @@ module DCell
     end
 
     def add_actor(actor)
-      @actors.register(actor.object_id) {actor}
+      @actors.register(actor.object_id) { actor }
     end
 
     def kill_actors
@@ -127,7 +125,7 @@ module DCell
     # Graceful termination of the node
     def shutdown
       transition :shutdown
-      unless @remote_dead or DCell.id == @id
+      unless @remote_dead || DCell.id == @id
         kill_actors
         farewell
       end
@@ -144,13 +142,13 @@ module DCell
     def rsocket
       return @rsocket if @rsocket
       send_relayopen unless @raddr
-      @rsocket = ClientServer.new @raddr, @heartbeat_timeout*1000
+      @rsocket = ClientServer.new @raddr, @heartbeat_timeout * 1000
     end
 
     # Obtain socket for management messages
     def socket
       return @socket if @socket
-      @socket = ClientServer.new @addr, @heartbeat_timeout*1000
+      @socket = ClientServer.new @addr, @heartbeat_timeout * 1000
       @socket.farewell = true
       transition :connected
       @socket
@@ -193,7 +191,7 @@ module DCell
       return if response.is_a? CancelResponse
       if response.is_a? ErrorResponse
         value = response.value
-        klass = Utils::full_const_get value[:class]
+        klass = Utils.full_const_get value[:class]
         exception = klass.new value[:msg]
         exception.set_backtrace value[:tb]
         abort exception
@@ -261,9 +259,7 @@ module DCell
 
     def on_connected
       send_heartbeat
-      unless @id == DCell.id
-        transition :partitioned, delay: @heartbeat_timeout
-      end
+      transition :partitioned, delay: @heartbeat_timeout unless @id == DCell.id
       Logger.info "Connected to #{@id}"
     end
 

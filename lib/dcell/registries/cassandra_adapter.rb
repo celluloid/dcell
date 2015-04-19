@@ -32,14 +32,14 @@ module DCell
       include Global
 
       def initialize(options={})
-        options = Utils::symbolize_keys options
+        options = Utils.symbolize_keys options
 
         keyspace = options[:env] || 'production'
         columnfamily = options[:namespace] || 'dcell'
 
         options[:servers] ||= []
         options[:servers] << options[:server] if options[:server]
-        options[:servers] << "127.0.0.1:9160" unless options[:servers].any?
+        options[:servers] << '127.0.0.1:9160' unless options[:servers].any?
 
         cass = Cassandra.new(keyspace, options[:servers])
 
@@ -61,7 +61,7 @@ module DCell
         end
 
         def set(key, value)
-          @cass.insert @cf, @table, { key.to_s => value.to_msgpack }
+          @cass.insert @cf, @table, key.to_s => value.to_msgpack
         end
 
         def all

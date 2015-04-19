@@ -33,7 +33,7 @@ module DCell
         os, release, build = `sw_vers`.scan(/:\t(.*)$/).flatten
         @distribution = "#{os} #{release} (#{build})"
       when 'linux'
-        cpu_info = File.read("/proc/cpuinfo")
+        cpu_info = File.read('/proc/cpuinfo')
 
         @cpu_vendor = cpu_info[/vendor_id:\s+\s+(Genuine)?(\w+)/, 2]
         model_name  = cpu_info.match(/model name\s+:\s+((\w+).*) @ (\d+.\d+)GHz/)
@@ -110,8 +110,8 @@ module DCell
           type:   cpu_type,
           vendor: cpu_vendor,
           speed:  cpu_speed,
-          count:  cpu_count
-        }
+          count:  cpu_count,
+        },
       }
     end
   end

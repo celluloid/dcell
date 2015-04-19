@@ -25,8 +25,8 @@ module DCell
           Object.const_set "DCellActorProxy_#{object_id}", nil
         end
 
-
         private
+
         def ______any_method_missing(handler, meth, *args, &block)
           begin
             send handler, meth, *args, &block
@@ -35,11 +35,11 @@ module DCell
           end
         rescue Celluloid::AbortError => e
           cause = e.cause
-          raise Celluloid::DeadActorError.new if cause.kind_of? Celluloid::DeadActorError
+          raise Celluloid::DeadActorError.new if cause.is_a? Celluloid::DeadActorError
           raise RuntimeError, cause, cause.backtrace
         end
 
-        def ______method_missing(meth, *args, &block)
+        def ______method_missing(meth, *args, &_block)
           message = {actor: @actor, meth: meth, args: args, block: block_given?}
           res = @lnode.relay message
           yield res if block_given?

@@ -9,7 +9,7 @@ module DCell
       include Global
 
       def initialize(options={})
-        options = Utils::symbolize_keys options
+        options = Utils.symbolize_keys options
 
         env = options[:env] || 'production'
         namespace = options[:namespace] || "dcell_#{env}"

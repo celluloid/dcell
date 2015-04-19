@@ -21,7 +21,7 @@ module DCell
     end
 
     def exception(e)
-      respond ErrorResponse.new(id, @sender[:address], {class: e.class.name, msg: e.to_s, tb: e.backtrace})
+      respond ErrorResponse.new(id, @sender[:address], class: e.class.name, msg: e.to_s, tb: e.backtrace)
     end
 
     # A request to open relay pipe
@@ -45,7 +45,7 @@ module DCell
         {
           type: self.class.name,
           id:   id,
-          args: [@sender]
+          args: [@sender],
         }.to_msgpack(pk)
       end
     end
@@ -66,7 +66,7 @@ module DCell
         {
           type: self.class.name,
           id:   id,
-          args: [@from]
+          args: [@from],
         }.to_msgpack(pk)
       end
     end
@@ -79,7 +79,7 @@ module DCell
 
       def dispatch
         node = DCell::NodeCache.find id
-        node.detach if node and node.alive?
+        node.detach if node && node.alive?
       end
 
       def to_msgpack(pk=nil)
@@ -104,7 +104,7 @@ module DCell
         {
           type: self.class.name,
           id:   id,
-          args: [@sender]
+          args: [@sender],
         }.to_msgpack(pk)
       end
     end
@@ -120,9 +120,7 @@ module DCell
       def dispatch
         actor = DCell.get_local_actor @name
         methods = nil
-        if actor
-          methods = actor.class.instance_methods(false)
-        end
+        methods = actor.class.instance_methods(false) if actor
         respond SuccessResponse.new(id, @sender[:address], methods)
       end
 
@@ -130,7 +128,7 @@ module DCell
         {
           type: self.class.name,
           id:   id,
-          args: [@sender, @name]
+          args: [@sender, @name],
         }.to_msgpack(pk)
       end
     end
@@ -151,7 +149,7 @@ module DCell
         {
           type: self.class.name,
           id:   id,
-          args: [@sender]
+          args: [@sender],
         }.to_msgpack(pk)
       end
     end
@@ -185,7 +183,7 @@ module DCell
         {
           type: self.class.name,
           id:   id,
-          args: [@sender, @message]
+          args: [@sender, @message],
         }.to_msgpack(pk)
       end
     end

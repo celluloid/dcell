@@ -14,7 +14,7 @@ module Celluloid
       DCell::MailboxManager.register self
       {
         address: @address,
-        id:      DCell.id
+        id:      DCell.id,
       }.to_msgpack(pk)
     end
   end
@@ -28,7 +28,7 @@ module Celluloid
           send(info[:meth], *info[:args])
           return
         elsif info[:block]
-          send(info[:meth], *info[:args]) {|v| value = v}
+          send(info[:meth], *info[:args]) { |v| value = v }
         else
           value = send(info[:meth], *info[:args])
         end
@@ -50,9 +50,7 @@ module Celluloid
   class AsyncProxy
     alias_method :____method_missing, :method_missing
     def method_missing(meth, *args, &block)
-      if @klass.start_with? 'DCellActorProxy'
-        meth = "____async_#{meth}".to_sym
-      end
+      meth = "____async_#{meth}".to_sym if @klass.start_with? 'DCellActorProxy'
       ____method_missing meth, *args, &block
     end
   end
@@ -60,13 +58,13 @@ module Celluloid
   class CellProxy
     alias_method :____async, :async
     def async(meth = nil, *args, &block)
-      raise DeadActorError.new unless alive?
+      fail DeadActorError.new unless alive?
       ____async meth, *args, &block
     end
 
     alias_method :____future, :future
     def future(meth = nil, *args, &block)
-      raise DeadActorError.new unless alive?
+      fail DeadActorError.new unless alive?
       ____future meth, *args, &block
     end
   end
