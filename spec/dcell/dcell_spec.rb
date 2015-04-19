@@ -28,7 +28,7 @@ describe DCell do
 
   it "properly handles messages to non-existant actors" do
     node = DCell::Node[TEST_NODE[:id]]
-    actor = DCell::ActorProxy.new(node, :ghost, ['whooo'])
+    actor = DCell::ActorProxy.create.new(node, :ghost, ['whooo'])
     expect {actor.whooo}.to raise_error NoMethodError
   end
 

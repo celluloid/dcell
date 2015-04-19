@@ -59,7 +59,7 @@ module DCell
       request = Message::Find.new(Thread.mailbox, name)
       methods = send_request request
       return nil if methods.kind_of? NilClass
-      actor = DCell::ActorProxy.new self, name, methods
+      actor = DCell::ActorProxy.create.new self, name, methods
       add_actor actor
     end
     alias_method :[], :find
