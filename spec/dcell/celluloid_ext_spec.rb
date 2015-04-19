@@ -7,10 +7,10 @@ describe Celluloid, "extensions" do
   end
 
   it "packs Celluloid::Mailbox objects" do
-    @marshal.mailbox.should be_a(Celluloid::Mailbox)
+    expect(@marshal.mailbox).to be_a(Celluloid::Mailbox)
     bin = @marshal.mailbox.to_msgpack
     mailbox = MessagePack.unpack(bin)
-    mailbox['address'].should == @marshal.mailbox.address
-    mailbox['id'].should == DCell.id
+    expect(mailbox['address']).to eq(@marshal.mailbox.address)
+    expect(mailbox['id']).to eq(DCell.id)
   end
 end

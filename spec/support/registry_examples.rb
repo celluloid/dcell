@@ -9,12 +9,12 @@ shared_context "a DCell registry" do
 
     it "stores node address and other properties" do
       subject.set_node("foobar", meta)
-      subject.get_node("foobar").should == meta
+      expect(subject.get_node("foobar")).to eq(meta)
     end
 
     it "stores the IDs of all nodes" do
       subject.set_node("foobar", meta)
-      subject.nodes.should include "foobar"
+      expect(subject.nodes).to include "foobar"
     end
   end
 
@@ -25,12 +25,12 @@ shared_context "a DCell registry" do
 
     it "stores values" do
       subject.set_global("foobar", [1,2,3])
-      subject.get_global("foobar").should == [1,2,3]
+      expect(subject.get_global("foobar")).to eq([1,2,3])
     end
 
     it "stores the keys of all globals" do
       subject.set_global("foobar", true)
-      subject.global_keys.should include "foobar"
+      expect(subject.global_keys).to include "foobar"
     end
   end
 end

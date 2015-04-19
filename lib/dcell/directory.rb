@@ -10,6 +10,7 @@ module DCell
         @actors = meta[:actors].map {|a| a.to_sym}
         @ttl = Time.at meta[:ttl] || 0
       else
+        @address = nil
         @actors = Array.new
         @ttl = Time.now
       end

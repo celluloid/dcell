@@ -18,7 +18,7 @@ describe DCell::Node do
   before :each do
     id = TEST_NODE[:id]
     @node = wait_for_actor id
-    @node.id.should == id
+    expect(@node.id).to eq(id)
 
     @unique = SecureRandom.hex
     @node[:test_actor].mutable = @unique
@@ -26,17 +26,17 @@ describe DCell::Node do
 
   it "finds all available nodes" do
     nodes = DCell::Node.map
-    nodes.should include(DCell.me)
+    expect(nodes).to include(DCell.me)
   end
 
   it "finds remote actors" do
     actor = @node[:test_actor]
-    actor.value.should == 42
+    expect(actor.value).to eq(42)
   end
 
   it "lists remote actors" do
-    @node.actors.should include :test_actor
-    @node.all.should include :test_actor
+    expect(@node.actors).to include :test_actor
+    expect(@node.all).to include :test_actor
   end
 
   it "failes to attach to obviously dead node" do
@@ -49,14 +49,14 @@ describe DCell::Node do
   end
 
   it "provides fancy name during inspection" do
-    @node.inspect.should start_with "#<DCell::Node[#{TEST_NODE[:id]}]"
+    expect(@node.inspect).to start_with "#<DCell::Node[#{TEST_NODE[:id]}]"
   end
 
   context :crashing do
     after :each do
       id = TEST_NODE[:id]
       @node = wait_for_actor id
-      @node.id.should == id
+      expect(@node.id).to eq(id)
     end
 
     def wait_for_death(time)

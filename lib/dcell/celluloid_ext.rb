@@ -40,6 +40,7 @@ module Celluloid
   end
 
   module ClassMethods
+    alias_method :____supervise_as, :supervise_as
     def supervise_as(name, *args, &block)
       DCell.add_local_actor name
       Supervisor.supervise_as(name, self, *args, &block)
@@ -49,7 +50,7 @@ module Celluloid
   class AsyncProxy
     alias_method :____method_missing, :method_missing
     def method_missing(meth, *args, &block)
-      if @klass == "DCell::ActorProxy"
+      if @klass.start_with? 'DCellActorProxy'
         meth = "____async_#{meth}".to_sym
       end
       ____method_missing meth, *args, &block

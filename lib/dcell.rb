@@ -47,15 +47,17 @@ module DCell
     # * addr: 0MQ address of the local node (e.g. tcp://4.3.2.1:7777)
     # *
     def setup(options = {})
+      @registry = nil
+
       options = Utils::symbolize_keys options
 
       @lock.synchronize do
         configuration = {
           addr: "tcp://127.0.0.1:*",
-          heartbeat_rate: 5,        # How often to send heartbeats in seconds
-          heartbeat_timeout: 10,    # How soon until a lost heartbeat triggers a node partition
-          request_timeout: 10,      # Timeout on waiting for the response
-          ttl_rate: 20,             # How often update TTL in the registry
+          heartbeat_rate: 5,        # How often to send heartbeats (in seconds)
+          heartbeat_timeout: 10,    # How soon until a lost heartbeat triggers a node partition (in seconds)
+          request_timeout: 10,      # Timeout on waiting for the response (in seconds)
+          ttl_rate: 20,             # How often update TTL in the registry (in seconds)
           id: nil,
         }.merge(options)
         configuration_accessors configuration
@@ -75,8 +77,7 @@ module DCell
 
     # Returns actors from multiple nodes
     def find(actor)
-      actors = Array.new
-      Directory.each do |id|
+      Directory.each_with_object([]) do |id, actors|
         node = Directory[id]
         next unless node
         next if node.id == DCell.id
@@ -90,7 +91,6 @@ module DCell
           rnode.terminate if rnode rescue nil
         end
       end
-      actors
     end
     alias_method :[], :find
 
@@ -153,6 +153,7 @@ module DCell
       configuration.each do |name, value|
         instance_variable_set "@#{name}", value
         self.class.class_eval do
+          undef_method name rescue nil
           attr_reader name
         end
       end

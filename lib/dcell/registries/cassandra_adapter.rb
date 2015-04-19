@@ -57,7 +57,7 @@ module DCell
         def get(key)
           value = @cass.get @cf, @table, key.to_s
           return nil unless value
-          MessagePack.unpack(value, options={symbolize_keys: true})
+          MessagePack.unpack(value, symbolize_keys: true)
         end
 
         def set(key, value)

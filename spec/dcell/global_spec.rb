@@ -5,11 +5,11 @@ describe DCell::Global do
 
   it "stores values" do
     DCell::Global[:the_answer] = 42
-    DCell::Global[:the_answer].should == 42
+    expect(DCell::Global[:the_answer]).to eq(42)
 
     # Double check the global value is available on all nodes
     node = DCell::Node[TEST_NODE[:id]]
-    node[:test_actor].the_answer.should == 42
+    expect(node[:test_actor].the_answer).to eq(42)
   end
 
   it "stores the keys of all globals" do
@@ -18,6 +18,6 @@ describe DCell::Global do
     DCell::Global[:baz] = 3
 
     keys = DCell::Global.keys
-    [:foo, :bar, :baz].each { |key| keys.should include key }
+    [:foo, :bar, :baz].each { |key| expect(keys).to include key }
   end
 end

@@ -23,13 +23,13 @@ module DCell
     # Decode incoming messages
     def decode_message(message)
       begin
-        msg = MessagePack.unpack(message, options={symbolize_keys: true})
+        msg = MessagePack.unpack(message, symbolize_keys: true)
       rescue => ex
         raise InvalidMessageError, "couldn't unpack message: #{ex}"
       end
       begin
         klass = Utils::full_const_get msg[:type]
-        o = klass.new *msg[:args]
+        o = klass.new(*msg[:args])
         if o.respond_to? :id= and msg[:id]
           o.id = msg[:id]
         end
@@ -77,7 +77,7 @@ module DCell
       while true
         message = @socket.read_multipart
         if @socket.kind_of? Celluloid::ZMQ::RouterSocket
-          id, message = message
+          message = message[1]
         else
           message = message[0]
         end
