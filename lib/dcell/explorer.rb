@@ -26,7 +26,7 @@ module DCell
         path = request.url[%r{^/([a-z0-9\.\-_]+(/[a-z0-9\.\-_]+)*)$}, 1]
       end
 
-      if !path or path['..']
+      if !path || path['..']
         Logger.info "404 Not Found: #{request.path}"
         connection.respond :not_found, 'Not found'
         return
@@ -50,7 +50,7 @@ module DCell
         end
 
         Logger.info "200 OK: /#{path}"
-      elsif File.exist?(asset_path.to_s + '.erb') and node
+      elsif File.exist?(asset_path.to_s + '.erb') && node
         connection.respond :ok, render_template(asset_path.to_s + '.erb', node)
         Logger.info "200 OK: /#{path}"
       else

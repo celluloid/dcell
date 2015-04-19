@@ -11,7 +11,8 @@ module DCell
     #  - node
     #  - global
     #
-    # It's up to the registry backend how namespaces are implented(dedicated tables, databases, combinatation of ns:key, etc.)
+    # It's up to the registry backend how namespaces are implented
+    # (dedicated tables, databases, combinatation of ns:key, etc.)
 
     module Node
       def get_node(id)
