@@ -77,8 +77,7 @@ module DCell
 
     # Returns actors from multiple nodes
     def find(actor)
-      actors = Array.new
-      Directory.each do |id|
+      Directory.each_with_object([]) do |id, actors|
         node = Directory[id]
         next unless node
         next if node.id == DCell.id
@@ -92,7 +91,6 @@ module DCell
           rnode.terminate if rnode rescue nil
         end
       end
-      actors
     end
     alias_method :[], :find
 
