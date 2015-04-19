@@ -29,7 +29,7 @@ module DCell
 
         def get(key)
           value = @redis.hget @table, key.to_s
-          value = MessagePack.unpack(value, options={symbolize_keys: true}) if value
+          value = MessagePack.unpack(value, symbolize_keys: true) if value
           value
         end
 

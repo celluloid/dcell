@@ -37,6 +37,8 @@ module DCell
       @actors = ResourceManager.new
       @remote_dead = false
       @leech = false
+      @socket, @rsocket, @raddr = nil, nil, nil
+      @ttl, @rserver = nil, nil
 
       @heartbeat_rate    = DCell.heartbeat_rate
       @heartbeat_timeout = DCell.heartbeat_timeout

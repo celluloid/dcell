@@ -1,6 +1,6 @@
 module DCell
   class Message
-    attr_accessor :id
+    attr_writer :id
 
     def id
       @id ||= Celluloid.uuid

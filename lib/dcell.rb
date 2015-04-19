@@ -47,6 +47,8 @@ module DCell
     # * addr: 0MQ address of the local node (e.g. tcp://4.3.2.1:7777)
     # *
     def setup(options = {})
+      @registry = nil
+
       options = Utils::symbolize_keys options
 
       @lock.synchronize do
@@ -153,6 +155,7 @@ module DCell
       configuration.each do |name, value|
         instance_variable_set "@#{name}", value
         self.class.class_eval do
+          undef_method name rescue nil
           attr_reader name
         end
       end

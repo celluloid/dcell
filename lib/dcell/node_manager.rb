@@ -16,7 +16,7 @@ module DCell
                 node = Node.new(id, ninfo.address) rescue nil
               end
             end
-          rescue ResourceManagerConflict => e
+          rescue ResourceManagerConflict
             # :nocov:
             Logger.warn "Conflict on registering node #{id}"
             node.detach

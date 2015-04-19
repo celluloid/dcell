@@ -41,7 +41,7 @@ module DCell
 
         def get(key)
           result, _ = @zk.get("#{@base_path}/#{key}", watch: true)
-          MessagePack.unpack(result, options={symbolize_keys: true}) if result
+          MessagePack.unpack(result, symbolize_keys: true) if result
         rescue ZK::Exceptions::NoNode
         end
 

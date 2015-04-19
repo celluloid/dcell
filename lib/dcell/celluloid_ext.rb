@@ -40,6 +40,7 @@ module Celluloid
   end
 
   module ClassMethods
+    alias_method :____supervise_as, :supervise_as
     def supervise_as(name, *args, &block)
       DCell.add_local_actor name
       Supervisor.supervise_as(name, self, *args, &block)

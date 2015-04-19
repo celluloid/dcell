@@ -62,10 +62,6 @@ module DCell
       end
     end
 
-    def platform; RUBY_PLATFORM; end
-    def ruby_engine; RUBY_ENGINE; end
-    def ruby_version; RUBY_VERSION; end
-
     def load_averages(uptime_string = `uptime`)
       matches = uptime_string.match(UPTIME_REGEX)
       unless matches
