@@ -1,9 +1,9 @@
 module DCell
   # Exception raised when no response was received within a given timeout
-  class NoResponseError < Exception; end
+  class NoResponseError < StandardError; end
 
   # Exception raised when remote node appears dead
-  class DeadNodeError < Exception; end
+  class DeadNodeError < StandardError; end
 
   # A node in a DCell cluster
   class Node
@@ -49,7 +49,7 @@ module DCell
         update_ttl
       elsif !Directory[@id].alive?
         Logger.warn "Node '#{@id}' looks dead"
-        fail DeadNodeError.new
+        fail DeadNodeError
       end
 
       # Total hax to accommodate the new Celluloid::FSM API
@@ -111,7 +111,10 @@ module DCell
 
     def kill_actors
       @actors.clear do |id, actor|
-        actor.terminate rescue Celluloid::DeadActorError
+        begin
+          actor.terminate
+        rescue Celluloid::DeadActorError
+        end
       end
     end
 
@@ -122,20 +125,32 @@ module DCell
       terminate
     end
 
+    def close_sockets
+      [@socket, @rsocket, @rserver].each do |socket|
+        next unless socket && socket.alive?
+        socket.terminate
+      end
+    end
+
+    def self_cleanup
+      NodeCache.delete @id
+      MailboxManager.delete Thread.mailbox
+      instance_variables.each { |iv| remove_instance_variable iv }
+    end
+
+    def say_goodbye
+      return if @remote_dead || DCell.id == @id
+      kill_actors
+      farewell
+    end
+
     # Graceful termination of the node
     def shutdown
       transition :shutdown
-      unless @remote_dead || DCell.id == @id
-        kill_actors
-        farewell
-      end
-      @socket.terminate if @socket && @socket.alive?
-      @rsocket.terminate if @rsocket && @rsocket.alive?
-      @rserver.terminate if @rserver && @rserver.alive?
-      NodeCache.delete @id
-      MailboxManager.delete Thread.mailbox
       Logger.info "Disconnected from #{@id}"
-      instance_variables.each { |iv| remove_instance_variable iv }
+      say_goodbye
+      close_sockets
+      self_cleanup
     end
 
     # Obtain socket for relay messages

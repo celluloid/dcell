@@ -78,18 +78,12 @@ module DCell
     # Returns actors from multiple nodes
     def find(actor)
       Directory.each_with_object([]) do |id, actors|
+        next if id == DCell.id
         node = Directory[id]
         next unless node
-        next if node.id == DCell.id
         next unless node.actors.include? actor
-        begin
-          rnode = Node[node.id] or fail 'Not found'
-          rnode.ping 1
-          actors << rnode[actor]
-        rescue Exception => e
-          Logger.warn "Failed to get actor '#{actor}' on node '#{node.id}': #{e}"
-          rnode.terminate if rnode rescue nil
-        end
+        ractor = get_remote_actor actor, id
+        actors << ractor if ractor
       end
     end
     alias_method :[], :find
@@ -118,6 +112,16 @@ module DCell
       ObjectSpace.define_finalizer(me, proc { Directory.remove @id })
     end
     alias_method :address=, :addr=
+
+    def get_remote_actor(actor, id)
+      rnode = Node[id]
+      fail 'Not found' unless rnode
+      rnode.ping 1
+      rnode[actor]
+    rescue => e
+      Logger.warn "Failed to get actor '#{actor}' on node '#{id}': #{e}"
+      rnode.terminate if rnode && rnode.alive?
+    end
 
     def add_local_actor(name)
       @lock.synchronize do
@@ -151,7 +155,7 @@ module DCell
       configuration.each do |name, value|
         instance_variable_set "@#{name}", value
         self.class.class_eval do
-          undef_method name rescue nil
+          remove_method name if method_defined? name
           attr_reader name
         end
       end

@@ -35,7 +35,7 @@ module DCell
           end
         rescue Celluloid::AbortError => e
           cause = e.cause
-          raise Celluloid::DeadActorError.new if cause.is_a? Celluloid::DeadActorError
+          raise Celluloid::DeadActorError if cause.is_a? Celluloid::DeadActorError
           raise RuntimeError, cause, cause.backtrace
         end
 

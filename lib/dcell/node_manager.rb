@@ -4,24 +4,27 @@ module DCell
     @nodes = ResourceManager.new
 
     class << self
+      def __register(id)
+        @nodes.register(id) do
+          ninfo = Directory[id]
+          alive = ninfo && ninfo.alive? && ninfo.address
+          Node.new(id, ninfo.address) if alive
+        end
+      rescue ResourceManagerConflict => e
+        # :nocov:
+        Logger.warn "Conflict on registering node #{id}"
+        e.item.detach
+        raise
+        # :nocov:
+      end
+
       # Finds a node by its node ID and adds to the cache
       def register(id)
         return DCell.me if id == DCell.id
-        loop do
+        while true
           begin
-            node = nil
-            return @nodes.register(id) do
-              ninfo = Directory[id]
-              if ninfo && ninfo.alive? && ninfo.address
-                node = Node.new(id, ninfo.address) rescue nil
-              end
-            end
+            return __register id
           rescue ResourceManagerConflict
-            # :nocov:
-            Logger.warn "Conflict on registering node #{id}"
-            node.detach
-            next
-            # :nocov:
           end
         end
       end

@@ -11,7 +11,7 @@ describe DCell::Node do
       # :nocov:
     end
     # :nocov:
-    raise Exception, "Failed to wait for actor"
+    raise "Failed to wait for actor"
     # :nocov:
   end
 
@@ -72,7 +72,7 @@ describe DCell::Node do
         # :nocov:
       end
       # :nocov:
-      raise Exception, "Failed to wait for actor death"
+      raise "Failed to wait for actor death"
       # :nocov:
     end
 

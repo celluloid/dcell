@@ -20,22 +20,23 @@ module Celluloid
   end
 
   module InstanceMethods
+    def ______dcell_dispatch(info)
+      value = nil
+      if info[:block]
+        send(info[:meth], *info[:args]) { |v| value = v }
+      else
+        value = send(info[:meth], *info[:args])
+      end
+      value
+    end
+
     def ____dcell_dispatch(message)
       info = message.message
-      begin
-        value = nil
-        if info[:async]
-          send(info[:meth], *info[:args])
-          return
-        elsif info[:block]
-          send(info[:meth], *info[:args]) { |v| value = v }
-        else
-          value = send(info[:meth], *info[:args])
-        end
-        message.success value
-      rescue => e
-        message.exception e
-      end
+      value = ______dcell_dispatch info
+      return if info[:async]
+      message.success value
+    rescue => e
+      message.exception e
     end
   end
 
@@ -58,13 +59,13 @@ module Celluloid
   class CellProxy
     alias_method :____async, :async
     def async(meth = nil, *args, &block)
-      fail DeadActorError.new unless alive?
+      fail DeadActorError unless alive?
       ____async meth, *args, &block
     end
 
     alias_method :____future, :future
     def future(meth = nil, *args, &block)
-      fail DeadActorError.new unless alive?
+      fail DeadActorError unless alive?
       ____future meth, *args, &block
     end
   end
