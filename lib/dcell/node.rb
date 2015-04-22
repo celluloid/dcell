@@ -39,6 +39,8 @@ module DCell
     end
 
     def initialize(id, addr, server=false)
+      super self # FSM's constructor
+
       @id = id
 
       init_rpc
@@ -52,9 +54,6 @@ module DCell
         Logger.warn "Node '#{@id}' looks dead"
         fail DeadNodeError
       end
-
-      # Total hax to accommodate the new Celluloid::FSM API
-      attach self
     end
 
     # Find an call registered with a given name on this node
