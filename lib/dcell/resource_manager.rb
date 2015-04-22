@@ -5,7 +5,9 @@ module DCell
     attr_reader :item
 
     def initialize(item)
+      # :nocov:
       @item = item
+      # :nocov:
     end
   end
 
