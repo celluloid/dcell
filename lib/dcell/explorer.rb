@@ -35,27 +35,34 @@ module DCell
       render_resource connection, path
     end
 
-    def render_resource(connection, path)
-      if node_id = path[%r{^nodes/(.*)$}, 1]
-        node = DCell::Node[node_id] rescue nil
+    def resolve_resource(path)
+      id = path[%r{^nodes/(.*)$}, 1]
+      if id
+        node = DCell::Node[id] rescue nil # rubocop:disable Style/RescueModifier
         path = 'index.html'
       else
         node = DCell.me
       end
+      [path, node]
+    end
 
-      asset_path = ASSET_ROOT.join(path)
-      if asset_path.exist?
-        asset_path.open('r') do |file|
-          connection.respond :ok, file
-        end
+    def respond(connection, path, status, what)
+      connection.respond status, what
+      status = Reel::Response::SYMBOL_TO_STATUS_CODE[status]
+      reason = Reel::Response::STATUS_CODES[status]
+      Logger.info "#{status} #{reason}: /#{path}"
+    end
 
-        Logger.info "200 OK: /#{path}"
-      elsif File.exist?(asset_path.to_s + '.erb') && node
-        connection.respond :ok, render_template(asset_path.to_s + '.erb', node)
-        Logger.info "200 OK: /#{path}"
+    def render_resource(connection, path)
+      path, node = resolve_resource path
+      asset = ASSET_ROOT.join path
+
+      if asset.exist?
+        respond connection, path, :ok, asset.open('r')
+      elsif File.exist?(asset.to_s + '.erb') && node
+        respond connection, path, :ok, render_template(asset.to_s + '.erb', node)
       else
-        connection.respond :not_found, 'Not found'
-        Logger.info "404 Not Found: /#{path}"
+        respond connection, path, :not_found, 'Not found'
       end
     end
 

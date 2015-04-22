@@ -13,9 +13,8 @@ module DCell
       end
 
       def symbolize_keys(hash)
-        hash.inject({}) do |h, (k, v)|
-          h[k.to_sym] = v
-          h
+        hash.each_with_object({}) do |(k, v), obj|
+          obj[k.to_sym] = v
         end
       end
     end

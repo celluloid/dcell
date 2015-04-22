@@ -37,14 +37,17 @@ module DCell
         keyspace = options[:env] || 'production'
         columnfamily = options[:namespace] || 'dcell'
 
-        options[:servers] ||= []
-        options[:servers] << options[:server] if options[:server]
-        options[:servers] << '127.0.0.1:9160' unless options[:servers].any?
-
-        cass = Cassandra.new(keyspace, options[:servers])
+        cass = Cassandra.new(keyspace, servers(options))
 
         @node_registry = Registry.new(cass, 'nodes', columnfamily)
         @global_registry = Registry.new(cass, 'globals', columnfamily)
+      end
+
+      def servers(options)
+        servers = options[:servers] || []
+        servers << options[:server] if options[:server]
+        servers << '127.0.0.1:9160' unless servers.any?
+        servers
       end
 
       class Registry

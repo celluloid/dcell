@@ -3,6 +3,7 @@ require 'rbconfig'
 module DCell
   class InfoService
     include Celluloid
+
     attr_reader :os, :os_version, :hostname, :platform, :distribution
     attr_reader :cpu_arch, :cpu_type, :cpu_vendor, :cpu_speed, :cpu_count
     attr_reader :ruby_version, :ruby_engine, :ruby_platform
@@ -13,43 +14,61 @@ module DCell
       @cpu_arch = RbConfig::CONFIG['host_cpu']
       @os       = RbConfig::CONFIG['host_os'][/^[A-Za-z]+/]
 
-      uname = `uname -a`.match(/\w+ (\w[\w+\.\-]*) ([\w+\.\-]+)/)
-      @hostname, @os_version = uname[1], uname[2]
-
       @platform     = RUBY_PLATFORM
       @ruby_version = RUBY_VERSION
       @ruby_engine  = RUBY_ENGINE
 
+      discover_uname
+      discover_cpu_info
+      discover_ruby_platform
+    end
+
+    def discover_cpu_info_darwin
+      cpu_info = `sysctl -n machdep.cpu.brand_string`.match(/^((\w+).*) @ (\d+.\d+)GHz/)
+      if cpu_info
+        @cpu_type   = cpu_info[1]
+        @cpu_vendor = cpu_info[2].downcase.to_sym
+        @cpu_speed  = Float(cpu_info[3])
+      end
+
+      @cpu_count = Integer(`sysctl hw.ncpu`[/\d+/])
+      os, release, build = `sw_vers`.scan(/:\t(.*)$/).flatten
+      @distribution = "#{os} #{release} (#{build})"
+    end
+
+    def discover_cpu_info_linux
+      cpu_info = File.read('/proc/cpuinfo')
+
+      @cpu_vendor = cpu_info[/vendor_id:\s+\s+(Genuine)?(\w+)/, 2]
+      model_name  = cpu_info.match(/model name\s+:\s+((\w+).*) @ (\d+.\d+)GHz/)
+      if model_name
+        @cpu_type   = model_name[1].gsub(/\s+/, ' ')
+        @cpu_vendor = model_name[2].downcase.to_sym
+        @cpu_speed  = Float(model_name[3])
+      end
+
+      cores = cpu_info.scan(/core id\s+: \d+/).uniq.size
+      @cpu_count = cores > 0 ? cores : 1
+      @distribution = discover_distribution
+    end
+
+    def discover_cpu_info
       case os
       when 'darwin'
-        cpu_info = `sysctl -n machdep.cpu.brand_string`.match(/^((\w+).*) @ (\d+.\d+)GHz/)
-        if cpu_info
-          @cpu_type   = cpu_info[1]
-          @cpu_vendor = cpu_info[2].downcase.to_sym
-          @cpu_speed  = Float(cpu_info[3])
-        end
-
-        @cpu_count = Integer(`sysctl hw.ncpu`[/\d+/])
-        os, release, build = `sw_vers`.scan(/:\t(.*)$/).flatten
-        @distribution = "#{os} #{release} (#{build})"
+        discover_cpu_info_darwin
       when 'linux'
-        cpu_info = File.read('/proc/cpuinfo')
-
-        @cpu_vendor = cpu_info[/vendor_id:\s+\s+(Genuine)?(\w+)/, 2]
-        model_name  = cpu_info.match(/model name\s+:\s+((\w+).*) @ (\d+.\d+)GHz/)
-        if model_name
-          @cpu_type   = model_name[1].gsub(/\s+/, ' ')
-          @cpu_vendor = model_name[2].downcase.to_sym
-          @cpu_speed  = Float(model_name[3])
-        end
-
-        cores = cpu_info.scan(/core id\s+: \d+/).uniq.size
-        @cpu_count = cores > 0 ? cores : 1
-        @distribution = discover_distribution
+        discover_cpu_info_linux
       else
         @cpu_type = @cpu_vendor = @cpu_speed = @cpu_count = nil
       end
+    end
 
+    def discover_uname
+      uname = `uname -a`.match(/\w+ (\w[\w+\.\-]*) ([\w+\.\-]+)/)
+      @hostname, @os_version = uname[1], uname[2]
+    end
+
+    def discover_ruby_platform
       case RUBY_ENGINE
       when 'ruby'
         @ruby_platform = "ruby #{RUBY_VERSION}"
