@@ -5,6 +5,7 @@ require 'socket'
 require 'securerandom'
 require 'msgpack'
 require 'uri'
+require 'facter'
 
 Celluloid::ZMQ.init
 
