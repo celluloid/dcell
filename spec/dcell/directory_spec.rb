@@ -1,4 +1,4 @@
-describe DCell::Directory do
+RSpec.describe DCell::Directory do
   after :each do
     ["foo", "bar", "foobar"].each do |id|
       DCell::Directory.remove id

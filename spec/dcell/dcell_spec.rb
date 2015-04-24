@@ -1,4 +1,4 @@
-describe DCell do
+RSpec.describe DCell do
   it "raises exception on unknown registry provider" do
     expect {DCellMock.setup}.to raise_error(ArgumentError, "no registry adapter given in config")
   end

@@ -1,4 +1,4 @@
-describe DCell::Socket do
+RSpec.describe DCell::Socket do
   it "raises exception on invalid address configuration" do
     addr = 'tcp://127.0.1.0'
     expect {DCell::Socket::server addr, ''}.to raise_error(IOError)

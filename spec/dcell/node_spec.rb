@@ -1,4 +1,4 @@
-describe DCell::Node do
+RSpec.describe DCell::Node do
   def wait_for_actor(id)
     30.times do
       begin

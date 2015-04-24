@@ -14,6 +14,8 @@ Dir['./spec/support/*.rb'].map { |f| require f }
 Celluloid.logger = nil
 Celluloid.shutdown_timeout = 1
 
+RSpec.configure(&:disable_monkey_patching!)
+
 RSpec.configure do |config|
   config.before(:suite) do
     DCell.start test_options

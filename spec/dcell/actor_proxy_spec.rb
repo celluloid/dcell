@@ -1,4 +1,4 @@
-describe DCell::ActorProxy do
+RSpec.describe DCell::ActorProxy do
   before :all do
     @node = DCell::Node[TEST_NODE[:id]]
     expect(@node.id).to eq(TEST_NODE[:id])
