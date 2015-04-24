@@ -9,7 +9,7 @@ module DCell
     UPTIME_REGEX = /up ((\d+ days?,)?\s*(\d+:\d+|\d+ \w+)),.*(( \d+.\d+,?){3})/
 
     def initialize
-      @hostname = Facter['hostname'].value
+      @hostname = Facter["hostname"].value
 
       discover_os
       discover_cpu_info
@@ -17,15 +17,15 @@ module DCell
     end
 
     def discover_os
-      @os           = Facter['kernel'].value
-      @os_version   = Facter['operatingsystemrelease'].value
-      @distribution = Facter['operatingsystem'].value
+      @os           = Facter["kernel"].value
+      @os_version   = Facter["operatingsystemrelease"].value
+      @distribution = Facter["operatingsystem"].value
     end
 
     def discover_cpu_info
-      @cpu_arch = Facter['architecture'].value
-      @cpu_type = Facter['processors'].value['models'].first
-      @cpu_count = Facter['processorcount'].value
+      @cpu_arch = Facter["architecture"].value
+      @cpu_type = Facter["processors"].value["models"].first
+      @cpu_count = Facter["processorcount"].value
     end
 
     def discover_ruby_platform
@@ -33,11 +33,11 @@ module DCell
       @ruby_engine  = RUBY_ENGINE
 
       case RUBY_ENGINE
-      when 'ruby'
+      when "ruby"
         @ruby_platform = "ruby #{RUBY_VERSION}"
-      when 'jruby'
+      when "jruby"
         @ruby_platform = "jruby #{JRUBY_VERSION}"
-      when 'rbx'
+      when "rbx"
         @ruby_platform = "rbx #{Rubinius::VERSION}"
       else
         @ruby_platform = RUBY_ENGINE
@@ -53,7 +53,7 @@ module DCell
     end
 
     def uptime
-      Integer(Facter['uptime_hours'].value) / 24
+      Integer(Facter["uptime_hours"].value) / 24
     end
 
     def to_hash

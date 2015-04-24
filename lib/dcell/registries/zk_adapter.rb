@@ -1,4 +1,4 @@
-require 'zk'
+require "zk"
 
 module DCell
   module Registry
@@ -13,11 +13,11 @@ module DCell
       def initialize(options={})
         options = Utils.symbolize_keys options
 
-        env = options[:env] || 'production'
+        env = options[:env] || "production"
         base_path = options[:namespace] || "/dcell/#{env}"
 
         options[:servers] ||= []
-        options[:servers] << '127.0.0.1:2181' unless options[:servers].any?
+        options[:servers] << "127.0.0.1:2181" unless options[:servers].any?
 
         @zk = ZK.new(*options[:servers])
         @node_registry = Registry.new(@zk, base_path, :nodes)

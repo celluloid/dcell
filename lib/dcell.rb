@@ -1,35 +1,35 @@
-require 'celluloid'
-require 'reel'
-require 'celluloid/zmq'
-require 'socket'
-require 'securerandom'
-require 'msgpack'
-require 'uri'
-require 'facter'
+require "celluloid"
+require "reel"
+require "celluloid/zmq"
+require "socket"
+require "securerandom"
+require "msgpack"
+require "uri"
+require "facter"
 
 Celluloid::ZMQ.init
 
-require 'dcell/version'
-require 'dcell/utils'
-require 'dcell/resource_manager'
-require 'dcell/actor_proxy'
-require 'dcell/directory'
-require 'dcell/messages'
-require 'dcell/sockets'
-require 'dcell/server'
-require 'dcell/node_manager'
-require 'dcell/node_communication'
-require 'dcell/node_rpc'
-require 'dcell/node_actors'
-require 'dcell/node'
-require 'dcell/global'
-require 'dcell/responses'
-require 'dcell/mailbox_manager'
-require 'dcell/info_service'
-require 'dcell/registries/adapter'
-require 'dcell/registries/errors'
+require "dcell/version"
+require "dcell/utils"
+require "dcell/resource_manager"
+require "dcell/actor_proxy"
+require "dcell/directory"
+require "dcell/messages"
+require "dcell/sockets"
+require "dcell/server"
+require "dcell/node_manager"
+require "dcell/node_communication"
+require "dcell/node_rpc"
+require "dcell/node_actors"
+require "dcell/node"
+require "dcell/global"
+require "dcell/responses"
+require "dcell/mailbox_manager"
+require "dcell/info_service"
+require "dcell/registries/adapter"
+require "dcell/registries/errors"
 
-require 'dcell/celluloid_ext'
+require "dcell/celluloid_ext"
 
 # Distributed Celluloid
 module DCell
@@ -57,7 +57,7 @@ module DCell
 
       @lock.synchronize do
         configuration = {
-          addr: 'tcp://127.0.0.1:*',
+          addr: "tcp://127.0.0.1:*",
           heartbeat_rate: 5,        # How often to send heartbeats (in seconds)
           heartbeat_timeout: 10,    # How soon until a lost heartbeat triggers a node partition (in seconds)
           request_timeout: 10,      # Timeout on waiting for the response (in seconds)
@@ -66,7 +66,7 @@ module DCell
         }.merge(options)
         configuration_accessors configuration
 
-        fail ArgumentError, 'no registry adapter given in config' unless @registry
+        fail ArgumentError, "no registry adapter given in config" unless @registry
         @id ||= generate_node_id
 
         if Celluloid.logger
@@ -119,7 +119,7 @@ module DCell
 
     def get_remote_actor(actor, id)
       rnode = Node[id]
-      fail 'Not found' unless rnode
+      fail "Not found" unless rnode
       rnode.ping 1
       rnode[actor]
     rescue => e

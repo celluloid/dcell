@@ -16,7 +16,7 @@ module DCell
       begin
         message.dispatch
       rescue => ex
-        Logger.crash('message dispatch failed', ex)
+        Logger.crash("message dispatch failed", ex)
       end
     end
 

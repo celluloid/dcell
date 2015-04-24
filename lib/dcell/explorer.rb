@@ -1,15 +1,15 @@
-require 'dcell'
-require 'reel'
-require 'pathname'
-require 'erb'
+require "dcell"
+require "reel"
+require "pathname"
+require "erb"
 
 module DCell
   # Web UI for DCell
   # TODO: rewrite this entire thing with less hax
   class Explorer < Reel::Server
-    ASSET_ROOT = Pathname.new File.expand_path('../../../explorer', __FILE__)
+    ASSET_ROOT = Pathname.new File.expand_path("../../../explorer", __FILE__)
 
-    def initialize(host = '127.0.0.1', port = 7778)
+    def initialize(host = "127.0.0.1", port = 7778)
       super(host, port, &method(:on_connection))
     end
 
@@ -20,15 +20,15 @@ module DCell
     end
 
     def route(connection, request)
-      if request.url == '/'
-        path = 'index.html'
+      if request.url == "/"
+        path = "index.html"
       else
         path = request.url[%r{^/([a-z0-9\.\-_]+(/[a-z0-9\.\-_]+)*)$}, 1]
       end
 
-      if !path || path['..']
+      if !path || path[".."]
         Logger.info "404 Not Found: #{request.path}"
-        connection.respond :not_found, 'Not found'
+        connection.respond :not_found, "Not found"
         return
       end
 
@@ -39,7 +39,7 @@ module DCell
       id = path[%r{^nodes/(.*)$}, 1]
       if id
         node = DCell::Node[id] rescue nil # rubocop:disable Style/RescueModifier
-        path = 'index.html'
+        path = "index.html"
       else
         node = DCell.me
       end
@@ -58,11 +58,11 @@ module DCell
       asset = ASSET_ROOT.join path
 
       if asset.exist?
-        respond connection, path, :ok, asset.open('r')
-      elsif File.exist?(asset.to_s + '.erb') && node
-        respond connection, path, :ok, render_template(asset.to_s + '.erb', node)
+        respond connection, path, :ok, asset.open("r")
+      elsif File.exist?(asset.to_s + ".erb") && node
+        respond connection, path, :ok, render_template(asset.to_s + ".erb", node)
       else
-        respond connection, path, :not_found, 'Not found'
+        respond connection, path, :not_found, "Not found"
       end
     end
 
@@ -70,7 +70,7 @@ module DCell
       @node = node
       @info = @node[:info].to_hash
 
-      template = ERB.new File.read(template, mode: 'rb')
+      template = ERB.new File.read(template, mode: "rb")
       template.result(binding)
     end
 

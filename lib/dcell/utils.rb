@@ -3,7 +3,7 @@ module DCell
   module Utils
     class << self
       def full_const_get(name)
-        list = name.split('::')
+        list = name.split("::")
         obj = Object
         list.each do |x|
           next if x.length == 0

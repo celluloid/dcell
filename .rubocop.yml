@@ -25,7 +25,7 @@ Style/AndOr:
 
 Style/StringLiterals:
   Enabled: true
-  EnforcedStyle: single_quotes
+  EnforcedStyle: double_quotes
 
 Style/EachWithObject:
   Enabled: true

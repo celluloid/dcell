@@ -1,6 +1,6 @@
-require 'celluloid/redis'
-require 'redis/connection/celluloid'
-require 'redis-namespace'
+require "celluloid/redis"
+require "redis/connection/celluloid"
+require "redis-namespace"
 
 module DCell
   module Registry
@@ -11,14 +11,14 @@ module DCell
       def initialize(options={})
         options = Utils.symbolize_keys options
 
-        env = options[:env] || 'production'
+        env = options[:env] || "production"
         namespace = options[:namespace] || "dcell_#{env}"
 
         redis  = Redis.new options
         @redis = Redis::Namespace.new namespace, redis: redis
 
-        @node_registry = Registry.new(@redis, 'nodes')
-        @global_registry = Registry.new(@redis, 'globals')
+        @node_registry = Registry.new(@redis, "nodes")
+        @global_registry = Registry.new(@redis, "globals")
       end
 
       class Registry

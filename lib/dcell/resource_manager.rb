@@ -1,4 +1,4 @@
-require 'weakref'
+require "weakref"
 
 module DCell
   class ResourceManagerConflict < RuntimeError

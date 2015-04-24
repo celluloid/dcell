@@ -1,4 +1,4 @@
-require 'cassandra'
+require "cassandra"
 
 # create the keyspace / columnfamily with cqlsh
 #
@@ -34,19 +34,19 @@ module DCell
       def initialize(options={})
         options = Utils.symbolize_keys options
 
-        keyspace = options[:env] || 'production'
-        columnfamily = options[:namespace] || 'dcell'
+        keyspace = options[:env] || "production"
+        columnfamily = options[:namespace] || "dcell"
 
         cass = Cassandra.new(keyspace, servers(options))
 
-        @node_registry = Registry.new(cass, 'nodes', columnfamily)
-        @global_registry = Registry.new(cass, 'globals', columnfamily)
+        @node_registry = Registry.new(cass, "nodes", columnfamily)
+        @global_registry = Registry.new(cass, "globals", columnfamily)
       end
 
       def servers(options)
         servers = options[:servers] || []
         servers << options[:server] if options[:server]
-        servers << '127.0.0.1:9160' unless servers.any?
+        servers << "127.0.0.1:9160" unless servers.any?
         servers
       end
 

@@ -51,7 +51,7 @@ module Celluloid
   class AsyncProxy
     alias_method :____method_missing, :method_missing
     def method_missing(meth, *args, &block)
-      meth = "____async_#{meth}".to_sym if @klass.start_with? 'DCellActorProxy'
+      meth = "____async_#{meth}".to_sym if @klass.start_with? "DCellActorProxy"
       ____method_missing meth, *args, &block
     end
   end
