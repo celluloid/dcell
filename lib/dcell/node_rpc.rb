@@ -26,7 +26,6 @@ module DCell
       # Goodbye message to remote actor
       def farewell
         return if @remote_dead || DCell.id == @id
-        return unless Directory[@id].alive?
         request = Message::Farewell.new
         send_message request
       rescue

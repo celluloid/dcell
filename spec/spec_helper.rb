@@ -27,4 +27,9 @@ RSpec.configure do |config|
     DCell::Directory["corpse"].actors = [:test_actor]
     DCell::Directory["corpse"].update_ttl Time.at 0
   end
+
+  config.after(:suite) do
+    node = DCell::Node[TEST_NODE[:id]]
+    node.terminate if node
+  end
 end

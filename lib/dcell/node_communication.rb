@@ -69,7 +69,7 @@ module DCell
         rescue => e
           abort e
         end
-        queue.write @id, message
+        queue.async.write @id, message
       end
 
       # Send request and wait for response
