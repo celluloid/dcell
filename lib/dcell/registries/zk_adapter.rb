@@ -62,13 +62,9 @@ module DCell
         end
 
         def remove(key)
-          closed = @zk.closed?
-          @zk.reopen if closed
           path = "#{@base_path}/#{key}"
           @zk.delete path
         rescue ZK::Exceptions::NoNode
-        ensure
-          @zk.close if closed
         end
 
         def clear_all

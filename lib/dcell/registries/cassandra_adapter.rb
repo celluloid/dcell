@@ -51,10 +51,18 @@ module DCell
       end
 
       class Registry
+        include Celluloid
+
+        finalizer :close
+
         def initialize(cass, table, cf)
           @cass = cass
           @table = table
           @cf = cf
+        end
+
+        def close
+          @cass.disconnect!
         end
 
         def get(key)

@@ -22,9 +22,17 @@ module DCell
       end
 
       class Registry
+        include Celluloid
+
+        finalizer :close
+
         def initialize(redis, table)
           @redis = redis
           @table = table
+        end
+
+        def close
+          @redis.client.disconnect!
         end
 
         def get(key)
