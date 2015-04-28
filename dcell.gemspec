@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
-require_relative "lib/dcell/version"
+$:.push File.expand_path("../lib", __FILE__)
+require "dcell/version"
 
 Gem::Specification.new do |gem|
   gem.name        = "dcell"
