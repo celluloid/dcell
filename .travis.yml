@@ -13,13 +13,12 @@ services:
   - cassandra
 
 rvm:
-  - 1.9.3
   - 2.0.0
-  - 2.1.0
-  - 2.2.0
+  - 2.1.4
+  - 2.2.2
   - ruby-head
   - jruby
-  - rbx-2.2.10
+  - rbx-2
 
 matrix:
   allow_failures:
