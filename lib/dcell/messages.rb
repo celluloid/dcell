@@ -26,6 +26,8 @@ module DCell
 
     # A request to open relay pipe
     class RelayOpen < Message
+      attr_reader :sender
+
       def initialize(sender)
         @id = DCell.id
         @sender = sender
@@ -92,6 +94,8 @@ module DCell
 
     # Ping message checks if remote node is alive or not
     class Ping < Message
+      attr_reader :sender
+
       def initialize(sender)
         @sender = sender
       end
