@@ -32,7 +32,7 @@ module DCell
         end
 
         def close
-          @redis.client.disconnect!
+          @redis.redis.disconnect!
         end
 
         def get(key)
