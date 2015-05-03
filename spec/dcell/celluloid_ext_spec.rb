@@ -1,4 +1,4 @@
-describe Celluloid, "extensions" do
+RSpec.describe Celluloid, "extensions" do
   before do
     class WillKane
       include Celluloid

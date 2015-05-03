@@ -1,44 +1,62 @@
-require 'weakref'
+require "weakref"
 
 module DCell
-  class ResourceManagerConflict < RuntimeError; end
+  class ResourceManagerConflict < RuntimeError
+    attr_reader :item
+
+    def initialize(item)
+      # :nocov:
+      @item = item
+      # :nocov:
+    end
+  end
 
   class ResourceManager
+    include Enumerable
+
     def initialize
       @lock = Mutex.new
       @items = {}
     end
 
-    # Register an item inside the cache if it does not yet exist
-    # If the item is not found inside the cache the block attached should return a valid reference
-    def register(id, &block)
+    def __get(id)
       @lock.synchronize do
-        ref = @items[id]
-        if ref and ref.weakref_alive?
-          return ref.__getobj__
-        end
+        return @items[id]
       end
-      item = block.call
-      return nil unless item
+    end
+
+    def __register(id, item)
       ref = WeakRef.new(item)
       @lock.synchronize do
         old = @items[id]
-        if old and old.weakref_alive? \
-          and old.__getobj__.object_id != item.object_id
+        if old && old.weakref_alive? && old.__getobj__.object_id != item.object_id
           # :nocov:
-          raise ResourceManagerConflict, "Resource collision"
+          fail ResourceManagerConflict, item
           # :nocov:
         end
         @items[id] = ref
-        ref.__getobj__
       end
+      ref.__getobj__
+    end
+
+    # Register an item inside the cache if it does not yet exist
+    # If the item is not found inside the cache the block attached should return a valid reference
+    def register(id, &block)
+      ref = __get id
+      return ref.__getobj__ if ref && ref.weakref_alive?
+      item = block.call
+      return nil unless item
+      __register id, item
     end
 
     # Iterates over registered and alive items
     def each
       @lock.synchronize do
         @items.each do |id, ref|
-          yield id, ref.__getobj__ rescue WeakRef::RefError
+          begin
+            yield id, ref.__getobj__
+          rescue WeakRef::RefError
+          end
         end
       end
     end
@@ -49,7 +67,10 @@ module DCell
       @lock.synchronize do
         if block_given?
           @items.each do |id, ref|
-            yield id, ref.__getobj__ rescue WeakRef::RefError
+            begin
+              yield id, ref.__getobj__
+            rescue WeakRef::RefError
+            end
           end
         end
         @items.clear

@@ -7,11 +7,11 @@ module DCell
       @id = id
       if meta
         @address = meta[:address]
-        @actors = meta[:actors].map {|a| a.to_sym}
+        @actors = meta[:actors].map(&:to_sym)
         @ttl = Time.at meta[:ttl] || 0
       else
         @address = nil
-        @actors = Array.new
+        @actors = []
         @ttl = Time.now
       end
     end
@@ -22,7 +22,7 @@ module DCell
     end
 
     def actors=(actors)
-      @actors = actors.map {|a| a.to_sym}
+      @actors = actors.map(&:to_sym)
       DCell.registry.set_node @id, self
     end
 
@@ -38,7 +38,7 @@ module DCell
     end
 
     def alive?
-      Time.now - @ttl < DCell.ttl_rate*2
+      Time.now - @ttl < DCell.ttl_rate * 2
     end
 
     def to_msgpack(pk=nil)

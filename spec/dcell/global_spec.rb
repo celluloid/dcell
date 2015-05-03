@@ -1,4 +1,4 @@
-describe DCell::Global do
+RSpec.describe DCell::Global do
   it "can handle unexisting keys" do
     expect { DCell::Global[:unexisting] }.to_not raise_exception
   end

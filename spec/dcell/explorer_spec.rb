@@ -1,6 +1,6 @@
 require 'dcell/explorer'
 
-describe DCell::Explorer do
+RSpec.describe DCell::Explorer do
   EXPLORER_HOST = 'localhost'
   EXPLORER_PORT = 7778
   EXPLORER_BASE = "http://#{EXPLORER_HOST}:#{EXPLORER_PORT}"

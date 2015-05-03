@@ -14,6 +14,8 @@ Dir['./spec/support/*.rb'].map { |f| require f }
 Celluloid.logger = nil
 Celluloid.shutdown_timeout = 1
 
+RSpec.configure(&:disable_monkey_patching!)
+
 RSpec.configure do |config|
   config.before(:suite) do
     DCell.start test_options
@@ -24,5 +26,10 @@ RSpec.configure do |config|
     DCell::Directory["corpse"].address = "tcp://localhost:-2"
     DCell::Directory["corpse"].actors = [:test_actor]
     DCell::Directory["corpse"].update_ttl Time.at 0
+  end
+
+  config.after(:suite) do
+    node = DCell::Node[TEST_NODE[:id]]
+    node.terminate if node
   end
 end

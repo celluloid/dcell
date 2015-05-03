@@ -1,0 +1,12 @@
+AllCops:
+  Exclude:
+    - '**/dcell.gemspec'
+    - '**/Gemfile'
+    - '**/Rakefile'
+    - 'benchmarks/*'
+    - 'tasks/*'
+    - 'examples/*'
+    - 'spec/**/*'
+
+inherit_from:
+  - culture/rubocop/rubocop.yml

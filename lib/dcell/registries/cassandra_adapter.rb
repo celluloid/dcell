@@ -1,4 +1,4 @@
-require 'cassandra'
+require "cassandra"
 
 # create the keyspace / columnfamily with cqlsh
 #
@@ -32,26 +32,37 @@ module DCell
       include Global
 
       def initialize(options={})
-        options = Utils::symbolize_keys options
+        options = Utils.symbolize_keys options
 
-        keyspace = options[:env] || 'production'
-        columnfamily = options[:namespace] || 'dcell'
+        keyspace = options[:env] || "production"
+        columnfamily = options[:namespace] || "dcell"
 
-        options[:servers] ||= []
-        options[:servers] << options[:server] if options[:server]
-        options[:servers] << "127.0.0.1:9160" unless options[:servers].any?
+        cass = Cassandra.new(keyspace, servers(options))
 
-        cass = Cassandra.new(keyspace, options[:servers])
+        @node_registry = Registry.new(cass, "nodes", columnfamily)
+        @global_registry = Registry.new(cass, "globals", columnfamily)
+      end
 
-        @node_registry = Registry.new(cass, 'nodes', columnfamily)
-        @global_registry = Registry.new(cass, 'globals', columnfamily)
+      def servers(options)
+        servers = options[:servers] || []
+        servers << options[:server] if options[:server]
+        servers << "127.0.0.1:9160" unless servers.any?
+        servers
       end
 
       class Registry
+        include Celluloid
+
+        finalizer :close
+
         def initialize(cass, table, cf)
           @cass = cass
           @table = table
           @cf = cf
+        end
+
+        def close
+          @cass.disconnect!
         end
 
         def get(key)
@@ -61,7 +72,7 @@ module DCell
         end
 
         def set(key, value)
-          @cass.insert @cf, @table, { key.to_s => value.to_msgpack }
+          @cass.insert @cf, @table, key.to_s => value.to_msgpack
         end
 
         def all

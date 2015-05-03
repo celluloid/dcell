@@ -1,4 +1,4 @@
-require 'zk'
+require "zk"
 
 module DCell
   module Registry
@@ -11,9 +11,9 @@ module DCell
       # servers: a list of Zookeeper servers to connect to. Each server in the
       #          list has a host/port configuration
       def initialize(options={})
-        options = Utils::symbolize_keys options
+        options = Utils.symbolize_keys options
 
-        env = options[:env] || 'production'
+        env = options[:env] || "production"
         base_path = options[:namespace] || "/dcell/#{env}"
 
         options[:servers] ||= []
@@ -62,13 +62,9 @@ module DCell
         end
 
         def remove(key)
-          closed = @zk.closed?
-          @zk.reopen if closed
           path = "#{@base_path}/#{key}"
           @zk.delete path
         rescue ZK::Exceptions::NoNode
-        ensure
-          @zk.close if closed
         end
 
         def clear_all

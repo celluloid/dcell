@@ -1,31 +1,48 @@
-require 'celluloid'
-require 'reel'
-require 'celluloid/zmq'
-require 'socket'
-require 'securerandom'
-require 'msgpack'
-require 'uri'
+require "celluloid"
+require "reel"
+require "celluloid/zmq"
+require "socket"
+require "securerandom"
+require "msgpack"
+require "uri"
+require "facter"
 
 Celluloid::ZMQ.init
 
-require 'dcell/version'
-require 'dcell/utils'
-require 'dcell/resource_manager'
-require 'dcell/actor_proxy'
-require 'dcell/directory'
-require 'dcell/messages'
-require 'dcell/sockets'
-require 'dcell/server'
-require 'dcell/node_manager'
-require 'dcell/node'
-require 'dcell/global'
-require 'dcell/responses'
-require 'dcell/mailbox_manager'
-require 'dcell/info_service'
-require 'dcell/registries/adapter'
-require 'dcell/registries/errors'
+at_exit do
+  # make a copy as during termination the nodes delete themselves from the cache
+  nodes = DCell::NodeCache.collect { |id, node| node }
+  nodes.each do |node|
+    begin
+      node.terminate
+    rescue
+    end
+  end
 
-require 'dcell/celluloid_ext'
+  Celluloid::ZMQ.terminate
+end
+
+require "dcell/version"
+require "dcell/utils"
+require "dcell/resource_manager"
+require "dcell/actor_proxy"
+require "dcell/directory"
+require "dcell/messages"
+require "dcell/sockets"
+require "dcell/server"
+require "dcell/node_manager"
+require "dcell/node_communication"
+require "dcell/node_rpc"
+require "dcell/node_actors"
+require "dcell/node"
+require "dcell/global"
+require "dcell/responses"
+require "dcell/mailbox_manager"
+require "dcell/info_service"
+require "dcell/registries/adapter"
+require "dcell/registries/errors"
+
+require "dcell/celluloid_ext"
 
 # Distributed Celluloid
 module DCell
@@ -49,7 +66,7 @@ module DCell
     def setup(options = {})
       @registry = nil
 
-      options = Utils::symbolize_keys options
+      options = Utils.symbolize_keys options
 
       @lock.synchronize do
         configuration = {
@@ -62,7 +79,7 @@ module DCell
         }.merge(options)
         configuration_accessors configuration
 
-        raise ArgumentError, "no registry adapter given in config" unless @registry
+        fail ArgumentError, "no registry adapter given in config" unless @registry
         @id ||= generate_node_id
 
         if Celluloid.logger
@@ -78,18 +95,12 @@ module DCell
     # Returns actors from multiple nodes
     def find(actor)
       Directory.each_with_object([]) do |id, actors|
+        next if id == DCell.id
         node = Directory[id]
         next unless node
-        next if node.id == DCell.id
         next unless node.actors.include? actor
-        begin
-          rnode = Node[node.id] or raise 'Not found'
-          rnode.ping 1
-          actors << rnode[actor]
-        rescue Exception => e
-          Logger.warn "Failed to get actor '#{actor}' on node '#{node.id}': #{e}"
-          rnode.terminate if rnode rescue nil
-        end
+        ractor = get_remote_actor actor, id
+        actors << ractor if ractor
       end
     end
     alias_method :[], :find
@@ -115,9 +126,19 @@ module DCell
       @addr = addr
       @me = Node.new @id, @addr, true
       Directory[@id].address = addr
-      ObjectSpace.define_finalizer(me, proc {Directory.remove @id})
+      ObjectSpace.define_finalizer(me, proc { Directory.remove @id })
     end
     alias_method :address=, :addr=
+
+    def get_remote_actor(actor, id)
+      rnode = Node[id]
+      fail "Not found" unless rnode
+      rnode.ping 1
+      rnode[actor]
+    rescue => e
+      Logger.warn "Failed to get actor '#{actor}' on node '#{id}': #{e}"
+      rnode.terminate if rnode && rnode.alive?
+    end
 
     def add_local_actor(name)
       @lock.synchronize do
@@ -127,9 +148,7 @@ module DCell
 
     def get_local_actor(name)
       name = name.to_sym
-      if @actors.include? name
-        return Celluloid::Actor[name]
-      end
+      return Celluloid::Actor[name] if @actors.include? name
       nil
     end
 
@@ -153,7 +172,7 @@ module DCell
       configuration.each do |name, value|
         instance_variable_set "@#{name}", value
         self.class.class_eval do
-          undef_method name rescue nil
+          remove_method name if method_defined? name
           attr_reader name
         end
       end
