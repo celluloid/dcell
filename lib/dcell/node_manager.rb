@@ -4,6 +4,8 @@ module DCell
     @nodes = ResourceManager.new
 
     class << self
+      include Enumerable
+
       def __register(id)
         @nodes.register(id) do
           ninfo = Directory[id]
@@ -27,6 +29,10 @@ module DCell
           rescue ResourceManagerConflict
           end
         end
+      end
+
+      def each(&block)
+        @nodes.each(&block)
       end
 
       def find(id)

@@ -12,6 +12,8 @@ module DCell
   end
 
   class ResourceManager
+    include Enumerable
+
     def initialize
       @lock = Mutex.new
       @items = {}

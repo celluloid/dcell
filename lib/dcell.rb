@@ -8,7 +8,17 @@ require "uri"
 require "facter"
 
 Celluloid::ZMQ.init
+
 at_exit do
+  # make a copy as during termination the nodes delete themselves from the cache
+  nodes = DCell::NodeCache.collect { |id, node| node }
+  nodes.each do |node|
+    begin
+      node.terminate
+    rescue
+    end
+  end
+
   Celluloid::ZMQ.terminate
 end
 
