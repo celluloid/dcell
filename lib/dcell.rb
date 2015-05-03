@@ -8,6 +8,9 @@ require "uri"
 require "facter"
 
 Celluloid::ZMQ.init
+at_exit do
+  Celluloid::ZMQ.terminate
+end
 
 require "dcell/version"
 require "dcell/utils"
