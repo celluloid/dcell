@@ -48,7 +48,7 @@ module DCell
       def socket
         return @socket if @socket
         @socket = ClientServer.new @addr, @heartbeat_timeout * 1000
-        @socket.farewell = true
+        @socket.farewell = farewell
         transition :connected
         @socket
       end

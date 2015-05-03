@@ -43,18 +43,20 @@ module DCell
     include MessageHandler
 
     attr_accessor :farewell
+
     finalizer :shutdown
 
     # Bind to the given 0MQ address (in URL form ala tcp://host:port)
     def initialize(socket)
       @socket = socket
-      @farewell = false
+      @farewell = nil
       async.run
     end
 
     def send_farewell
       return unless @farewell
-      msg = Message::Farewell.new.to_msgpack
+      msg = @farewell.call
+      return unless msg
       @socket.write msg
     rescue
     end

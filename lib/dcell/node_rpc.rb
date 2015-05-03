@@ -25,10 +25,10 @@ module DCell
 
       # Goodbye message to remote actor
       def farewell
-        return if @remote_dead || DCell.id == @id
-        request = Message::Farewell.new
-        send_message request
-      rescue
+        proc do
+          return if @remote_dead || DCell.id == @id
+          Message::Farewell.new.to_msgpack
+        end
       end
 
       # Send a heartbeat message after the given interval

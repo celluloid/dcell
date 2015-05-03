@@ -109,7 +109,6 @@ module DCell
     # Graceful termination of the node
     def shutdown
       transition :shutdown
-      farewell
       kill_actors
       close_comm
       NodeCache.delete @id
