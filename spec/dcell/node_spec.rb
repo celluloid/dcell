@@ -1,6 +1,6 @@
 RSpec.describe DCell::Node do
   def wait_for_actor(id)
-    30.times do
+    60.times do
       begin
         node = DCell::Node[id]
         return node if node and node.ping 1
@@ -61,7 +61,7 @@ RSpec.describe DCell::Node do
 
     def wait_for_death(time)
       sleep time + 1
-      30.times do
+      60.times do
         begin
           actor = DCell[:test_actor].first
           return if actor and actor.mutable != @unique
