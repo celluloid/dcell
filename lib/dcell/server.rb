@@ -52,12 +52,16 @@ module DCell
       async.run
     end
 
+    def send_farewell
+      return unless @farewell
+      msg = Message::Farewell.new.to_msgpack
+      @socket.write msg
+    rescue
+    end
+
     def shutdown
       return unless @socket
-      if @farewell
-        msg = Message::Farewell.new.to_msgpack
-        @socket.write msg
-      end
+      send_farewell
       @socket.close
       instance_variables.each { |iv| remove_instance_variable iv }
     end
