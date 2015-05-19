@@ -2,7 +2,7 @@
 
 require 'dcell'
 require 'optparse'
-require_relative 'registry'
+require_relative 'options'
 
 id = 'itchy'
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'dcell'
-require_relative 'registry'
+require_relative 'options'
 
 DCell.start registry: registry
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'dcell'
-require_relative 'registry'
+require_relative 'options'
 require_relative 'itchy'
 require 'optparse'
 
