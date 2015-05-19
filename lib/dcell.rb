@@ -6,6 +6,7 @@ require "securerandom"
 require "msgpack"
 require "uri"
 require "facter"
+require "pp"
 
 Celluloid::ZMQ.init
 
@@ -76,7 +77,11 @@ module DCell
           request_timeout: 10,      # Timeout on waiting for the response (in seconds)
           ttl_rate: 20,             # How often update TTL in the registry (in seconds)
           id: nil,
+          crypto: true,
         }.merge(options)
+        if configuration[:crypto]
+          configuration[:crypto_keys] = Socket.curve_genkeys
+        end
         configuration_accessors configuration
 
         fail ArgumentError, "no registry adapter given in config" unless @registry
@@ -108,6 +113,7 @@ module DCell
     # Run the DCell application in the background
     def run!
       Directory[id].actors = local_actors
+      Directory[id].pubkey = crypto ? crypto_keys[:pubkey] : nil
       DCell::SupervisionGroup.run!
     end
 

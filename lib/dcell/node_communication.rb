@@ -41,13 +41,17 @@ module DCell
       def rsocket
         return @rsocket if @rsocket
         send_relayopen unless @raddr
-        @rsocket = ClientServer.new @raddr, @heartbeat_timeout * 1000
+        linger = @heartbeat_timeout * 1000
+        pubkey = Directory[@id].pubkey
+        @rsocket = ClientServer.new @raddr, linger, pubkey
       end
 
       # Obtain socket for management messages
       def socket
         return @socket if @socket
-        @socket = ClientServer.new @addr, @heartbeat_timeout * 1000
+        linger = @heartbeat_timeout * 1000
+        pubkey = Directory[@id].pubkey
+        @socket = ClientServer.new @addr, linger, pubkey
         @socket.farewell = farewell
         transition :connected
         @socket
