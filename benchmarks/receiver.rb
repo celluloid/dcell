@@ -1,16 +1,16 @@
-require 'rubygems'
-require 'bundler'
-Bundler.setup
-
 require 'dcell'
-DCell.start :id => 'benchmark_receiver', :addr => 'tcp://127.0.0.1:2043'
+require 'dcell/registries/redis_adapter'
+
+DCell.start id: 'benchmark_receiver',
+            registry: DCell::Registry::RedisAdapter.new
 
 class AsyncReceiver
   include Celluloid
+
   attr_reader :count
 
-  def initialize(n, actor)
-    @n, @actor = n, actor
+  def initialize(n, node, actor)
+    @n, @actor = n, DCell::Node[node][actor.to_sym]
     @count = 0
   end
 
@@ -24,14 +24,11 @@ end
 class Progenator
   include Celluloid
 
-  def spawn_async_receiver(n, actor)
-    AsyncReceiver.new(n, actor)
+  def spawn_async_receiver(n, node, actor)
+    AsyncReceiver.supervise_as :receiver, args: [n, node, actor]
+    nil
   end
 end
+Progenator.supervise_as :progenator
 
-class BenchmarkApplication < Celluloid::SupervisionGroup
-  supervise DCell::SupervisionGroup
-  supervise Progenator, :as => :progenator
-end
-
-BenchmarkApplication.run
+sleep

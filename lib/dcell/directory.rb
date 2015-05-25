@@ -1,7 +1,7 @@
 module DCell
   # Node metadata helper
   class DirectoryMeta
-    attr_reader :id, :address, :actors, :ttl
+    attr_reader :id, :address, :actors, :ttl, :pubkey
 
     def initialize(id, meta)
       @id = id
@@ -9,15 +9,22 @@ module DCell
         @address = meta[:address]
         @actors = meta[:actors].map(&:to_sym)
         @ttl = Time.at meta[:ttl] || 0
+        @pubkey = meta[:pubkey]
       else
         @address = nil
         @actors = []
         @ttl = Time.now
+        @pubkey = nil
       end
     end
 
     def address=(address)
       @address = address
+      DCell.registry.set_node @id, self
+    end
+
+    def pubkey=(pubkey)
+      @pubkey = pubkey
       DCell.registry.set_node @id, self
     end
 
@@ -46,6 +53,7 @@ module DCell
         address: @address,
         actors: @actors,
         ttl: @ttl.to_i,
+        pubkey: @pubkey,
       }.to_msgpack(pk)
     end
   end

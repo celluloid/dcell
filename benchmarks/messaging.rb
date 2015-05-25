@@ -2,44 +2,44 @@
 
 require 'benchmark'
 
-require 'rubygems'
-require 'bundler'
-Bundler.setup
-
 require 'dcell'
-DCell.setup
-DCell.run!
+require 'dcell/registries/redis_adapter'
 
-RECEIVER_PORT = 2043
+DCell.start id: 'benchmark_messaging',
+            registry: DCell::Registry::RedisAdapter.new
 
 $receiver_pid = Process.spawn Gem.ruby, File.expand_path("../receiver.rb", __FILE__)
-STDERR.print "Waiting for test node to start up..."
 
-socket = nil
+print "Waiting for test node to start up..."
+
+receiver = nil
 30.times do
   begin
-    socket = TCPSocket.open("127.0.0.1", RECEIVER_PORT)
-    break if socket
-  rescue Errno::ECONNREFUSED
-    STDERR.print "."
+    receiver = DCell::Node['benchmark_receiver']
+    receiver.ping 1
+    break
+  rescue => e
+    print "."
+    receiver = nil
     sleep 1
   end
 end
 
-if socket
-  STDERR.puts " done!"
-  socket.close
+if receiver
+  puts " done!"
 else
-  STDERR.puts " FAILED!"
+  puts " FAILED!"
   raise "couldn't connect to test node!"
 end
 
 class AsyncPerformanceTest
   include Celluloid
 
-  def initialize(progenator, n = 10000)
+  attr_reader :n
+
+  def initialize(n, receiver)
     @n = n
-    @receiver = progenator.spawn_async_receiver(n, current_actor)
+    @receiver = receiver
   end
 
   def run
@@ -52,18 +52,30 @@ class AsyncPerformanceTest
   end
 end
 
-DCell.start :id => "messaging_node", :addr => "tcp://127.0.0.1:2042",
-  :directory => {
-    :id => "benchmark_receiver",
-    :addr => "tcp://127.0.0.1:#{RECEIVER_PORT}"
-  }
+class AsyncSender
+  include Celluloid
 
-receiver = DCell::Node['benchmark_receiver']
-progenator = receiver[:progenator]
+  attr_accessor :test
 
-test = AsyncPerformanceTest.new progenator
+  def initialize
+    @test = nil
+  end
+
+  def complete
+    @test.complete
+  end
+end
+AsyncSender.supervise_as :sender
+
+count = 10_000
+
+receiver[:progenator].spawn_async_receiver(count, DCell.id, :sender)
+
+test = AsyncPerformanceTest.new count, receiver[:receiver]
+Celluloid::Actor[:sender].test = test
+
 time = Benchmark.measure { test.run }.real
-messages_per_second = 1 / time * 10000
+messages_per_second = 1 / time * count
 
 puts "messages_per_second: #{"%0.2f" % messages_per_second}"
 

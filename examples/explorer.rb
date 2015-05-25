@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'dcell/explorer'
-require_relative 'registry'
+require_relative 'options'
 
 explorer_host = 'localhost'
 explorer_port = 7778
