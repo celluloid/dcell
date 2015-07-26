@@ -55,13 +55,13 @@
             <h1><div class="status status-large status-ok"></div> <%= @info[:hostname] %></h1>
             <br>
             <h2>Uptime: <%= @info[:uptime] %> days</h2>
-            <h2>Load average: <%= @info[:load_average].join(", ") %></h2>
+            <h2>Load average: <%= @info[:load_averages].join(", ") %></h2>
           </div>
           <div class="row-fluid">
             <div class="span4">
               <h2>System Info</h2>
               <ul>
-                <li><%= @info[:cpu][:type] %> (<%= @info[:cpu][:count] %> cores)</li>
+                <li><%= @info[:cpu][:type] %> @ <%= @info[:cpu][:speed] %>Ghz (<%= @info[:cpu][:count] %> cores)</li>
                 <li><%= @info[:cpu][:arch] %> CPU architecture</li>
                 <li><%= @info[:distribution] %></li>
               </ul>

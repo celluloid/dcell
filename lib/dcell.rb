@@ -5,8 +5,7 @@ require "socket"
 require "securerandom"
 require "msgpack"
 require "uri"
-require "facter"
-require "pp"
+require "rbconfig"
 
 Celluloid::ZMQ.init
 

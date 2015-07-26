@@ -26,7 +26,6 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "msgpack",         "~> 0.5"
   gem.add_runtime_dependency "celluloid-redis", "~> 0.0.2"
   gem.add_runtime_dependency "redis-namespace", "~> 1.5"
-  gem.add_runtime_dependency "facter",          "~> 2.4"
 
   gem.add_development_dependency "rake",        "~> 10.4"
   gem.add_development_dependency "rspec",       "~> 3.0"
