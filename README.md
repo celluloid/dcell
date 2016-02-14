@@ -1,9 +1,10 @@
 ![DCell](https://github.com/celluloid/dcell/raw/master/logo.png)
 =====
-[![Gem Version](https://badge.fury.io/rb/dcell.png)](http://rubygems.org/gems/dcell)
-[![Build Status](https://secure.travis-ci.org/celluloid/dcell.png?branch=master)](http://travis-ci.org/celluloid/dcell)
-[![Code Climate](https://codeclimate.com/github/celluloid/dcell.png)](https://codeclimate.com/github/celluloid/dcell)
-[![Coverage Status](https://coveralls.io/repos/celluloid/dcell/badge.png?branch=master)](https://coveralls.io/r/celluloid/dcell)
+[![Gem Version](https://badge.fury.io/rb/dcell.svg)](http://rubygems.org/gems/dcell)
+[![Build Status](https://secure.travis-ci.org/celluloid/dcell.svg?branch=master)](http://travis-ci.org/celluloid/dcell)
+[![Code Climate](https://codeclimate.com/github/celluloid/dcell.svg)](https://codeclimate.com/github/celluloid/dcell)
+[![Coverage Status](https://coveralls.io/repos/celluloid/dcell/badge.svg?branch=master)](https://coveralls.io/r/celluloid/dcell)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/celluloid/dcell/master/LICENSE.txt)
 
 > "Objects can message objects transparently that live on other machines
 > over the network, and you don't have to worry about the networking gunk,
@@ -142,27 +143,24 @@ Fight!
 
 This is a basic example how individual DCell::Nodes have registered Celluloid actors which can be accessed remotely by other DCell::Nodes.
 
-Supported Platforms
--------------------
+Supported Ruby Versions
+-----------------------
 
-DCell works on Ruby 1.9.3, JRuby 1.6, and Rubinius 2.0.
+This library supports and is tested against the following Ruby versions:
 
-DCell requires Ruby 1.9 mode on all interpreters. This works out of the
-box on MRI/YARV, and requires the following flags elsewhere:
+* Ruby (MRI) 1.9.3, 2.0, 2.1, 2.2, 2.3
+* JRuby 1.7, 9000
 
-* JRuby: --1.9 command line option, or JRUBY_OPTS=--1.9 environment variable
-* rbx: -X19 command line option
+Contributing
+------------
 
-Contributing to DCell
--------------------------
-
-* Fork this repository on github
-* Make your changes and send me a pull request
-* If I like them I'll merge them
-* If I've accepted a patch, feel free to ask for commit access
+* Fork this repository on GitHub
+* Make your changes and send us a pull request
+* If we like them we'll merge them
+* If we've accepted a patch, feel free to ask for commit access
 
 Copyright
 ---------
 
-Copyright (c) 2012 Tony Arcieri. Distributed under the MIT License.
+Copyright (c) 2012-2016 Tony Arcieri. Distributed under the MIT License.
 See LICENSE.txt for further details.
