@@ -148,7 +148,7 @@ Supported Ruby Versions
 
 This library supports and is tested against the following Ruby versions:
 
-* Ruby (MRI) 1.9.3, 2.0, 2.1, 2.2, 2.3
+* Ruby (MRI) 2.0, 2.1, 2.2, 2.3
 * JRuby 1.7, 9000
 
 Contributing

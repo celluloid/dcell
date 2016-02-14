@@ -12,16 +12,17 @@ services:
 
 rvm:
   - 2.0.0
-  - 2.1.4
-  - 2.2.2
-  - ruby-head
+  - 2.1.8
+  - 2.2.4
+  - 2.3.0
   - jruby
+  - jruby-9.0.5.0
   - rbx-2
 
 matrix:
   allow_failures:
-    - rvm: ruby-head
     - rvm: jruby
+    - rvm: jruby-9.0.5.0
     - rvm: rbx-2
     - env: DCELL_TEST_ADAPTER=cassandra
     - env: DCELL_TEST_ADAPTER=zk
