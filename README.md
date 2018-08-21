@@ -1,10 +1,9 @@
 ![DCell](https://github.com/celluloid/dcell/raw/master/logo.png)
 =====
 [![Gem Version](https://badge.fury.io/rb/dcell.svg)](http://rubygems.org/gems/dcell)
-[![Build Status](https://secure.travis-ci.org/celluloid/dcell.svg?branch=master)](http://travis-ci.org/celluloid/dcell)
-[![Code Climate](https://codeclimate.com/github/celluloid/dcell.svg)](https://codeclimate.com/github/celluloid/dcell)
-[![Coverage Status](https://coveralls.io/repos/celluloid/dcell/badge.svg?branch=master)](https://coveralls.io/r/celluloid/dcell)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/celluloid/dcell/master/LICENSE.txt)
+[![Build Status](https://secure.travis-ci.org/celluloid/dcell.svg?branch=master)](http://travis-ci.org/celluloid/dcell)
+[![Maintained: no](https://img.shields.io/maintenance/no/2015.svg)](https://github.com/celluloid/celluloid/issues/779)
 
 > "Objects can message objects transparently that live on other machines
 > over the network, and you don't have to worry about the networking gunk,
