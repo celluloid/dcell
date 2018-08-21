@@ -1,4 +1,5 @@
 AllCops:
+  DisplayCopNames: true
   Exclude:
     - '**/dcell.gemspec'
     - '**/Gemfile'
@@ -8,5 +9,25 @@ AllCops:
     - 'examples/*'
     - 'spec/**/*'
 
-inherit_from:
-  - culture/rubocop/rubocop.yml
+AllCops:
+  DisplayCopNames: true
+
+#
+# Style
+#
+
+LineLength:
+  Max: 128
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+#
+# Metrics
+#
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/MethodLength:
+  Max: 50
